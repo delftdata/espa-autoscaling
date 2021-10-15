@@ -15,8 +15,6 @@ kubectl apply -f zookeeper-deployment.yaml
 kubectl apply -f kafka-service.yaml
 kubectl apply -f kafka-deployment.yaml
 
-kubectl run workbench --image=ubuntu:21.04 -- sleep infinity
-
 
 
 # launch a container for running the data generator
