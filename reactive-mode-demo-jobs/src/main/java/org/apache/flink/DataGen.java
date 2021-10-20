@@ -87,6 +87,7 @@ public class DataGen {
                     if (Boolean.valueOf(args[4])) {
                         current += (noise - 0.5) * 10000;
                     }
+                    current += 1;
                     sleepEvery.set(current);
                     in += Math.PI / period;
                     System.out.println("At time " + (i++) + " Setting current " + current);

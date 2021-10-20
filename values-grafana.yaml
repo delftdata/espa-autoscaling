@@ -15,7 +15,7 @@ datasources:
       type: prometheus
       access: proxy
       isDefault: true
-      url: http://prometheus-server.reactive.svc
+      url: http://prometheus-server.default.svc
 
 # Configure Grafana to load dashboards from the given directory
 dashboardProviders:
