@@ -47,7 +47,7 @@ public class DataGen {
                                                     + " Kafka produced: "
                                                     + i);
                                     try {
-                                        Thread.sleep(15_000);
+                                        Thread.sleep(30_000);
                                     } catch (InterruptedException e) {
                                         e.printStackTrace();
                                         break;
@@ -59,11 +59,11 @@ public class DataGen {
         producerThread.start();
 
         System.out.println("Kafka Producer started.");
-        long median = 50_000L;
+        long median = 50_00L;
         long current;
         double in =  - Math.PI/2;
         int i = 0;
-        int noise = 1000;
+        int noise = Math.random();
         double period = Double.parseDouble(args[5]);
 
         switch (args[3]) {
@@ -85,7 +85,7 @@ public class DataGen {
                 while (true) {
                     current = median + (long) (median * Math.cos(in));
                     if (Boolean.valueOf(args[4])) {
-                        current += (noise - 0.5) * 10000;
+                        current += ((double)noise - 0.5) * 10000;
                     }
                     sleepEvery.set(current);
                     in += Math.PI / period;
@@ -95,12 +95,12 @@ public class DataGen {
             case "square":
                 while (true) {
                     if (Math.cos(in) > 0) {
-                        current = 100000;
+                        current = 10000;
                     } else {
-                        current = 50000;
+                        current = 5000;
                     }
                     if (Boolean.valueOf(args[4])) {
-                        current += (noise - 0.5) * 10000;
+                        current += ((double)noise - 0.5) * 10000;
                     }
                     sleepEvery.set(current);
                     in += Math.PI / period;
