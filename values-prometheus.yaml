@@ -19,9 +19,6 @@ server:
 
 # | is required because extraScrapeConfigs is expected to be a string
 extraScrapeConfigs: |
-  - job_name: kubernetes-pods
-    honor_timestamps: true
-    scrape_interval: 2s
   - job_name: 'kubernetes-pods-scrape-every-2s'
     scrape_interval: 2s
     kubernetes_sd_configs:

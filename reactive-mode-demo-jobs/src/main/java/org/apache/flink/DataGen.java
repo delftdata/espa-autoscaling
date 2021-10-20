@@ -18,6 +18,7 @@ public class DataGen {
         final String topic = args[0];
         final AtomicLong sleepEvery = new AtomicLong(Long.parseLong(args[1]));
         Properties props = new Properties();
+        long sleep = Long.parseLong(args[6]);
         props.put("bootstrap.servers", args[2]);
         props.put("acks", "all");
         props.put("retries", 0);
@@ -47,7 +48,7 @@ public class DataGen {
                                                     + " Kafka produced: "
                                                     + i);
                                     try {
-                                        Thread.sleep(30_000);
+                                        Thread.sleep(sleep*1000);
                                     } catch (InterruptedException e) {
                                         e.printStackTrace();
                                         break;
@@ -91,7 +92,7 @@ public class DataGen {
                     sleepEvery.set(current);
                     in += Math.PI / period;
                     System.out.println("At time " + (i++) + " Setting current " + current);
-                    Thread.sleep(60 * 1000L); // once per minute.
+                    Thread.sleep(sleep * 1000L); // once per minute.
                 }
             case "square":
                 while (true) {
@@ -106,7 +107,7 @@ public class DataGen {
                     sleepEvery.set(current);
                     in += Math.PI / period;
                     System.out.println("At time " + (i++) + " Setting current " + current);
-                    Thread.sleep(60 * 1000L); // once per minute.
+                    Thread.sleep(sleep * 1000L); // once per minute.
 
                 }
 

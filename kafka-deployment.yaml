@@ -12,7 +12,8 @@ spec:
     metadata:
       annotations:
         prometheus.io/port: '7071'
-        prometheus.io/scrape: 'true'
+        # prometheus.io/scrape: 'true'
+        ververica.com/scrape_every_2s: 'true'
       labels:
         app: kafka
         id: "0"
