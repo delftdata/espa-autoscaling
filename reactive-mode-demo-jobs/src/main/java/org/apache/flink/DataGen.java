@@ -24,7 +24,7 @@ public class DataGen {
         props.put("linger.ms", 1);
         props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-
+        
         Thread producerThread =
                 new Thread(
                         () -> {
@@ -59,6 +59,12 @@ public class DataGen {
         producerThread.start();
 
         System.out.println("Kafka Producer started.");
+        long median = 50_000L;
+        long current;
+        double in =  - Math.PI/2;
+        int i = 0;
+        int noise = 1000;
+        double period = Double.parseDouble(args[5]);
 
         switch (args[3]) {
             case "manual":
@@ -76,17 +82,31 @@ public class DataGen {
                     }
                 }
             case "cos":
-                long median = 50_000L;
-                long current;
-                double in = -3;
-                int i = 0;
-
                 while (true) {
                     current = median + (long) (median * Math.cos(in));
+                    if (Boolean.valueOf(args[4])) {
+                        current += (noise - 0.5) * 10000;
+                    }
                     sleepEvery.set(current);
-                    in += 0.04;
+                    in += Math.PI / period;
                     System.out.println("At time " + (i++) + " Setting current " + current);
                     Thread.sleep(60 * 1000L); // once per minute.
+                }
+            case "square":
+                while (true) {
+                    if (Math.cos(in) > 0) {
+                        current = 100000;
+                    } else {
+                        current = 50000;
+                    }
+                    if (Boolean.valueOf(args[4])) {
+                        current += (noise - 0.5) * 10000;
+                    }
+                    sleepEvery.set(current);
+                    in += Math.PI / period;
+                    System.out.println("At time " + (i++) + " Setting current " + current);
+                    Thread.sleep(60 * 1000L); // once per minute.
+
                 }
 
             default:
