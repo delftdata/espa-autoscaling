@@ -63,7 +63,7 @@ public class DataGen {
         long current;
         double in =  - Math.PI/2;
         int i = 0;
-        int noise = Math.random();
+        double noise = Math.random();
         double period = Double.parseDouble(args[5]);
 
         switch (args[3]) {
@@ -85,7 +85,7 @@ public class DataGen {
                 while (true) {
                     current = median + (long) (median * Math.cos(in));
                     if (Boolean.valueOf(args[4])) {
-                        current += ((double)noise - 0.5) * 10000;
+                        current += (noise - 0.5) * 10000;
                     }
                     sleepEvery.set(current);
                     in += Math.PI / period;
@@ -100,7 +100,7 @@ public class DataGen {
                         current = 5000;
                     }
                     if (Boolean.valueOf(args[4])) {
-                        current += ((double)noise - 0.5) * 10000;
+                        current += (noise - 0.5) * 10000;
                     }
                     sleepEvery.set(current);
                     in += Math.PI / period;
