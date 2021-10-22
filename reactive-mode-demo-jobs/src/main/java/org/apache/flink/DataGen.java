@@ -25,7 +25,7 @@ public class DataGen {
         props.put("linger.ms", 1);
         props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-        
+
         Thread producerThread =
                 new Thread(
                         () -> {
@@ -48,7 +48,7 @@ public class DataGen {
                                                     + " Kafka produced: "
                                                     + i);
                                     try {
-                                        Thread.sleep(sleep*1000);
+                                        Thread.sleep(sleep * 1000);
                                     } catch (InterruptedException e) {
                                         e.printStackTrace();
                                         break;
@@ -62,7 +62,7 @@ public class DataGen {
         System.out.println("Kafka Producer started.");
         long median = 50_00L;
         long current;
-        double in =  - Math.PI/2;
+        double in = -Math.PI / 2;
         int i = 0;
         double noise = Math.random();
         double period = Double.parseDouble(args[5]);
@@ -108,7 +108,6 @@ public class DataGen {
                     in += Math.PI / period;
                     System.out.println("At time " + (i++) + " Setting current " + current);
                     Thread.sleep(sleep * 1000L); // once per minute.
-
                 }
 
             default:
