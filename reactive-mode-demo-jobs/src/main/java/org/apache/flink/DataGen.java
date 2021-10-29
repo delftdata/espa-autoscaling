@@ -60,7 +60,7 @@ public class DataGen {
         producerThread.start();
 
         System.out.println("Kafka Producer started.");
-        long median = 50_00L;
+        long median = Long.parseLong(args[7], 10);
         long current;
         double in = -Math.PI / 2;
         int i = 0;

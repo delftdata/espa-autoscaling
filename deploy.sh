@@ -22,7 +22,7 @@ kubectl apply -f kafka-deployment.yaml
 helm install prometheus prometheus --repo https://prometheus-community.github.io/helm-charts --values values-prometheus.yaml
 
 
-helm install grafana grafana --repo https://grafana.github.io/helm-charts --values values-grafana.yaml --set-file dashboards.default.flink-dashboard.json=grafana-dashboard.json
+helm install grafana grafana --repo https://grafana.github.io/helm-charts --values values-grafana.yaml --set-file dashboards.default.flink-dashboard.json=grafana-dashboard.json --set-file dashboards.default.scaling-dashboard.json=grafana-dashboard-auto.json
 
 
 echo "Waiting for everything to be ready"

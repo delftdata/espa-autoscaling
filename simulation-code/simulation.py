@@ -20,7 +20,7 @@ rescale_time = 5
 pause = 0
 rescale_threshold = 10000
 rescale_cooldown = 30
-random_amplitude = 0
+random_amplitude = 10000
 
 cooldown = 0
 

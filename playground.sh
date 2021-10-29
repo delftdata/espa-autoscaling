@@ -19,6 +19,6 @@ echo "Waiting for everything to be ready"
   
 kubectl exec workbench -- bash -c "apt update && apt install -y maven git htop nano iputils-ping wget net-tools && git clone https://github.com/WybeKoper/PASAF.git && cd PASAF/reactive-mode-demo-jobs && mvn clean install"
 # mvn exec:java -Dexec.mainClass=\"org.apache.flink.DataGen\" -Dexec.args=\"topic 1 kafka-service:9092 cos\""
-# mvn exec:java -Dexec.mainClass="org.apache.flink.DataGen" -Dexec.args="topic 1 kafka-service:9092 square false 8"
+# mvn exec:java -Dexec.mainClass="org.apache.flink.DataGen" -Dexec.args="topic 1 kafka-service:9092 square false 8 60"
 
 
