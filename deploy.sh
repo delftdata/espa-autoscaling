@@ -1,6 +1,9 @@
 #!/bin/bash
 minikube start --memory 8192 --cpus 4
 
+minikube addons enable metrics-server
+
+
 
 kubectl apply -f flink-configuration-configmap.yaml
 kubectl apply -f jobmanager-application.yaml
