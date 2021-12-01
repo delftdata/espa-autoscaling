@@ -91,7 +91,7 @@ kubectl port-forward kafka-broker0-78fb8799f7-twdf6 9092:9092
 
 
 # scale automatically
-kubectl autoscale deployment flink-taskmanager --min=1 --max=15 --cpu-percent=35
+kubectl autoscale deployment flink-taskmanager --min=1 --max=5 --cpu-percent=75
 
 # remove autoscaler
 kubectl delete horizontalpodautoscalers flink-taskmanager

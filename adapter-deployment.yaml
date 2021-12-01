@@ -1,0 +1,143 @@
+# Please edit the object below. Lines beginning with a '#' will be ignored,
+# and an empty file will abort the edit. If an error occurs while saving this file will be
+# reopened with the relevant failures.
+#
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "16"
+    meta.helm.sh/release-name: my-release
+    meta.helm.sh/release-namespace: default
+  creationTimestamp: "2021-11-28T09:36:44Z"
+  generation: 16
+  labels:
+    app.kubernetes.io/component: metrics
+    app.kubernetes.io/instance: my-release
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: prometheus-adapter
+    app.kubernetes.io/part-of: prometheus-adapter
+    app.kubernetes.io/version: v0.9.1
+    helm.sh/chart: prometheus-adapter-3.0.0
+  name: my-release-prometheus-adapter
+  namespace: default
+  resourceVersion: "4493"
+  uid: 3353ce8f-4e8e-43df-9149-82e7ce6cd181
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: my-release
+      app.kubernetes.io/name: prometheus-adapter
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        checksum/config: 1cf4291215da4d01ffd94d1af5c42d3224f44b6e98c561ae2b7a537a66047f5c
+      creationTimestamp: null
+      labels:
+        app.kubernetes.io/component: metrics
+        app.kubernetes.io/instance: my-release
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: prometheus-adapter
+        app.kubernetes.io/part-of: prometheus-adapter
+        app.kubernetes.io/version: v0.9.1
+        helm.sh/chart: prometheus-adapter-3.0.0
+      name: prometheus-adapter
+    spec:
+      affinity: {}
+      containers:
+      - args:
+        - /adapter
+        - --secure-port=6443
+        - --cert-dir=/tmp/cert
+        - --logtostderr=true
+        - --prometheus-url=http://prometheus-server.default.svc
+        - --metrics-relist-interval=1m
+        - --v=4
+        - --config=/etc/adapter/config.yaml
+        image: k8s.gcr.io/prometheus-adapter/prometheus-adapter:v0.9.1
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthz
+            port: https
+            scheme: HTTPS
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        name: prometheus-adapter
+        ports:
+        - containerPort: 6443
+          name: https
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthz
+            port: https
+            scheme: HTTPS
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        resources: {}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - all
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 10001
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /etc/adapter/
+          name: config
+          readOnly: true
+        - mountPath: /tmp
+          name: tmp
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        fsGroup: 10001
+      serviceAccount: my-release-prometheus-adapter
+      serviceAccountName: my-release-prometheus-adapter
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: my-release-prometheus-adapter2
+        name: config
+      - emptyDir: {}
+        name: tmp
+status:
+  availableReplicas: 1
+  conditions:
+  - lastTransitionTime: "2021-11-28T10:41:17Z"
+    lastUpdateTime: "2021-11-28T10:41:17Z"
+    message: Deployment has minimum availability.
+    reason: MinimumReplicasAvailable
+    status: "True"
+    type: Available
+  - lastTransitionTime: "2021-11-28T09:36:44Z"
+    lastUpdateTime: "2021-11-28T10:44:24Z"
+    message: ReplicaSet "my-release-prometheus-adapter-655fd654dc" has successfully
+      progressed.
+    reason: NewReplicaSetAvailable
+    status: "True"
+    type: Progressing
+  observedGeneration: 16
+  readyReplicas: 1
+  replicas: 1
+  updatedReplicas: 1
