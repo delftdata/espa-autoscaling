@@ -3,12 +3,23 @@ data:
   config.yaml: |
     rules:      
     - seriesQuery: 'flink_taskmanager_job_task_operator_KafkaConsumer_records_lag_max{kubernetes_namespace!="",kubernetes_pod_name!=""}'
+      seriesFilters:
+      - is: ".*flink_taskmanager_job_task_operator_KafkaConsumer_records_lag_max.*"
       name: {as: "lag_rate"}
       resources:
         overrides:
           kubernetes_namespace: {resource: "namespace"}
           kubernetes_pod_name: {resource: "pod"}
       metricsQuery: '((sum(flink_taskmanager_job_task_operator_KafkaConsumer_records_lag_max) by (<<.GroupBy>>) - 1000000) / abs(sum(flink_taskmanager_job_task_operator_KafkaConsumer_records_lag_max) by (<<.GroupBy>>) - 1000000))* (1 + (deriv(sum(flink_taskmanager_job_task_operator_KafkaConsumer_records_lag_max) by (<<.GroupBy>>)[5m:10s]) / sum(flink_taskmanager_job_task_operator_KafkaConsumer_records_consumed_rate) by (<<.GroupBy>>)))'  
+    - seriesQuery: 'flink_taskmanager_job_task_idleTimeMsPerSecond{kubernetes_namespace!="",kubernetes_pod_name!=""}'
+      seriesFilters:
+      - is: ".*flink_taskmanager_job_task_idleTimeMsPerSecond.*"
+      name: {as: "utilization"}
+      resources:
+        overrides:
+          kubernetes_namespace: {resource: "namespace"}
+          kubernetes_pod_name: {resource: "pod"}
+      metricsQuery: '1 - (avg(flink_taskmanager_job_task_idleTimeMsPerSecond) by (<<.GroupBy>>) / 1000)'    
 kind: ConfigMap
 metadata:
   annotations:
