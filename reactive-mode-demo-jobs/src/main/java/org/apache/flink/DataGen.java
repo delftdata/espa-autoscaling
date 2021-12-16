@@ -111,7 +111,7 @@ public class DataGen {
                 }
             case "constant":
                 while (true) {
-                    current = median
+                    current = median;
                     sleepEvery.set(current);
                     System.out.println("At time " + (i++) + " Setting current " + current);
                     Thread.sleep(sleep * 1000L); // once per minute.
