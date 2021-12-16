@@ -115,7 +115,7 @@ public class DataGen {
                     sleepEvery.set(current);
                     System.out.println("At time " + (i++) + " Setting current " + current);
                     Thread.sleep(sleep * 1000L); // once per minute.
-                }    
+                }
 
             default:
                 throw new IllegalArgumentException("unexpected mode " + args[3]);
