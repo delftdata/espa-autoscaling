@@ -109,6 +109,13 @@ public class DataGen {
                     System.out.println("At time " + (i++) + " Setting current " + current);
                     Thread.sleep(sleep * 1000L); // once per minute.
                 }
+            case "constant":
+                while (true) {
+                    current = median
+                    sleepEvery.set(current);
+                    System.out.println("At time " + (i++) + " Setting current " + current);
+                    Thread.sleep(sleep * 1000L); // once per minute.
+                }    
 
             default:
                 throw new IllegalArgumentException("unexpected mode " + args[3]);
