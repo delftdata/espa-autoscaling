@@ -44,6 +44,8 @@ def main():
 def evaluate(spec):
 
     metrics = spec["metrics"]
+
+
     json_value = json.loads(metrics[0]["value"])
     backpressure = float(json_value["backpressure"])
     outpool = float(json_value["outpool"])
@@ -51,17 +53,23 @@ def evaluate(spec):
     current_replicas = int(spec["resource"]["spec"]["replicas"])
 
     f = open("logs.txt", "a")
-    f.write(str(backpressure) + " " + str(outpool) + " " + str(current_replicas) + "\n")
-    f.close()
+    f.write("backpressure: " + str(backpressure) + " outpool: " + str(outpool) + " current replicas:" + str(current_replicas) + "\n")
 
-    if backpressure >= 0.5:
+    if backpressure >= 500:
         current_replicas += 1
-    elif backpressure < 0.1 and outpool < 0.4:
+        f.write("scaling up \n")
+    elif backpressure < 100 and outpool < 0.4:
         current_replicas -= 1
+        f.write("scaling down \n")
     if current_replicas == 0:
         current_replicas = 1
+        f.write("replicas = " + str(current_replicas) + "\n")
     elif current_replicas == 5:
         current_replicas = 4
+        f.write("replicas = " + str(current_replicas) + "\n")
+
+    f.close()
+    
 
     evaluation = {}
     evaluation["targetReplicas"] = current_replicas

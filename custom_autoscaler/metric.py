@@ -22,7 +22,7 @@ def metric(spec):
         return_value = {"backpressure": backpressure_value, "outpool": outpool_value}
 
         # Output whatever metrics are gathered to stdout
-        sys.stdout.write(str(return_value))
+        sys.stdout.write(json.dumps(return_value))
     except HTTPError as http_err:
         # If an error occurs, output error to stderr and exit with status 1
         sys.stderr.write(f"HTTP error occurred: {http_err}")

@@ -7,7 +7,7 @@ spec:
     spec:
       containers:
       - name: simple-pod-metrics-python
-        image: 9923/custom-autoscaler-test:10
+        image: 9923/custom-autoscaler-test:18
         imagePullPolicy: IfNotPresent
   scaleTargetRef:
     apiVersion: apps/v1
@@ -16,3 +16,8 @@ spec:
   config:
     - name: interval
       value: "10000"
+    - name: downscaleStabilization
+      value: "60"
+    - name: upscaleStabilization
+      value: "60"
+
