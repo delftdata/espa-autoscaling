@@ -57,7 +57,7 @@ kubectl proxy
 kubectl port-forward flink-jobmanager-rp4zv 8081
 
 # scale manually
-kubectl scale --replicas=3 deployments/flink-taskmanager
+kubectl scale --replicas=2 deployments/flink-taskmanager
 
 # probably based on: https://www.magalix.com/blog/kafka-on-kubernetes-and-deploying-best-practice
 # start zookeeper

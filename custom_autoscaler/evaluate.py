@@ -39,34 +39,32 @@ import math
 def main():
     # Parse JSON into a dict
     spec = json.loads(sys.stdin.read())
-    f = open("demofile2.txt", "a")
-    f.write(str(spec))
-    f.close()
     evaluate(spec)
 
 def evaluate(spec):
-    # Count total available
-    # total_available = 0
-    # print(spec['metrics'])
-    # for metric in spec["metrics"]:
-    #     json_value = json.loads(metric["value"])
-    #     available = json_value["available"]
-    #     total_available += int(available)
-    #
-    # # Get current replica count
-    # target_replica_count = int(spec["resource"]["spec"]["replicas"])
-    #
-    # # Decrease target replicas if more than 5 available
-    # if total_available > 5:
-    #     target_replica_count -= 1
-    #
-    # # Increase target replicas if none available
-    # if total_available <= 0:
-    #     target_replica_count += 1
 
-    # Build JSON dict with targetReplicas
+    metrics = spec["metrics"]
+    json_value = json.loads(metrics[0]["value"])
+    backpressure = float(json_value["backpressure"])
+    outpool = float(json_value["outpool"])
+
+    current_replicas = int(spec["resource"]["spec"]["replicas"])
+
+    f = open("logs.txt", "a")
+    f.write(str(backpressure) + " " + str(outpool) + " " + str(current_replicas) + "\n")
+    f.close()
+
+    if backpressure >= 0.5:
+        current_replicas += 1
+    elif backpressure < 0.1 and outpool < 0.4:
+        current_replicas -= 1
+    if current_replicas == 0:
+        current_replicas = 1
+    elif current_replicas == 5:
+        current_replicas = 4
+
     evaluation = {}
-    evaluation["targetReplicas"] = 3
+    evaluation["targetReplicas"] = current_replicas
 
     # Output JSON to stdout
     sys.stdout.write(json.dumps(evaluation))
