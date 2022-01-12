@@ -1,0 +1,26 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: dhalion
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dhalion
+  template:
+    metadata:
+      labels:
+        app: dhalion
+    spec:
+      containers:
+      - name: python-container
+        image: 9923/dhalion:3
+        imagePullPolicy: Always
+        # ports:
+        # - containerPort: 9092
+        # - containerPort: 7071
+        env:
+        - name: KAFKA_LISTENERS
+          value: "LISTENER_INT://0.0.0.0:9092"
+        - name: COOLDOWN
+          value: "10"
