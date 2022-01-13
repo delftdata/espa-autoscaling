@@ -35,7 +35,7 @@
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
-            "fillOpacity": 16,
+            "fillOpacity": 17,
             "gradientMode": "none",
             "hideFrom": {
               "legend": false,
@@ -99,13 +99,13 @@
             "uid": "PBFA97CFB590B2093"
           },
           "exemplar": true,
-          "expr": "deriv(flink_taskmanager_job_task_operator_KafkaConsumer_records_lag_max[1m])",
+          "expr": "sum(deriv(flink_taskmanager_job_task_operator_KafkaConsumer_records_lag_max[1m]))\r\n",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
         }
       ],
-      "title": "Derivative consumer lag",
+      "title": "Derivative kafka consumer lag",
       "type": "timeseries"
     },
     {
@@ -386,7 +386,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "exemplar": true,
-          "expr": "avg_over_time(flink_taskmanager_job_task_operator_KafkaConsumer_records_lag_max[1m])\n",
+          "expr": "sum(avg_over_time(flink_taskmanager_job_task_operator_KafkaConsumer_records_lag_max[1m]))\n",
           "interval": "",
           "legendFormat": "records",
           "refId": "A"
