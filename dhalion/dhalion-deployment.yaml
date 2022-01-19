@@ -9,13 +9,18 @@ spec:
       app: dhalion
   template:
     metadata:
+      annotations:
+        prometheus.io/port: '8000'
+        ververica.com/scrape_every_2s: 'true'
       labels:
         app: dhalion
     spec:
       containers:
       - name: python-container
-        image: 9923/dhalion:4
+        image: 9923/dhalion:5
         imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
         volumeMounts:
         - mountPath: /usr/src/app/test-pd
           name: test-volume
@@ -43,7 +48,5 @@ spec:
           path: /host_mnt/c/temp/soccerdb-pv
           # this field is optional
           type: DirectoryOrCreate 
-            # ports:
-        # - containerPort: 9092
         # - containerPort: 7071
       

@@ -4,7 +4,17 @@ import requests
 import json
 from kubernetes import client, config
 from datetime import datetime
+from prometheus_client import start_http_server, Gauge
 
+start_http_server(8000)
+cooldown_metric = Gauge('dhalion_autoscaler_cooldown', 'amount of seconds remaining in cooldown')
+cooldown_metric.set(-1)
+
+backpressure_metric = Gauge('dhalion_autoscaler_backpressure', 'backpressure value')
+backpressure_metric.set(-1)
+
+deriv_consumer_lag_metric = Gauge('dhalion_autoscaler_derivative_consumer_lag', 'derivative of consumer lag')
+deriv_consumer_lag_metric.set(-1)
 
 while True:
         print('Executing Dhalion Script')
@@ -23,11 +33,13 @@ while True:
         backpressure_query = requests.get("http://prometheus-server/api/v1/query?query=max(avg_over_time(flink_taskmanager_job_task_backPressuredTimeMsPerSecond[" + avg_over_time +"]))")
         backpressure_value = backpressure_query.json()["data"]["result"][0]["value"][1]
         print("backpressure value: " + str(backpressure_value))
+        backpressure_metric.set(str(backpressure_value))
 
         # obtain derivative of consumer lag from prometheus
         deriv_consumer_lag_query = requests.get("http://prometheus-server/api/v1/query?query=deriv(flink_taskmanager_job_task_operator_KafkaConsumer_records_lag_max[" + avg_over_time +"])")
         deriv_consumer_lag_value = deriv_consumer_lag_query.json()["data"]["result"][0]["value"][1]
         print("derivative consumer lag value: " + str(deriv_consumer_lag_value))
+        deriv_consumer_lag_metric.set(str(deriv_consumer_lag_value))
 
         # autenticate with kubernetes API
         config.load_incluster_config()
@@ -53,8 +65,11 @@ while True:
         difference = (current_time - last_scale_event_time).seconds
         if difference > cooldown:
                         cooldown_period_over = True
+                        cooldown_metric.set(0)
         else:
                         cooldown_period_over = False
+                        cooldown_metric.set(str(cooldown - difference))
+
 
         if cooldown_period_over:
                 # scaling logic

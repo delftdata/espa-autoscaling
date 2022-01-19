@@ -1,29 +1,34 @@
-import os
-import json
-import sys
-import requests
-import datetime
-from datetime import datetime
 
-with open('./test_pd/cooldown.txt', 'r') as f:
-    lines = f.readlines()
-    f.close()
+from prometheus_client import start_http_server, Gauge
+import time
+g = Gauge('wybe_metric', 'Description of gauge')
+g.set(10)
 
+if __name__ == '__main__':
+    # Start up the server to expose the metrics.
+    start_http_server(8000)
+    while(True):
+        time.sleep(10)
 
-current_time = datetime.now()
-
-
-old_time = lines[0]
-print(old_time)
-old_time_converted = datetime.strptime(old_time, "%Y-%m-%d %H:%M:%S.%f")
-
-difference = (current_time - old_time_converted).seconds
-
-with open('./test_pd/cooldown.txt', 'w') as f:
-    f.write(str(current_time))
-    f.close()
-
-# try:
+# with open('./test_pd/cooldown.txt', 'r') as f:
+#     lines = f.readlines()
+#     f.close()
+#
+#
+# current_time = datetime.now()
+#
+#
+# old_time = lines[0]
+# print(old_time)
+# old_time_converted = datetime.strptime(old_time, "%Y-%m-%d %H:%M:%S.%f")
+#
+# difference = (current_time - old_time_converted).seconds
+#
+# with open('./test_pd/cooldown.txt', 'w') as f:
+#     f.write(str(current_time))
+#     f.close()
+#
+# # try:
 #     # Make request to Pod metric endpoint
 #     # (see ../flask-metrics/ folder for simple flask app exposing this endpoint)
 #     backpressure_query = requests.get(
