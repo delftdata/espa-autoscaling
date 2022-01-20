@@ -18,6 +18,10 @@ kubectl apply -f zookeeper-deployment.yaml
 kubectl apply -f kafka-service.yaml
 kubectl apply -f kafka-deployment.yaml
 
+kubectl apply -f ./dhalion/dhalion-deployment.yaml
+kubectl apply -f ./dhalion/dhalion-service.yaml
+kubectl apply -f ./dhalion/rbac_rules.yaml
+
 
 
 # launch a container for running the data generator
