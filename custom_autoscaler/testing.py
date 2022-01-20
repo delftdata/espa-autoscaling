@@ -1,58 +1,33 @@
+import requests
+import json
 
-from prometheus_client import start_http_server, Gauge
-import time
-g = Gauge('wybe_metric', 'Description of gauge')
-g.set(10)
+def extract_per_operator_metrics(metrics_json):
+    metrics = metrics_json.json()["data"]["result"]
+    metrics_per_operator = {}
+    for operator in metrics:
+        metrics_per_operator[operator["metric"]["task_name"]] = float(operator["value"][1])
+    return metrics_per_operator
 
-if __name__ == '__main__':
-    # Start up the server to expose the metrics.
-    start_http_server(8000)
-    while(True):
-        time.sleep(10)
+avg_over_time = "2m"
+input_rate_query = requests.get("http://localhost:9090/api/v1/query?query=sum(avg_over_time(flink_taskmanager_job_task_operator_numRecordsIn[1m])) by (task_name)")
+output_rate_query = requests.get("http://localhost:9090/api/v1/query?query=sum(avg_over_time(flink_taskmanager_job_task_operator_numRecordsOut[1m])) by (task_name)")
+flink_input_rate = requests.get("http://localhost:9090/api/v1/query?query=flink_taskmanager_job_task_operator_KafkaConsumer_records_consumed_rate")
+number_of_processors_per_task = requests.get("http://localhost:9090/api/v1/query?query=count(flink_taskmanager_job_task_operator_numRecordsIn) by (task_name)")
 
-# with open('./test_pd/cooldown.txt', 'r') as f:
-#     lines = f.readlines()
-#     f.close()
-#
-#
-# current_time = datetime.now()
-#
-#
-# old_time = lines[0]
-# print(old_time)
-# old_time_converted = datetime.strptime(old_time, "%Y-%m-%d %H:%M:%S.%f")
-#
-# difference = (current_time - old_time_converted).seconds
-#
-# with open('./test_pd/cooldown.txt', 'w') as f:
-#     f.write(str(current_time))
-#     f.close()
-#
-# # try:
-#     # Make request to Pod metric endpoint
-#     # (see ../flask-metrics/ folder for simple flask app exposing this endpoint)
-#     backpressure_query = requests.get(
-#         "http://localhost:9090/api/v1/query?query=max(avg_over_time(flink_taskmanager_job_task_backPressuredTimeMsPerSecond[5m]))")
-#     outpool_query = requests.get(
-#         "http://localhost:9090/api/v1/query?query=max(avg_over_time(flink_taskmanager_job_task_buffers_outPoolUsage[5m]))")
-#
-#     backpressure_value = backpressure_query.json()["data"]["result"][0]["value"][1]
-#     outpool_value = outpool_query.json()["data"]["result"][0]["value"][1]
-#
-#     return_value = {"backpressure": backpressure_value, "outpool": outpool_value}
-#     print(return_value)
-#     # Output whatever metrics are gathered to stdout
-#     sys.stdout.write(str(return_value))
-# except HTTPError as http_err:
-#     # If an error occurs, output error to stderr and exit with status 1
-#     sys.stderr.write(f"HTTP error occurred: {http_err}")
-#     exit(1)
-# except Exception as err:
-#     # If an error occurs, output error to stderr and exit with status 1
-#     sys.stderr.write(f"Other error occurred: {err}")
-#     exit(1)
+print(input_rate_query.text)
+print(input_rate_query.json()["data"]["result"])
 
+input_rates_per_operator = extract_per_operator_metrics(input_rate_query)
+output_rates_per_operator = extract_per_operator_metrics(output_rate_query)
+processors_per_operator = extract_per_operator_metrics(number_of_processors_per_task)
+operators = list(processors_per_operator.keys())
 
+print(operators)
 
+output_per_processor = dict()
+for operator in operators:
+    output_per_processor[operator] = output_rates_per_operator[operator] / processors_per_operator[operator]
 
+print(output_rates_per_operator)
+print(output_per_processor)
 
