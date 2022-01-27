@@ -16,7 +16,7 @@ spec:
       restartPolicy: OnFailure
       containers:
         - name: jobmanager
-          image: rmetzger/flink:1.13.0-reactive-demo
+          image: 9923/timing_job:12
           imagePullPolicy: Always
           env:
           args: ["standalone-job", "--job-classname", "org.apache.flink.DemoJob", "--topic", "topic", "--bootstrap.servers", "kafka-service:9092", "--group.id", "yolo"]

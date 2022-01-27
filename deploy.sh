@@ -18,9 +18,9 @@ kubectl apply -f zookeeper-deployment.yaml
 kubectl apply -f kafka-service.yaml
 kubectl apply -f kafka-deployment.yaml
 
-kubectl apply -f ./dhalion/dhalion-deployment.yaml
-kubectl apply -f ./dhalion/dhalion-service.yaml
-kubectl apply -f ./dhalion/rbac_rules.yaml
+# kubectl apply -f ./dhalion/dhalion-deployment.yaml
+# kubectl apply -f ./dhalion/dhalion-service.yaml
+# kubectl apply -f ./dhalion/rbac_rules.yaml
 
 
 
@@ -33,7 +33,7 @@ helm install grafana grafana --repo https://grafana.github.io/helm-charts --valu
 
 helm install my-release prometheus-community/prometheus-adapter
 
-helm install custom-pod-autoscaler-operator https://github.com/jthomperoo/custom-pod-autoscaler-operator/releases/download/v1.1.1/custom-pod-autoscaler-operator-v1.1.1.tgz
+# helm install custom-pod-autoscaler-operator https://github.com/jthomperoo/custom-pod-autoscaler-operator/releases/download/v1.1.1/custom-pod-autoscaler-operator-v1.1.1.tgz
 
 echo "Waiting for everything to be ready"
 

@@ -16,9 +16,6 @@ data:
     restart-strategy: fixeddelay
     restart-strategy.fixed-delay.attempts: 100000
     scheduler-mode: reactive
-    metrics.latency.granularity: operator
-    metrics.latency.history-size: 128
-    metrics.latency.interval: 1
     metrics.reporter.prom.class: org.apache.flink.metrics.prometheus.PrometheusReporter
     heartbeat.timeout: 8000
     heartbeat.interval: 5000
