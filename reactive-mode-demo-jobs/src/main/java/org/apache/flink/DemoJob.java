@@ -61,9 +61,9 @@ public class DemoJob {
                         .setMaxParallelism(1)
                         .name("Kafka");
 
-        stream.flatMap(new ThroughputLogger(16, params.getLong("logfreq", 10_000)))
-                .setMaxParallelism(1)
-                .name("Throughput Logger");
+        // stream.flatMap(new ThroughputLogger(16, params.getLong("logfreq", 10_000)))
+        //         .setMaxParallelism(1)
+        //         .name("Throughput Logger");
 
         stream.rebalance()
                 .map(new CPULoadMapper(params))
