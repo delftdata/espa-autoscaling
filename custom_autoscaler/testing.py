@@ -2,6 +2,23 @@ import requests
 import json
 import math
 
+def MinProcessors(T_max, system_input_rate, input_rates_per_operator, processing_rates_per_operator, operators):
+    assigned_processors = {}
+    total_processors = 0
+    min_latency = 0
+    for operator in operators:
+        assigned_processors[operator] = math.floor(
+            input_rates_per_operator[operator] / processing_rates_per_operator[operator]) + 1
+        total_processors += assigned_processors[operator]
+        min_latency += 1 / processing_rates_per_operator[operator]
+    if min_latency > T_max:
+        print("here")
+        return Exception()
+    while expected_latency_of_system(operators, input_rates_per_operator, processing_rates_per_operator, assigned_processors, system_input_rate) > T_max:
+        total_processors += 1
+        assigned_processors = AssignProcessors(total_processors, system_input_rate, input_rates_per_operator, processing_rates_per_operator, operators)
+    return assigned_processors
+
 
 def AssignProcessors(K_max, system_input_rate, input_rates_per_operator, processing_rates_per_operator, operators):
     assigned_processors = {}
@@ -10,7 +27,7 @@ def AssignProcessors(K_max, system_input_rate, input_rates_per_operator, process
             input_rates_per_operator[operator] / processing_rates_per_operator[operator]) + 1
     sum_processors = sum(assigned_processors.values())
     if sum_processors > K_max:
-        return K_max
+        return Exception()
     while sum_processors <= K_max:
         highest_latency = 0
         highest_latency_operator = None
@@ -97,7 +114,7 @@ for operator in operators:
     if input_rates_per_operator[operator] == 0:
         input_rates_per_operator[operator] = output_rates_per_operator[operator]
 
-processing_rate_max = 100000
+processing_rate_max = 700000
 for operator in operators:
     if operator not in processing_rate_per_operator:
         processing_rate_per_operator[operator] = processing_rate_max
@@ -113,15 +130,21 @@ for operator in operators:
 # processing_rate_per_operator = {'Expensive_Computation': 20000, 'Source:_Kafka': 20000, 'Sink:_Sink': 20000}
 # processors_per_operator = {'Expensive_Computation': 3.0, 'Source:_Kafka': 1.0, 'Sink:_Sink': 1.0}
 # flink_input_rate_formatted = 10000
+processing_rate_per_operator = {'Expensive_Computation': 20000, 'Source:_Kafka': 100000, 'Sink:_Sink': 100000}
 
 
 print(operators)
+print("input")
 print(input_rates_per_operator)
+print("output_rate")
 print(output_rates_per_operator)
+print("processing_rate")
 print(processing_rate_per_operator)
+print("processors per operator")
 print(processors_per_operator)
+print("input rate of system")
 print(flink_input_rate_formatted)
 print(expected_latency_of_system(operators, input_rates_per_operator, processing_rate_per_operator,
                                  processors_per_operator, flink_input_rate_formatted))
-
-AssignProcessors(10, flink_input_rate_formatted, input_rates_per_operator, processing_rate_per_operator, operators)
+T_max = 0.00007
+print(MinProcessors(T_max, flink_input_rate_formatted, input_rates_per_operator, processing_rate_per_operator, operators))
