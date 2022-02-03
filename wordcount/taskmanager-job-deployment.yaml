@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: taskmanager
-        image: 9923/timing_job:12
+        image: 9923/wordcount:latest
         imagePullPolicy: Always
         resources:
           requests:

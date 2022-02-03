@@ -1,8 +1,13 @@
-apiVersion: batch/v1
-kind: Job
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: flink-jobmanager
 spec:
+  replicas: 1 # here, we configure the scale
+  selector:
+    matchLabels:
+      app: flink
+      component: jobmanager
   template:
     metadata:
       annotations:
@@ -13,13 +18,13 @@ spec:
         app: flink
         component: jobmanager
     spec:
-      restartPolicy: OnFailure
       containers:
         - name: jobmanager
-          image: 9923/timing_job:12
+          image: 9923/wordcount:latest
           imagePullPolicy: Always
           env:
-          args: ["standalone-job", "--job-classname", "org.apache.flink.DemoJob", "--topic", "topic", "--bootstrap.servers", "kafka-service:9092", "--group.id", "yolo"]
+          args: ["sleep", "infinity"]
+          # args: ["standalone-job", "--job-classname", "org.apache.flink.streaming.examples.wordcount.WordCount"]
           ports:
             - containerPort: 6123
               name: rpc
