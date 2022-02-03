@@ -18,26 +18,18 @@
 
 package org.apache.flink;
 
-import org.apache.flink.api.common.functions.RichFlatMapFunction;
+import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.java.utils.ParameterTool;
-import org.apache.flink.configuration.Configuration;
-import org.apache.flink.dropwizard.metrics.DropwizardHistogramWrapper;
-import org.apache.flink.metrics.Histogram;
-import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.DiscardingSink;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.util.Collector;
 
-import com.codahale.metrics.SlidingWindowReservoir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 
 public class DemoJob {
 
@@ -50,7 +42,6 @@ public class DemoJob {
         env.getConfig().setGlobalJobParameters(params);
         env.disableOperatorChaining();
         env.enableCheckpointing(30_000L);
-        env.setStreamTimeCharacteristic(TimeCharacteristic.IngestionTime);
 
         DataStream<String> stream =
                 env.addSource(
@@ -75,7 +66,6 @@ public class DemoJob {
     }
 
     private static class CPULoadMapper extends RichMapFunction<String, String> {
-        private transient Histogram histogram;
         private final ParameterTool params;
         private boolean firstMessage = false;
 
@@ -83,23 +73,9 @@ public class DemoJob {
             this.params = params;
         }
 
-        @Override
-        public void open(Configuration config) {
-            com.codahale.metrics.Histogram dropwizardHistogram =
-                    new com.codahale.metrics.Histogram(new SlidingWindowReservoir(500));
-
-            this.histogram =
-                    getRuntimeContext()
-                            .getMetricGroup()
-                            .histogram(
-                                    "myHistogramExpensive",
-                                    new DropwizardHistogramWrapper(dropwizardHistogram));
-        }
-
         // Let's waste some CPU cycles
         @Override
         public String map(String s) throws Exception {
-            Instant start = Instant.now();
             if (!firstMessage) {
                 LOG.info("Received message " + s);
                 firstMessage = true;
@@ -111,16 +87,12 @@ public class DemoJob {
             for (int i = 0; i < params.getInt("iterations", 500); i++) {
                 res += Math.sin(StrictMath.cos(res)) * 2;
             }
-            Instant end = Instant.now();
-            long difference = ChronoUnit.NANOS.between(start, end);
-            this.histogram.update(difference);
-            LOG.info("latency {%.5f}", difference);
             return s + res;
         }
     }
 
-    private static class ThroughputLogger<T> extends RichFlatMapFunction<T, Integer> {
-        private transient Histogram histogram;
+    private static class ThroughputLogger<T> implements FlatMapFunction<T, Integer> {
+
         private static final Logger LOG = LoggerFactory.getLogger(ThroughputLogger.class);
 
         private long totalReceived = 0;
@@ -135,20 +107,7 @@ public class DemoJob {
         }
 
         @Override
-        public void open(Configuration config) {
-            com.codahale.metrics.Histogram dropwizardHistogram =
-                    new com.codahale.metrics.Histogram(new SlidingWindowReservoir(500));
-            this.histogram =
-                    getRuntimeContext()
-                            .getMetricGroup()
-                            .histogram(
-                                    "myHistogramThrougphut",
-                                    new DropwizardHistogramWrapper(dropwizardHistogram));
-        }
-
-        @Override
         public void flatMap(T element, Collector<Integer> collector) throws Exception {
-            Instant start = Instant.now();
             totalReceived++;
             if (totalReceived % logfreq == 0) {
                 // throughput over entire time
@@ -164,21 +123,17 @@ public class DemoJob {
                     long elementDiff = totalReceived - lastTotalReceived;
                     double ex = (1000 / (double) timeDiff);
                     LOG.info(
-                            "During the last {} ms, we received {} elements. That's {} elements/second/core. {} MB/sec/core. Histogram value {}. GB received {}.",
+                            "During the last {} ms, we received {} elements. That's {} elements/second/core. {} MB/sec/core. GB received {}",
                             timeDiff,
                             elementDiff,
                             elementDiff * ex,
                             elementDiff * ex * elementSize / 1024 / 1024,
-                            this.histogram.getCount(),
                             (totalReceived * elementSize) / 1024 / 1024 / 1024);
                     // reinit
                     lastLogTimeMs = now;
                     lastTotalReceived = totalReceived;
                 }
             }
-            Instant end = Instant.now();
-
-            this.histogram.update(ChronoUnit.NANOS.between(start, end));
         }
     }
 }
