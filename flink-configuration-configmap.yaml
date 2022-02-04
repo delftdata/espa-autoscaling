@@ -21,6 +21,7 @@ data:
     heartbeat.interval: 5000
     rest.flamegraph.enabled: true
     classloader.resolve-order: parent-first
+    state.savepoints.dir: file:///opt/flink/savepoints/save
   log4j-console.properties: |+
     # This affects logging for both user code and Flink
     rootLogger.level = INFO

@@ -37,7 +37,7 @@ operators = list(processors_per_operator.keys())
 # might not be needed after upgrading source function
 for key in busy_time_per_operator:
     if math.isnan(busy_time_per_operator[key]):
-        busy_time_per_operator[key] = 1000
+        busy_time_per_operator[key] = 200
 
 # print(input_rates_per_operator)
 # print(output_rates_per_operator)
@@ -57,7 +57,7 @@ for key in output_rates_per_operator:
 # print(true_output_rate)
 
 
-with open('./examples/offline/flink_test_rates4.log', 'w', newline='') as f:
+with open('./examples/offline/flink_test_rates_2_tm.log', 'w', newline='') as f:
     writer = csv.writer(f)
     header = ["# operator_id", "operator_instance_id", "total_number_of_operator_instances", "epoch_timestamp", "true_processing_rate", "true_output_rate", "observed_processing_rate", "observed_output_rate"]
     writer.writerow(header)

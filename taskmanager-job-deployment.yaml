@@ -42,6 +42,8 @@ spec:
         volumeMounts:
         - name: flink-config-volume
           mountPath: /opt/flink/conf/
+        - name: savepoint-volume
+          mountPath: /opt/flink/savepoints  
         securityContext:
           runAsUser: 9999  # refers to user _flink_ from official flink image, change if necessary
       volumes:
@@ -53,3 +55,8 @@ spec:
             path: flink-conf.yaml
           - key: log4j-console.properties
             path: log4j-console.properties
+      - name: savepoint-volume
+        hostPath:
+          path: /host_mnt/c/temp/soccerdb-pv
+          type: DirectoryOrCreate 
+
