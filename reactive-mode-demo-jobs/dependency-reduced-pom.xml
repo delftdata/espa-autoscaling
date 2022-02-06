@@ -137,7 +137,7 @@
     <dependency>
       <groupId>org.apache.flink</groupId>
       <artifactId>flink-java</artifactId>
-      <version>1.13-SNAPSHOT</version>
+      <version>1.14.3</version>
       <scope>provided</scope>
       <exclusions>
         <exclusion>
@@ -161,7 +161,7 @@
     <dependency>
       <groupId>org.apache.flink</groupId>
       <artifactId>flink-streaming-java_2.11</artifactId>
-      <version>1.13-SNAPSHOT</version>
+      <version>1.14.3</version>
       <scope>provided</scope>
       <exclusions>
         <exclusion>
@@ -169,7 +169,11 @@
           <groupId>org.apache.flink</groupId>
         </exclusion>
         <exclusion>
-          <artifactId>flink-runtime_2.11</artifactId>
+          <artifactId>flink-runtime</artifactId>
+          <groupId>org.apache.flink</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>flink-scala_2.11</artifactId>
           <groupId>org.apache.flink</groupId>
         </exclusion>
         <exclusion>
@@ -193,11 +197,11 @@
     <dependency>
       <groupId>org.apache.flink</groupId>
       <artifactId>flink-clients_2.11</artifactId>
-      <version>1.13-SNAPSHOT</version>
+      <version>1.14.3</version>
       <scope>provided</scope>
       <exclusions>
         <exclusion>
-          <artifactId>flink-optimizer_2.11</artifactId>
+          <artifactId>flink-optimizer</artifactId>
           <groupId>org.apache.flink</groupId>
         </exclusion>
         <exclusion>
@@ -205,7 +209,7 @@
           <groupId>commons-cli</groupId>
         </exclusion>
         <exclusion>
-          <artifactId>flink-runtime_2.11</artifactId>
+          <artifactId>flink-runtime</artifactId>
           <groupId>org.apache.flink</groupId>
         </exclusion>
         <exclusion>
@@ -241,7 +245,7 @@
     <target.java.version>1.8</target.java.version>
     <scala.binary.version>2.11</scala.binary.version>
     <log4j.version>2.12.1</log4j.version>
-    <flink.version>1.13-SNAPSHOT</flink.version>
+    <flink.version>1.14.3</flink.version>
     <maven.compiler.source>${target.java.version}</maven.compiler.source>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.target>${target.java.version}</maven.compiler.target>
