@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: jobmanager
-          image: 9923/timing_job:14
+          image: 9923/timing_job:15
           imagePullPolicy: Always
           env:
           args: ["standalone-job", "--job-classname", "org.apache.flink.DemoJob", "--topic", "topic", "--bootstrap.servers", "kafka-service:9092", "--group.id", "yolo"]
