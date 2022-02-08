@@ -10,7 +10,6 @@
       <excludeFolder url="file://$MODULE_DIR$/${project.build.directory}/test-classes" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
-    <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.apache.flink:flink-java:1.14.3" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.apache.flink:flink-core:1.14.3" level="project" />
