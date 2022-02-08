@@ -65,7 +65,8 @@ public class DemoJob {
 
         DataStream<String> stream =
                 env.fromSource(source, WatermarkStrategy.noWatermarks(), "Kafka Source")
-                        .setParallelism(1);
+                        .setParallelism(Integer.parseInt(params.get("p1")))
+                        .uid("source-id");
 
         // stream.flatMap(new ThroughputLogger(16, params.getLong("logfreq", 10_000)))
         //         .setMaxParallelism(1)
@@ -74,9 +75,12 @@ public class DemoJob {
         stream.rebalance()
                 .map(new CPULoadMapper(params))
                 .name("Expensive Computation")
+                .uid("expensive-id")
+                .setParallelism(Integer.parseInt(params.get("p2")))
                 .addSink(new DiscardingSink<>())
                 .name("Sink")
-                .setParallelism(9999);
+                .uid("sink-id")
+                .setParallelism(Integer.parseInt(params.get("p3")));
         env.execute("Rescalable Demo Job");
     }
 

@@ -15,13 +15,13 @@ data:
     taskmanager.memory.process.size: 1728m  
     restart-strategy: fixeddelay
     restart-strategy.fixed-delay.attempts: 100000
-    scheduler-mode: reactive
+    # scheduler-mode: reactive
     metrics.reporter.prom.class: org.apache.flink.metrics.prometheus.PrometheusReporter
     heartbeat.timeout: 8000
     heartbeat.interval: 5000
     rest.flamegraph.enabled: true
     classloader.resolve-order: parent-first
-    state.savepoints.dir: file:///opt/flink/savepoints/save
+    state.savepoints.dir: file:///opt/flink
   log4j-console.properties: |+
     # This affects logging for both user code and Flink
     rootLogger.level = INFO

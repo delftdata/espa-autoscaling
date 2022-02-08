@@ -20,10 +20,12 @@ spec:
     spec:
       containers:
         - name: jobmanager
-          image: 9923/timing_job:15
+          image: 9923/demo_custom_par:2
           imagePullPolicy: Always
           env:
-          args: ["standalone-job", "--job-classname", "org.apache.flink.DemoJob", "--topic", "topic", "--bootstrap.servers", "kafka-service:9092", "--group.id", "yolo"]
+          # args: ["jobmanager"]
+          # args: ["standalone-job", "--job-classname", "org.ap "--topic", "topic", "--bootstrap.servers", "kafka-service:9092", "--group.id", "yolo", "--p1", "1", "--p2", "4", --p3, "1"]
+          args: ["standalone-job", "--job-classname", "org.apache.flink.DemoJob", "--fromSavepoint", "/opt/flink/savepoints/savepoint-ccb6fb-7f8152eed50f", "--topic", "topic", "--bootstrap.servers", "kafka-service:9092", "--group.id", "yolo", "--p1", "1", "--p2", "4", --p3, "1"]
           ports:
             - containerPort: 6123
               name: rpc
@@ -42,7 +44,7 @@ spec:
             - name: savepoint-volume
               mountPath: /opt/flink/savepoints
           securityContext:
-            runAsUser: 9999  # refers to user _flink_ from official flink image, change if necessary
+            runAsUser: 0  # refers to user _flink_ from official flink image, change if necessary
       volumes:
         - name: flink-config-volume
           configMap:

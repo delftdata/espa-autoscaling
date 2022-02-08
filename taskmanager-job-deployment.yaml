@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: taskmanager
-        image: 9923/timing_job:15
+        image: 9923/demo_custom_par:2
         imagePullPolicy: Always
         resources:
           requests:
@@ -38,14 +38,14 @@ spec:
           tcpSocket:
             port: 6122
           initialDelaySeconds: 30
-          periodSeconds: 60
+          periodSeconds: 60 
         volumeMounts:
         - name: flink-config-volume
           mountPath: /opt/flink/conf/
         - name: savepoint-volume
-          mountPath: /opt/flink/savepoints  
+          mountPath: /opt/flink/savepoints
         securityContext:
-          runAsUser: 9999  # refers to user _flink_ from official flink image, change if necessary
+          runAsUser: 0  # refers to user _flink_ from official flink image, change if necessary
       volumes:
       - name: flink-config-volume
         configMap:
