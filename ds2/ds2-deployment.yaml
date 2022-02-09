@@ -1,0 +1,47 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: ds2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ds2
+  template:
+    metadata:
+      labels:
+        app: ds2
+    spec:
+      containers:
+      - name: python-container
+        image: 9923/ds2:4
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+        volumeMounts:
+        - mountPath: /usr/src/app/test-pd
+          name: test-volume
+        env:
+        - name: AVG_OVER_TIME
+          value: "1m"
+        - name: COOLDOWN
+          value: "240"  
+        - name: MIN_REPLICAS
+          value: "1"
+        - name: MAX_REPLICAS
+          value: "2" 
+        - name: SLEEP_TIME
+          value: "10"
+        - name: CONTAINER
+          value: "200"
+        - name: JOB
+          value: "org.apache.flink.DemoJob"  
+      volumes:
+      - name: test-volume
+        hostPath:
+          # directory location on host
+          path: /host_mnt/c/temp/soccerdb-pv
+          # this field is optional
+          type: DirectoryOrCreate 
+        # - containerPort: 7071
+      

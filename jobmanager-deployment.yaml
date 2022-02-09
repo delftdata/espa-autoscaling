@@ -25,7 +25,7 @@ spec:
           env:
           # args: ["jobmanager"]
           # args: ["standalone-job", "--job-classname", "org.ap "--topic", "topic", "--bootstrap.servers", "kafka-service:9092", "--group.id", "yolo", "--p1", "1", "--p2", "4", --p3, "1"]
-          args: ["standalone-job", "--job-classname", "org.apache.flink.DemoJob", "--fromSavepoint", "/opt/flink/savepoints/savepoint-ccb6fb-7f8152eed50f", "--topic", "topic", "--bootstrap.servers", "kafka-service:9092", "--group.id", "yolo", "--p1", "1", "--p2", "4", --p3, "1"]
+          args: ["standalone-job", "--job-classname", "org.apache.flink.DemoJob", "--fromSavepoint", "/opt/flink/savepoints/savepoint-ccb6fb-7f8152eed50f", "--topic", "topic", "--bootstrap.servers", "kafka-service:9092", "--group.id", "yolo", "--p1", "1", "--p2", "4", "--p3", "1"]
           ports:
             - containerPort: 6123
               name: rpc

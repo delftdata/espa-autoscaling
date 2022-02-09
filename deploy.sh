@@ -18,8 +18,8 @@ kubectl apply -f zookeeper-deployment.yaml
 kubectl apply -f kafka-service.yaml
 kubectl apply -f kafka-deployment.yaml
 
-# kubectl apply -f ./dhalion/dhalion-deployment.yaml
-# kubectl apply -f ./dhalion/dhalion-service.yaml
+# kubectl apply -f ./dhalion/ds2-deployment.yaml
+# kubectl apply -f ./dhalion/ds2-service.yaml
 # kubectl apply -f ./dhalion/rbac_rules.yaml
 
 
