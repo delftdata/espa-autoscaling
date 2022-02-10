@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: python-container
-        image: 9923/ds2:4
+        image: 9923/ds2:5
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
@@ -33,7 +33,7 @@ spec:
         - name: SLEEP_TIME
           value: "10"
         - name: CONTAINER
-          value: "200"
+          value: "9923/demo_custom_par:2"
         - name: JOB
           value: "org.apache.flink.DemoJob"  
       volumes:

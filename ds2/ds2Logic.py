@@ -167,18 +167,18 @@ while True:
 
     print("DS2 model result")
     print(suggested_parallelism)
-    job_id_json = requests.get("http://flink-jobmanager-rest/jobs/")
+    job_id_json = requests.get("http://flink-jobmanager-rest:8081/jobs/")
     job_id = job_id_json.json()['jobs'][0]['id']
 
-    savepoint = requests.post("http://flink-jobmanager-rest/jobs/" + job_id + "/savepoints")
+    savepoint = requests.post("http://flink-jobmanager-rest:8081/jobs/" + job_id + "/savepoints")
 
     #sleep so savepoint can be taken
     time.sleep(5)
     trigger_id = savepoint.json()['request-id']
-    savepoint_name = requests.get("http://flink-jobmanager-rest/jobs/" + job_id + "/savepoints/" + trigger_id)
+    savepoint_name = requests.get("http://flink-jobmanager-rest:8081/jobs/" + job_id + "/savepoints/" + trigger_id)
     savepoint_path = savepoint_name.json()["operation"]["location"]
 
-    stop_request = requests.post("http://flink-jobmanager-rest/jobs/" + job_id + "/stop")
+    stop_request = requests.post("http://flink-jobmanager-rest:8081/jobs/" + job_id + "/stop")
 
     p1 = 1
     p2 = 2
@@ -202,10 +202,30 @@ while True:
     new_number_of_taskmanagers = 2
     body = {"spec": {"replicas": new_number_of_taskmanagers}}
     api_response = v1.patch_namespaced_deployment_scale(name="flink-taskmanager", namespace="default", body=body, pretty=True)
-    v1 = client.BatchV1Api
+    v1 = client.BatchV1Api()
 
     # delete old jobmanager
     api_response = v1.delete_namespaced_job(name="flink-jobmanager", namespace="default", pretty=True)
+
+    time.sleep(5)
+
+    # delete the remaining jobmanager pod
+    v1 = client.CoreV1Api()
+    response = v1.list_namespaced_pod(namespace="default")
+
+    # find name
+    jobmanager_name = None
+    for i in response.items:
+        if "jobmanager" in i.metadata.name:
+            print("Found jobmanager id: " + str(i.metadata.name))
+            jobmanager_name = i.metadata.name
+
+    # delete pod
+    if jobmanager_name is not None:
+        response = v1.delete_namespaced_pod(name=jobmanager_name, namespace="default")
+        print("deleted pod")
+    else:
+        print("No jobmanager pod found")
 
     time.sleep(10)
 
@@ -213,5 +233,6 @@ while True:
     k8s_client = client.ApiClient()
     yaml_file = "jobmanager_from_savepoint.yaml"
     utils.create_from_yaml(k8s_client, yaml_file)
+    
 
     break
