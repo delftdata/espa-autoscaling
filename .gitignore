@@ -1,4 +1,4 @@
 *.vscode/
 *.idea/
 *.jar/
-*/target/*
+*.jar
