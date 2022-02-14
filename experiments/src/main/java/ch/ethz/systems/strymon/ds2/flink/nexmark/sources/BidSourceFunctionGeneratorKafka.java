@@ -17,7 +17,7 @@
  */
 
 package ch.ethz.systems.strymon.ds2.flink.nexmark.sources;
-
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.beam.sdk.nexmark.NexmarkConfiguration;
 import org.apache.beam.sdk.nexmark.model.Bid;
 import org.apache.beam.sdk.nexmark.sources.generator.GeneratorConfig;
@@ -39,21 +39,23 @@ public class BidSourceFunctionGeneratorKafka {
     private final GeneratorConfig config = new GeneratorConfig(NexmarkConfiguration.DEFAULT, 1, 1000L, 0, 1);
     private long eventsCountSoFar = 0;
     private final int rate;
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     public BidSourceFunctionGeneratorKafka(int srcRate) {
         this.rate = srcRate;
     }
 
     public void run(String[] args) throws Exception {
+
         Properties props = new Properties();
         props.put("bootstrap.servers", args[0]);
         props.put("acks", "all");
         props.put("retries", 0);
         props.put("linger.ms", 1);
         props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-        props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+//        props.put("value.serializer", "ch.ethz.systems.strymon.ds2.common.");
         final String topic = args[1];
-        Producer<String, Bid> producer = new KafkaProducer<>(props);
+        Producer<String, byte[]> producer = new KafkaProducer<>(props);
 
         while (running && eventsCountSoFar < 20_000_000) {
             long emitStartTime = System.currentTimeMillis();
@@ -67,7 +69,7 @@ public class BidSourceFunctionGeneratorKafka {
                 long eventTimestamp =
                         config.timestampAndInterEventDelayUsForEvent(
                                 config.nextEventNumber(eventsCountSoFar)).getKey();
-                producer.send(new ProducerRecord<String, Bid>(topic, BidGenerator.nextBid(nextId, rnd, eventTimestamp, config)));
+                producer.send(new ProducerRecord<String, byte[]>(topic, objectMapper.writeValueAsBytes(BidGenerator.nextBid(nextId, rnd, eventTimestamp, config))));
 //                ctx.collect(BidGenerator.nextBid(nextId, rnd, eventTimestamp, config));
                 eventsCountSoFar++;
             }
