@@ -19,7 +19,7 @@ spec:
           image: 9923/experiments:5
           imagePullPolicy: Always
           env:
-          args: ["standalone-job", "--job-classname", "ch.ethz.systems.strymon.ds2.flink.nexmark.queries.Query11"]
+          args: ["standalone-job", "--job-classname", "ch.ethz.systems.strymon.ds2.flink.nexmark.queries.Query1KafkaSource"]
           # args: ["standalone-job", "--job-classname", "org.apache.flink.DemoJob", "--fromSavepoint", "/opt/flink/savepoints/savepoint-ache.flink.DemoJob", "--fromSavepoint", "/opt/flink/savepoints/savepoint-340664-9060d916d03f", "--topic", "topic", "--bootstrap.servers", "kafka-service:9092", "--group.id", "yolo", "--p1", "1", "--p2", "2", --p3, "1"]
           # args: ["standalone-job", "--job-classname", "org.apache.flink.DemoJob", "--topic", "topic", "--bootstrap.servers", "kafka-service:9092", "--group.id", "yolo"]
           ports:
