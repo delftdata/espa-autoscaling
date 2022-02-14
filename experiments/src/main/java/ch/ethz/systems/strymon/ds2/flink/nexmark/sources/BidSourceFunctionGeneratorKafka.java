@@ -50,8 +50,8 @@ public class BidSourceFunctionGeneratorKafka {
         props.put("acks", "all");
         props.put("retries", 0);
         props.put("linger.ms", 1);
-//        props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-//        props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+        props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+        props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         final String topic = args[1];
         Producer<String, Bid> producer = new KafkaProducer<>(props);
 
