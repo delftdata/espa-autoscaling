@@ -61,15 +61,16 @@ public class BidSourceFunctionGeneratorKafka {
 
     public void run(String[] args) throws Exception {
         final ParameterTool params = ParameterTool.fromArgs(args);
+        int experiment_time = params.getInt("time", 120);
+        final String topic = params.get("topic", "topic");
+        String kafka_server = params.get("kafka_server","kafka-service:9092");
         Properties props = new Properties();
-        props.put("bootstrap.servers", args[0]);
+        props.put("bootstrap.servers", kafka_server);
         props.put("acks", "all");
         props.put("retries", 0);
         props.put("linger.ms", 1);
         props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         props.put("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
-        final String topic = args[1];
-        int experiment_time = params.getInt("time", 120);
         Producer<String, byte[]> producer = new KafkaProducer<>(props);
 
         long start_time = System.currentTimeMillis();
