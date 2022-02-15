@@ -17,6 +17,7 @@
  */
 
 package ch.ethz.systems.strymon.ds2.flink.nexmark.sources;
+import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.beam.sdk.nexmark.NexmarkConfiguration;
 import org.apache.beam.sdk.nexmark.model.Bid;
@@ -45,8 +46,21 @@ public class BidSourceFunctionGeneratorKafka {
         this.rate = srcRate;
     }
 
-    public void run(String[] args) throws Exception {
+    public int getPerSecondRate(long time){
+        int intial_position = 30;
+        int elapsed_minutes = (int)Math.floor((double) ((System.currentTimeMillis() - time) / 60000));
+        double period = 2 * Math.PI / 90;
+        int amplitude = 200000;
+        int vertical_shift = 200000;
 
+        int limit = (int) (vertical_shift + amplitude * Math.cos(period * (intial_position + elapsed_minutes)));
+
+        return limit;
+
+    }
+
+    public void run(String[] args) throws Exception {
+        final ParameterTool params = ParameterTool.fromArgs(args);
         Properties props = new Properties();
         props.put("bootstrap.servers", args[0]);
         props.put("acks", "all");
@@ -55,12 +69,16 @@ public class BidSourceFunctionGeneratorKafka {
         props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         props.put("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
         final String topic = args[1];
+        int experiment_time = params.getInt("time", 120);
         Producer<String, byte[]> producer = new KafkaProducer<>(props);
 
-        while (running && eventsCountSoFar < 20_000_000) {
+        long start_time = System.currentTimeMillis();
+        while (((System.currentTimeMillis() - start_time) / 60000) < experiment_time) {
             long emitStartTime = System.currentTimeMillis();
 
-            for (int i = 0; i < rate; i++) {
+            int current_rate = getPerSecondRate(start_time);
+
+            for (int i = 0; i < current_rate; i++) {
 
                 long nextId = nextId();
                 Random rnd = new Random(nextId);
@@ -70,7 +88,6 @@ public class BidSourceFunctionGeneratorKafka {
                         config.timestampAndInterEventDelayUsForEvent(
                                 config.nextEventNumber(eventsCountSoFar)).getKey();
                 producer.send(new ProducerRecord<String, byte[]>(topic, objectMapper.writeValueAsBytes(BidGenerator.nextBid(nextId, rnd, eventTimestamp, config))));
-//                ctx.collect(BidGenerator.nextBid(nextId, rnd, eventTimestamp, config));
                 eventsCountSoFar++;
             }
 
