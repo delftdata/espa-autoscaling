@@ -27,4 +27,4 @@ for i in range(1, 91):
         counter+=1
     start += 1
 
-    print(counter)
+    print(i, counter)

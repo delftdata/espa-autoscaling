@@ -46,10 +46,10 @@ public class BidSourceFunctionGeneratorKafka {
         this.rate = srcRate;
     }
 
-    public int getPerSecondRate(long time){
+    public int getPerSecondRate(long time, int cosine_period) {
         int intial_position = 30;
         int elapsed_minutes = (int)Math.floor((double) ((System.currentTimeMillis() - time) / 60000));
-        double period = 2 * Math.PI / 90;
+        double period = 2 * Math.PI / cosine_period;
         int amplitude = 200000;
         int vertical_shift = 200000;
 
@@ -62,6 +62,7 @@ public class BidSourceFunctionGeneratorKafka {
     public void run(String[] args) throws Exception {
         final ParameterTool params = ParameterTool.fromArgs(args);
         int experiment_time = params.getInt("time", 120);
+        int cosine_period = params.getInt("period", 90);
         final String topic = params.get("topic", "topic");
         String kafka_server = params.get("kafka_server","kafka-service:9092");
         Properties props = new Properties();
@@ -77,7 +78,7 @@ public class BidSourceFunctionGeneratorKafka {
         while (((System.currentTimeMillis() - start_time) / 60000) < experiment_time) {
             long emitStartTime = System.currentTimeMillis();
 
-            int current_rate = getPerSecondRate(start_time);
+            int current_rate = getPerSecondRate(start_time, cosine_period);
 
             for (int i = 0; i < current_rate; i++) {
 
