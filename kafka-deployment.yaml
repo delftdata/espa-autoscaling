@@ -20,7 +20,8 @@ spec:
     spec:
       containers:
       - name: kafka
-        image: 9923/kakfa_jmx:latest
+        image: 9923/kafka_jmx:2
+        imagePullPolicy: Always
         ports:
         - containerPort: 9092
         - containerPort: 7071
@@ -55,3 +56,5 @@ spec:
           value: "0"
         - name: KAFKA_CREATE_TOPICS
           value: topic:10:1
+        - name: KAFKA_OPTS
+          value: -javaagent:/usr/app/jmx_prometheus_javaagent.jar=7071:/usr/app/prom-jmx-agent-config.yml
