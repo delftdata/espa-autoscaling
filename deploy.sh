@@ -6,10 +6,10 @@ minikube addons enable metrics-server
 
 
 kubectl apply -f flink-configuration-configmap.yaml
-kubectl apply -f jobmanager-application.yaml
+# kubectl apply -f jobmanager-application.yaml
 kubectl apply -f jobmanager-rest-service.yaml
 kubectl apply -f jobmanager-service.yaml
-kubectl apply -f taskmanager-job-deployment.yaml
+# kubectl apply -f taskmanager-job-deployment.yaml
 
 kubectl apply -f zookeeper-service.yaml
 kubectl apply -f zookeeper-deployment.yaml
@@ -31,7 +31,7 @@ helm install prometheus prometheus --repo https://prometheus-community.github.io
 
 helm install grafana grafana --repo https://grafana.github.io/helm-charts --values values-grafana.yaml --set-file dashboards.default.flink-dashboard.json=grafana-dashboard.json --set-file dashboards.default.scaling-dashboard.json=grafana-dashboard-auto.json
 
-helm install my-release prometheus-community/prometheus-adapter
+# helm install my-release prometheus-community/prometheus-adapter
 
 # helm install custom-pod-autoscaler-operator https://github.com/jthomperoo/custom-pod-autoscaler-operator/releases/download/v1.1.1/custom-pod-autoscaler-operator-v1.1.1.tgz
 

@@ -52,8 +52,13 @@ public class BidSourceFunctionGeneratorKafka {
         double period = 2 * Math.PI / cosine_period;
         int amplitude = 200000;
         int vertical_shift = 200000;
-
-        int limit = (int) (vertical_shift + amplitude * Math.cos(period * (intial_position + elapsed_minutes)));
+        int limit;
+        if ((System.currentTimeMillis() - time) / 60000 < 5){
+            limit = (int) (vertical_shift + amplitude * Math.cos(period * (intial_position + 5)));
+        }
+        else {
+            limit = (int) (vertical_shift + amplitude * Math.cos(period * (intial_position + elapsed_minutes)));
+        }
 
         return limit;
 
