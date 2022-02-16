@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: kafka
-        image: 9923/kafka_jmx:2
+        image: 9923/kafka_jmx:3
         imagePullPolicy: Always
         ports:
         - containerPort: 9092
