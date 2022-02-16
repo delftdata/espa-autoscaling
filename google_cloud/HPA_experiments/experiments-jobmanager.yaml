@@ -37,8 +37,6 @@ spec:
           volumeMounts:
             - name: flink-config-volume
               mountPath: /opt/flink/conf
-            - name: savepoint-volume
-              mountPath: /opt/flink/savepoints
           securityContext:
             runAsUser: 0  # refers to user _flink_ from official flink image, change if necessary
       volumes:
