@@ -55,8 +55,4 @@ spec:
             path: flink-conf.yaml
           - key: log4j-console.properties
             path: log4j-console.properties
-      - name: savepoint-volume
-        hostPath:
-          path: /host_mnt/c/temp/soccerdb-pv
-          type: DirectoryOrCreate 
 
