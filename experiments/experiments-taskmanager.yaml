@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: taskmanager
-        image: 9923/experiments:7
+        image: 9923/experiments:9
         imagePullPolicy: Always
         resources:
           requests:

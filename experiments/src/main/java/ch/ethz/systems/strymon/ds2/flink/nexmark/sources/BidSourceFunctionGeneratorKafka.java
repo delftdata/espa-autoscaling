@@ -46,18 +46,15 @@ public class BidSourceFunctionGeneratorKafka {
         this.rate = srcRate;
     }
 
-    public int getPerSecondRate(long time, int cosine_period) {
-        int intial_position = 30;
+    public int getPerSecondRate(long time, int cosine_period, int amplitude, int vertical_shift, int horizontal_shift) {
         int elapsed_minutes = (int)Math.floor((double) ((System.currentTimeMillis() - time) / 60000));
         double period = 2 * Math.PI / cosine_period;
-        int amplitude = 200000;
-        int vertical_shift = 200000;
         int limit;
         if ((System.currentTimeMillis() - time) / 60000 < 5){
-            limit = (int) (vertical_shift + amplitude * Math.cos(period * (intial_position + 5)));
+            limit = (int) (vertical_shift + amplitude * Math.cos(period * (horizontal_shift + 5)));
         }
         else {
-            limit = (int) (vertical_shift + amplitude * Math.cos(period * (intial_position + elapsed_minutes)));
+            limit = (int) (vertical_shift + amplitude * Math.cos(period * (horizontal_shift + elapsed_minutes)));
         }
 
         return limit;
@@ -68,6 +65,12 @@ public class BidSourceFunctionGeneratorKafka {
         final ParameterTool params = ParameterTool.fromArgs(args);
         int experiment_time = params.getInt("time", 120);
         int cosine_period = params.getInt("period", 90);
+        int amplitude = params.getInt("amplitude", 50000);
+        int vertical_shift = params.getInt("y-shift", 100000);
+        int horizontal_shift = params.getInt("x-shift", 0);
+        int mode = params.getInt("mode", 1);
+        int rate = params.getInt("rate", 50000);
+
         final String topic = params.get("topic", "topic");
         String kafka_server = params.get("kafka_server","kafka-service:9092");
         Properties props = new Properties();
@@ -83,7 +86,12 @@ public class BidSourceFunctionGeneratorKafka {
         while (((System.currentTimeMillis() - start_time) / 60000) < experiment_time) {
             long emitStartTime = System.currentTimeMillis();
 
-            int current_rate = getPerSecondRate(start_time, cosine_period);
+            int current_rate;
+            if (mode == 1){
+                current_rate = getPerSecondRate(start_time, cosine_period, amplitude, vertical_shift, horizontal_shift);
+            } else{
+                current_rate = rate;
+            }
 
             for (int i = 0; i < current_rate; i++) {
 

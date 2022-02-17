@@ -56,5 +56,5 @@ spec:
           value: "0"
         - name: KAFKA_CREATE_TOPICS
           value: topic:10:1
-        - name: KAFKA_OPTS
+        - name: EXTRA_ARGS 
           value: -javaagent:/usr/app/jmx_prometheus_javaagent.jar=7071:/usr/app/prom-jmx-agent-config.yml

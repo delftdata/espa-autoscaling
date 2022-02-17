@@ -11,7 +11,6 @@ ch\ethz\systems\strymon\ds2\flink\nexmark\queries\Query3.class
 ch\ethz\systems\strymon\ds2\flink\nexmark\queries\Query3Stateful$JoinPersonsWithAuctions.class
 ch\ethz\systems\strymon\ds2\flink\wordcount\TwoInputsWordCount.class
 ch\ethz\systems\strymon\ds2\common\BidSerializationSchema.class
-ch\ethz\systems\strymon\ds2\flink\nexmark\queries\Query1KafkaSource$2.class
 ch\ethz\systems\strymon\ds2\flink\wordcount\StatefulWordCount$Tokenizer.class
 ch\ethz\systems\strymon\ds2\flink\wordcount\RateControlledWordCount$Tokenizer.class
 ch\ethz\systems\strymon\ds2\flink\nexmark\queries\Query5.class

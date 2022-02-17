@@ -23,5 +23,5 @@ kubectl exec workbench -- bash -c "apt update && apt install -y maven git htop i
 # mvn exec:java -Dexec.mainClass="org.apache.flink.DataGen" -Dexec.args="topic 1 kafka-service:9092 cos false 8 15 50000"
 # mvn exec:java -Dexec.mainClass="org.apache.flink.DataGen" -Dexec.args="topic 1 kafka-service:9092 square false 8 60"
 # mvn exec:java -Dexec.mainClass="org.apache.flink.DataGen" -Dexec.args="topic 1 kafka-service:9092 constant false 8 30 10000"
+# mvn exec:java -Dexec.mainClass="ch.ethz.systems.strymon.ds2.flink.nexmark.sources.BidSourceFunctionGeneratorKafka" -Dexec.args="--p-source 4 --p-map 4"
 # mvn exec:java -Dexec.mainClass="ch.ethz.systems.strymon.ds2.flink.nexmark.sources.BidSourceFunctionGeneratorKafka"
-

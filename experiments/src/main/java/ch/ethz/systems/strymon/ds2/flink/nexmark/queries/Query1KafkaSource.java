@@ -49,7 +49,7 @@ public class Query1KafkaSource {
 
         final int srcRate = params.getInt("srcRate", 100000);
 
-        final boolean reactive = params.getBoolean("reactive_mode", true);
+        final int max_parallelism_source = params.getInt("source-max-parallelism", 20);
 
         // set up the execution environment
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -59,62 +59,39 @@ public class Query1KafkaSource {
         // enable latency tracking
         env.getConfig().setLatencyTrackingInterval(5000);
 
-        if (reactive) {
-            KafkaSource<Bid> source =
-                    KafkaSource.<Bid>builder()
-                            .setBootstrapServers("kafka-service:9092")
-                            .setTopics("topic")
-                            .setGroupId("consumer_group")
-                            .setStartingOffsets(OffsetsInitializer.earliest())
-                            .setValueOnlyDeserializer(new BidDeserializationSchema())
-                            .build();
+       
+        KafkaSource<Bid> source =
+        KafkaSource.<Bid>builder()
+                .setBootstrapServers("kafka-service:9092")
+                .setTopics("topic")
+                .setGroupId("consumer_group")
+                .setStartingOffsets(OffsetsInitializer.earliest())
+                .setValueOnlyDeserializer(new BidDeserializationSchema())
+                .build();
 
-            DataStream<Bid> bids =
-                    env.fromSource(source, WatermarkStrategy.noWatermarks(), "Bids Source").uid("Bids-Source");
-
-            DataStream<Tuple4<Long, Long, Long, Long>> mapped = bids.map(new MapFunction<Bid, Tuple4<Long, Long, Long, Long>>() {
-                @Override
-                public Tuple4<Long, Long, Long, Long> map(Bid bid) throws Exception {
-                    return new Tuple4<>(bid.auction, dollarToEuro(bid.price, exchangeRate), bid.bidder, bid.dateTime);
-                }
-            }).name("Mapper").uid("Mapper");
+        DataStream<Bid> bids =
+                env.fromSource(source, WatermarkStrategy.noWatermarks(), "Bids Source")
+                        .setParallelism(params.getInt("p-source", 1))
+                        .setMaxParallelism(max_parallelism_source)
+                        .uid("Bids-Source");
 
 
-            GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
-            mapped.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger)).name("Latency Sink").uid("Latency-Sink");
-        } else {
-            KafkaSource<Bid> source =
-                    KafkaSource.<Bid>builder()
-                            .setBootstrapServers("kafka-service:9092")
-                            .setTopics("topic")
-                            .setGroupId("consumer_group")
-                            .setStartingOffsets(OffsetsInitializer.earliest())
-                            .setValueOnlyDeserializer(new BidDeserializationSchema())
-                            .build();
-
-            DataStream<Bid> bids =
-                    env.fromSource(source, WatermarkStrategy.noWatermarks(), "Bids Source")
-                            .setMaxParallelism(params.getInt("p-source", 2))
-                            .uid("Bids-Source");
-
-            DataStream<Tuple4<Long, Long, Long, Long>> mapped = bids.rebalance().map(new MapFunction<Bid, Tuple4<Long, Long, Long, Long>>() {
-                        @Override
-                        public Tuple4<Long, Long, Long, Long> map(Bid bid) throws Exception {
-                            return new Tuple4<>(bid.auction, dollarToEuro(bid.price, exchangeRate), bid.bidder, bid.dateTime);
-                        }
-                    }).setParallelism(params.getInt("p-map", 1))
-                    .name("Mapper")
-                    .uid("Mapper");
+        DataStream<Tuple4<Long, Long, Long, Long>> mapped  = bids.map(new MapFunction<Bid, Tuple4<Long, Long, Long, Long>>() {
+            @Override
+            public Tuple4<Long, Long, Long, Long> map(Bid bid) throws Exception {
+                return new Tuple4<>(bid.auction, dollarToEuro(bid.price, exchangeRate), bid.bidder, bid.dateTime);
+            }
+        }).setParallelism(params.getInt("p-map", 1))
+                .name("Mapper")
+                .uid("Mapper");
 
 
-            GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
-            mapped.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
-                    .setParallelism(params.getInt("p-sink", 1))
-                    .name("Latency Sink")
-                    .uid("Latency-Sink");
-
-        }
-
+        GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
+        mapped.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
+                .setParallelism(params.getInt("p-sink", 1))
+        .name("Latency Sink")
+        .uid("Latency-Sink");
+    
         // execute program
         env.execute("Nexmark Query1");
     }
