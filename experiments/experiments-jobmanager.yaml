@@ -16,10 +16,11 @@ spec:
       restartPolicy: OnFailure
       containers:
         - name: jobmanager
-          image: 9923/experiments:5
+          image: 9923/experiments:7
           imagePullPolicy: Always
           env:
-          args: ["standalone-job", "--job-classname", "ch.ethz.systems.strymon.ds2.flink.nexmark.queries.Query1KafkaSource"]
+          args: ["standalone-job", "--job-classname", "ch.ethz.systems.strymon.ds2.flink.nexmark.queries.Query1KafkaSource", "--reactive_mode", "false"]
+          # args: ["standalone-job", "--job-classname", "ch.ethz.systems.strymon.ds2.flink.nexmark.queries.Query1KafkaSource", "--reactive_mode", "true", "--p-source", "2", "--p-map", "2", "--p-sink", "2"]
           # args: ["standalone-job", "--job-classname", "org.apache.flink.DemoJob", "--fromSavepoint", "/opt/flink/savepoints/savepoint-ache.flink.DemoJob", "--fromSavepoint", "/opt/flink/savepoints/savepoint-340664-9060d916d03f", "--topic", "topic", "--bootstrap.servers", "kafka-service:9092", "--group.id", "yolo", "--p1", "1", "--p2", "2", --p3, "1"]
           # args: ["standalone-job", "--job-classname", "org.apache.flink.DemoJob", "--topic", "topic", "--bootstrap.servers", "kafka-service:9092", "--group.id", "yolo"]
           ports:
