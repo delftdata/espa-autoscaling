@@ -22,6 +22,11 @@ spec:
       - name: kafka
         image: 9923/kafka_jmx:3
         imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: 1000m
+          limits:
+            cpu: 1500m
         ports:
         - containerPort: 9092
         - containerPort: 7071
