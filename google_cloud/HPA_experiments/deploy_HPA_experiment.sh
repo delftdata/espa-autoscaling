@@ -10,8 +10,9 @@ kubectl apply -f experiments-taskmanager.yaml
 kubectl apply -f zookeeper-service.yaml
 kubectl apply -f zookeeper-deployment.yaml
 
-kubectl apply -f kafka-service.yaml
-kubectl apply -f kafka-deployment.yaml
+# kubectl apply -f kafka-service.yaml
+# kubectl apply -f kafka-deployment.yaml
+kubectl apply -f kafka-multi-broker.yaml
 
 helm install prometheus prometheus --repo https://prometheus-community.github.io/helm-charts --values values-prometheus.yaml
 
