@@ -59,4 +59,6 @@ spec:
               value: topic:20:1
             - name: EXTRA_ARGS 
               value: -javaagent:/usr/app/jmx_prometheus_javaagent.jar=7071:/usr/app/prom-jmx-agent-config.yml
+      nodeSelector:
+          task: kafka
 
