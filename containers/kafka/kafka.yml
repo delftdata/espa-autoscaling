@@ -9,15 +9,19 @@ rules:
     clientId: "$3"
     topic: "$4"
     partition: "$5"
+  cache: true  
 - pattern : kafka.server<type=(.+), name=(.+), clientId=(.+), brokerHost=(.+), brokerPort=(.+)><>Value
   name: kafka_server_$1_$2
   type: GAUGE
   labels:
     clientId: "$3"
     broker: "$4:$5"
+  cache: true  
+  
 - pattern : kafka.coordinator.(\w+)<type=(.+), name=(.+)><>Value
   name: kafka_coordinator_$1_$2_$3
   type: GAUGE
+  cache: true  
 
 # Generic per-second counters with 0-2 key/value pairs
 - pattern: kafka.(\w+)<type=(.+), name=(.+)PerSec\w*, (.+)=(.+), (.+)=(.+)><>Count
@@ -26,14 +30,19 @@ rules:
   labels:
     "$4": "$5"
     "$6": "$7"
+  cache: true  
+  
 - pattern: kafka.(\w+)<type=(.+), name=(.+)PerSec\w*, (.+)=(.+)><>Count
   name: kafka_$1_$2_$3_total
   type: COUNTER
   labels:
     "$4": "$5"
+  cache: true  
+  
 - pattern: kafka.(\w+)<type=(.+), name=(.+)PerSec\w*><>Count
   name: kafka_$1_$2_$3_total
   type: COUNTER
+  cache: true  
 
 - pattern: kafka.server<type=(.+), client-id=(.+)><>([a-z-]+)
   name: kafka_server_quota_$3
@@ -41,6 +50,7 @@ rules:
   labels:
     resource: "$1"
     clientId: "$2"
+  cache: true  
 
 - pattern: kafka.server<type=(.+), user=(.+), client-id=(.+)><>([a-z-]+)
   name: kafka_server_quota_$4
@@ -49,6 +59,8 @@ rules:
     resource: "$1"
     user: "$2"
     clientId: "$3"
+  cache: true  
+  
 
 # Generic gauges with 0-2 key/value pairs
 - pattern: kafka.(\w+)<type=(.+), name=(.+), (.+)=(.+), (.+)=(.+)><>Value
@@ -57,14 +69,20 @@ rules:
   labels:
     "$4": "$5"
     "$6": "$7"
+  cache: true  
+  
 - pattern: kafka.(\w+)<type=(.+), name=(.+), (.+)=(.+)><>Value
   name: kafka_$1_$2_$3
   type: GAUGE
   labels:
     "$4": "$5"
+  cache: true  
+  
 - pattern: kafka.(\w+)<type=(.+), name=(.+)><>Value
   name: kafka_$1_$2_$3
   type: GAUGE
+  cache: true  
+
 
 # Emulate Prometheus 'Summary' metrics for the exported 'Histogram's.
 #
@@ -75,6 +93,8 @@ rules:
   labels:
     "$4": "$5"
     "$6": "$7"
+  cache: true  
+  
 - pattern: kafka.(\w+)<type=(.+), name=(.+), (.+)=(.*), (.+)=(.+)><>(\d+)thPercentile
   name: kafka_$1_$2_$3
   type: GAUGE
@@ -82,22 +102,32 @@ rules:
     "$4": "$5"
     "$6": "$7"
     quantile: "0.$8"
+  cache: true  
+  
 - pattern: kafka.(\w+)<type=(.+), name=(.+), (.+)=(.+)><>Count
   name: kafka_$1_$2_$3_count
   type: COUNTER
   labels:
     "$4": "$5"
+  cache: true  
+  
 - pattern: kafka.(\w+)<type=(.+), name=(.+), (.+)=(.*)><>(\d+)thPercentile
   name: kafka_$1_$2_$3
   type: GAUGE
   labels:
     "$4": "$5"
     quantile: "0.$6"
+  cache: true  
+  
 - pattern: kafka.(\w+)<type=(.+), name=(.+)><>Count
   name: kafka_$1_$2_$3_count
   type: COUNTER
+  cache: true  
+
 - pattern: kafka.(\w+)<type=(.+), name=(.+)><>(\d+)thPercentile
   name: kafka_$1_$2_$3
   type: GAUGE
   labels:
     quantile: "0.$4"
+  cache: true  
+  
