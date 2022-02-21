@@ -1,4 +1,4 @@
-apiVersion: autoscaling/v2beta1
+apiVersion: autoscaling/v2beta2
 kind: HorizontalPodAutoscaler
 metadata:
   name: flink-taskmanager
@@ -10,13 +10,14 @@ spec:
   - type: Resource
     resource:
       name: cpu
-      targetAverageUtilization: 80
+      target:
+        type: Utilization
+        averageUtilization: 80
   scaleTargetRef:
-    apiVersion: apps/v1
     kind: Deployment
     name: flink-taskmanager
-behavior:
-  scaleDown:
-    stabilizationWindowSeconds: 300
-  scaleUp:
-    stabilizationWindowSeconds: 150
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+    scaleUp:
+      stabilizationWindowSeconds: 150
