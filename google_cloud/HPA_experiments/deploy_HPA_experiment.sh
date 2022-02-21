@@ -25,7 +25,7 @@ kubectl expose deployment grafana --type=LoadBalancer --name=my-external-grafana
 kubectl wait --timeout=2m --for=condition=ready pods --all
 
 # kubectl exec workbench -- bash -c "apt update && apt install -y maven git htop iputils-ping wget net-tools && git clone https://github.com/WybeKoper/PASAF.git && cd PASAF/experiments && mvn clean install"
-
+kubectl exec kafka-4 -- /opt/kafka/bin/kafka-topics.sh --create -zookeeper zoo1:2181  --replication-factor 1 --partitions 24 --topic topic
 # kubectl expose job flink-jobmanager  
 
 kubectl apply -f workbench-deployment.yaml

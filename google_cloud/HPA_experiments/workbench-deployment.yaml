@@ -24,6 +24,6 @@ spec:
             cpu: 2000m
             memory: 2500Mi
         env:
-        args: ["mvn", "exec:java", "-Dexec.mainClass=ch.ethz.systems.strymon.ds2.flink.nexmark.sources.BidSourceFunctionGeneratorKafka", "-Dexec.args=--mode 0 --rate 10000"]
+        args: ["mvn", "exec:java", "-Dexec.mainClass=ch.ethz.systems.strymon.ds2.flink.nexmark.sources.BidSourceFunctionGeneratorKafka", "-Dexec.args=--mode 0 --rate 200000"]
 
       

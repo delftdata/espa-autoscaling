@@ -31,7 +31,7 @@ spec:
     matchLabels:
       app: kafka
   serviceName: kafka-broker
-  replicas: 3
+  replicas: 6
   template:
     metadata:
       annotations:
@@ -43,6 +43,13 @@ spec:
       containers:
       - name: broker
         image: 9923/kafka_jmx:4
+        resources:
+          requests:
+            cpu: 1000m
+            memory: 2000Mi
+          limits:
+            cpu: 1500m
+            memory: 4000Mi
         env:
         - name: HOSTNAME_VALUE
           valueFrom:
@@ -56,8 +63,8 @@ spec:
           value: zoo1:2181
         - name: KAFAK_AUTO_CREATE_TOPICS_ENABLE
           value: "false"
-        - name: KAFKA_CREATE_TOPICS
-          value: topic:20:1  
+        # - name: KAFKA_CREATE_TOPICS
+        #   value: topic:24:1  
         - name: EXTRA_ARGS 
           value: -javaagent:/usr/app/jmx_prometheus_javaagent.jar=7071:/usr/app/prom-jmx-agent-config.yml  
         ports:
