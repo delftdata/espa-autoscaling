@@ -301,7 +301,7 @@
         },
         {
           "exemplar": true,
-          "expr": "sum(rate(flink_taskmanager_job_task_operator_KafkaConsumer_records_consumed_total[2m]))\n",
+          "expr": "avg(rate(flink_taskmanager_job_task_operator_KafkaConsumer_records_consumed_total[2m]))\n",
           "hide": false,
           "interval": "",
           "legendFormat": "Consumed",

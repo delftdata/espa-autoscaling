@@ -4,7 +4,7 @@ metadata:
   name: flink-taskmanager
   namespace: default
 spec:
-  maxReplicas: 5
+  maxReplicas: 8
   minReplicas: 1
   scaleTargetRef:
     apiVersion: apps/v1

@@ -31,7 +31,7 @@ spec:
     matchLabels:
       app: kafka
   serviceName: kafka-broker
-  replicas: 6
+  replicas: 3
   template:
     metadata:
       annotations:
@@ -46,10 +46,10 @@ spec:
         resources:
           requests:
             cpu: 1000m
-            memory: 2000Mi
+            memory: 4000Mi
           limits:
             cpu: 1500m
-            memory: 4000Mi
+            memory: 8000Mi
         env:
         - name: HOSTNAME_VALUE
           valueFrom:
@@ -70,3 +70,5 @@ spec:
         ports:
         - containerPort: 9092
         - containerPort: 7071
+      nodeSelector:
+        task: kafka
