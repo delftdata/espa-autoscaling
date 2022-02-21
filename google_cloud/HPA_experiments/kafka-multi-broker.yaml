@@ -70,5 +70,3 @@ spec:
         ports:
         - containerPort: 9092
         - containerPort: 7071
-      nodeSelector:
-        task: kafka
