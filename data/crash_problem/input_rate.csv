@@ -1,6 +1,4 @@
-﻿sep=,
-"Time","sum(rate(kafka_server_brokertopicmetrics_messagesin_total{topic=""topic""}[1m]))"
-2022-02-22 08:40:00,
+﻿2022-02-22 08:40:00,
 2022-02-22 08:40:15,
 2022-02-22 08:40:30,
 2022-02-22 08:40:45,

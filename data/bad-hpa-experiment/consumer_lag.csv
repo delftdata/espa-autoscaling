@@ -1,6 +1,4 @@
-﻿sep=,
-"Time","avg(flink_taskmanager_job_task_operator_KafkaSourceReader_KafkaConsumer_records_lag_max)"
-2022-02-21 16:13:30,
+﻿2022-02-21 16:13:30,
 2022-02-21 16:13:45,
 2022-02-21 16:14:00,
 2022-02-21 16:14:15,

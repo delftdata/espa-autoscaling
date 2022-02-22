@@ -1,6 +1,4 @@
-﻿sep=,
-"Time","flink_jobmanager_numRegisteredTaskManagers{app=""flink"", component=""jobmanager"", controller_uid=""7b4498c0-69a4-4625-b98d-d86c00100eae"", host=""flink_jobmanager"", instance=""10.120.2.4:9249"", job=""kubernetes-pods-scrape-every-2s"", job_name=""flink-jobmanager"", kubernetes_namespace=""default"", kubernetes_pod_name=""flink-jobmanager-wzt67""}"
-2022-02-22 08:40:45,
+﻿2022-02-22 08:40:45,
 2022-02-22 08:41:00,
 2022-02-22 08:41:15,0
 2022-02-22 08:41:30,1
