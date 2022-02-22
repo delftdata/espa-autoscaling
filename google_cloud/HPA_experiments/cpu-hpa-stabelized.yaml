@@ -20,5 +20,10 @@ spec:
   behavior:
     scaleDown:
       stabilizationWindowSeconds: 300
+      policies:
+      - type: Pods
+        value: 1
+        periodSeconds: 60
+      selectPolicy: Max
     scaleUp:
-      stabilizationWindowSeconds: 150
+      stabilizationWindowSeconds: 0

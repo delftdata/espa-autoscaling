@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: flink-taskmanager
 spec:
-  replicas: 1 # here, we configure the scale
+  replicas: 5 # here, we configure the scale
   selector:
     matchLabels:
       app: flink
@@ -25,8 +25,8 @@ spec:
         resources:
           requests:
             cpu: 500m
-          # limits:
-          #   cpu: 500m
+          limits:
+            cpu: 1000m
         env:
         args: ["taskmanager"]
         ports:
