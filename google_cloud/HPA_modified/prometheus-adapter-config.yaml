@@ -5,12 +5,16 @@ data:
     - seriesQuery: 'deriv(flink_jobmanager_numRegisteredTaskManagers[5m])'
       seriesFilters:
       - is: ".*flink_jobmanager_numRegisteredTaskManagers.*"
-      name: {as: "previous-scaledown"}
+      name: {as: "cpuPreviousScaledown"}
       resources:
         overrides:
           kubernetes_namespace: {resource: "namespace"}
           kubernetes_pod_name: {resource: "pod"}
-      metricsQuery: 'deriv(flink_jobmanager_numRegisteredTaskManagers[5m])'    
+      metricsQuery: 'deriv(flink_jobmanager_numRegisteredTaskManagers[5m])*avg(flink_jobmanager_Status_JVM_CPU_Load)'   
+    - seriesQuery: ''
+      name: {as: "constant"}
+      resources:
+      metricsQuery: '1'      
 kind: ConfigMap
 metadata:
   annotations:

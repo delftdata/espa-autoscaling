@@ -8,19 +8,19 @@ spec:
     kind: Deployment
     name: flink-taskmanager
   minReplicas: 1
-  maxReplicas: 3
+  maxReplicas: 8
   metrics:
   - type: Pods
     pods:
       metric:
-        name: utilization
+        name: cpuCooldown
       target:
         type: AverageValue
-        averageValue: 0.7
+        averageValue: 0.6
   - type: Pods
     pods:
       metric:
-        name: lag_rate
+        name: constant
       target:
         type: AverageValue
         averageValue: 1
