@@ -52,6 +52,7 @@ ch\ethz\systems\strymon\ds2\flink\nexmark\queries\Query5$CountBids.class
 ch\ethz\systems\strymon\ds2\common\RandomSentenceGenerator.class
 ch\ethz\systems\strymon\ds2\flink\nexmark\queries\Query2$1.class
 ch\ethz\systems\strymon\ds2\flink\wordcount\TwoInputsWordCount$Tokenizer.class
+ch\ethz\systems\strymon\ds2\common\AuctionDeserializationSchema.class
 ch\ethz\systems\strymon\ds2\flink\nexmark\queries\Query3KafkaSource$JoinPersonsWithAuctions.class
 ch\ethz\systems\strymon\ds2\flink\nexmark\queries\Query3Stateful$2.class
 ch\ethz\systems\strymon\ds2\flink\nexmark\queries\Query11KafkaSource$MaxLogEventsTrigger.class
@@ -63,5 +64,6 @@ ch\ethz\systems\strymon\ds2\flink\nexmark\queries\Query11$CountBidsPerSession.cl
 ch\ethz\systems\strymon\ds2\flink\nexmark\queries\Query11.class
 ch\ethz\systems\strymon\ds2\flink\nexmark\queries\Query11KafkaSource$BidTimestampAssigner.class
 ch\ethz\systems\strymon\ds2\flink\nexmark\queries\Query1KafkaSource$1.class
+ch\ethz\systems\strymon\ds2\common\PersonDeserializationSchema.class
 ch\ethz\systems\strymon\ds2\flink\nexmark\queries\Query3KafkaSource$1.class
 ch\ethz\systems\strymon\ds2\flink\nexmark\sources\BidSourceFunction.class

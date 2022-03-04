@@ -18,17 +18,25 @@
 
 package ch.ethz.systems.strymon.ds2.flink.nexmark.queries;
 
+import ch.ethz.systems.strymon.ds2.common.BidDeserializationSchema;
+import ch.ethz.systems.strymon.ds2.common.PersonDeserializationSchema;
+import ch.ethz.systems.strymon.ds2.common.AuctionDeserializationSchema;
+
 import ch.ethz.systems.strymon.ds2.flink.nexmark.sinks.DummyLatencyCountingSink;
 import ch.ethz.systems.strymon.ds2.flink.nexmark.sources.AuctionSourceFunction;
 import ch.ethz.systems.strymon.ds2.flink.nexmark.sources.PersonSourceFunction;
 import org.apache.beam.sdk.nexmark.model.Auction;
+import org.apache.beam.sdk.nexmark.model.Bid;
 import org.apache.beam.sdk.nexmark.model.Person;
+import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.api.java.typeutils.GenericTypeInfo;
 import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.connector.kafka.source.KafkaSource;
+import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -42,7 +50,7 @@ import java.util.HashSet;
 
 public class Query3KafkaSource {
 
-    private static final Logger logger  = LoggerFactory.getLogger(Query3.class);
+    private static final Logger logger = LoggerFactory.getLogger(Query3.class);
 
     public static void main(String[] args) throws Exception {
 
@@ -60,15 +68,40 @@ public class Query3KafkaSource {
         final int auctionSrcRate = params.getInt("auction-srcRate", 20000);
 
         final int personSrcRate = params.getInt("person-srcRate", 10000);
+        final int max_parallelism_source = params.getInt("source-max-parallelism", 20);
 
-        DataStream<Auction> auctions = env.addSource(new AuctionSourceFunction(auctionSrcRate))
-                .name("Custom Source: Auctions")
-                .setParallelism(params.getInt("p-auction-source", 1));
 
-        DataStream<Person> persons = env.addSource(new PersonSourceFunction(personSrcRate))
-                .name("Custom Source: Persons")
-                .setParallelism(params.getInt("p-person-source", 1))
-                .filter(new FilterFunction<Person>() {
+//        DataStream<Auction> auctions = env.addSource(new AuctionSourceFunction(auctionSrcRate))
+//                .name("Custom Source: Auctions")
+//                .setParallelism(params.getInt("p-auction-source", 1));
+
+        KafkaSource<Auction> auction_source =
+                KafkaSource.<Auction>builder()
+                        .setBootstrapServers("kafka-service:9092")
+                        .setTopics("auction_topic")
+                        .setGroupId("consumer_group1")
+                        .setProperty("fetch.min.bytes", "1000")
+                        .setStartingOffsets(OffsetsInitializer.earliest())
+                        .setValueOnlyDeserializer(new AuctionDeserializationSchema())
+                        .build();
+
+        DataStream<Auction> auctions =
+                env.fromSource(auction_source, WatermarkStrategy.noWatermarks(), "auctions Source")
+                        .setParallelism(params.getInt("p-auction-source", 1))
+                        .setMaxParallelism(max_parallelism_source)
+                        .uid("Bids-Source");
+
+        KafkaSource<Person> person_source =
+                KafkaSource.<Person>builder()
+                        .setBootstrapServers("kafka-service:9092")
+                        .setTopics("person_topic")
+                        .setGroupId("consumer_group2")
+                        .setProperty("fetch.min.bytes", "1000")
+                        .setStartingOffsets(OffsetsInitializer.earliest())
+                        .setValueOnlyDeserializer(new PersonDeserializationSchema())
+                        .build();
+
+        DataStream<Person> persons = env.fromSource(person_source, WatermarkStrategy.noWatermarks(), "person Source").setParallelism(params.getInt("p-person-source", 1)).filter(new FilterFunction<Person>() {
                     @Override
                     public boolean filter(Person person) throws Exception {
                         return (person.state.equals("OR") || person.state.equals("ID") || person.state.equals("CA"));
@@ -122,15 +155,13 @@ public class Query3KafkaSource {
                 // emit and don't store
                 Tuple3<String, String, String> match = personMap.get(auction.seller);
                 out.collect(new Tuple4<>(match.f0, match.f1, match.f2, auction.id));
-            }
-            else {
+            } else {
                 // we need to store this auction for future matches
                 if (auctionMap.containsKey(auction.seller)) {
                     HashSet<Long> ids = auctionMap.get(auction.seller);
                     ids.add(auction.id);
                     auctionMap.put(auction.seller, ids);
-                }
-                else {
+                } else {
                     HashSet<Long> ids = new HashSet<>();
                     ids.add(auction.id);
                     auctionMap.put(auction.seller, ids);
