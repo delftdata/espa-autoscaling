@@ -104,16 +104,18 @@ public class BidPersonGeneratorKafka {
             }
 
             if (bids_only == 0){
+                for (int i = 0; i < current_rate; i++) {
 
-                long nextId = nextIdBid();
-                Random rnd = new Random(nextId);
+                    long nextId = nextIdBid();
+                    Random rnd = new Random(nextId);
 
-                // When, in event time, we should generate the event. Monotonic.
-                long eventTimestamp =
-                        config.timestampAndInterEventDelayUsForEvent(
-                                config.nextEventNumber(eventsCountSoFarBid)).getKey();
-                producer.send(new ProducerRecord<String, byte[]>(bids_topic, objectMapper.writeValueAsBytes(BidGenerator.nextBid(nextId, rnd, eventTimestamp, config))));
-                eventsCountSoFarBid++;
+                    // When, in event time, we should generate the event. Monotonic.
+                    long eventTimestamp =
+                            config.timestampAndInterEventDelayUsForEvent(
+                                    config.nextEventNumber(eventsCountSoFarBid)).getKey();
+                    producer.send(new ProducerRecord<String, byte[]>(bids_topic, objectMapper.writeValueAsBytes(BidGenerator.nextBid(nextId, rnd, eventTimestamp, config))));
+                    eventsCountSoFarBid++;
+                }
                 }
             else{
                 for (int i = 0; i < current_rate; i++) {
