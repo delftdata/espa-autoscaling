@@ -117,7 +117,7 @@ public class BidPersonGeneratorKafka {
                 }
             else{
                 for (int i = 0; i < current_rate; i++) {
-                    if (eventsCountSoFarPerson % 2 == 0) {
+                    if (eventsCountSoFarAuctions % 2 == 0) {
                         long eventTimestamp =
                                 config.timestampAndInterEventDelayUsForEvent(
                                         config.nextEventNumber(eventsCountSoFarPerson)).getKey();
