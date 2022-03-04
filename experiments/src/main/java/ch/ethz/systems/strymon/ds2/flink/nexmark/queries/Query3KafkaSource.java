@@ -101,7 +101,7 @@ public class Query3KafkaSource {
                         .setValueOnlyDeserializer(new PersonDeserializationSchema())
                         .build();
 
-        DataStream<Person> persons = env.fromSource(person_source, WatermarkStrategy.noWatermarks(), "person Source").setParallelism(params.getInt("p-person-source", 1)).filter(new FilterFunction<Person>() {
+        DataStream<Person> persons = env.fromSource(person_source, WatermarkStrategy.noWatermarks(), "person Source").setParallelism(params.getInt("p-person-source", 1)).setMaxParallelism(max_parallelism_source).filter(new FilterFunction<Person>() {
                     @Override
                     public boolean filter(Person person) throws Exception {
                         return (person.state.equals("OR") || person.state.equals("ID") || person.state.equals("CA"));
