@@ -60,7 +60,7 @@ spec:
         - --logtostderr=true
         - --prometheus-url=http://prometheus-server.default.svc
         - --metrics-relist-interval=1m
-        - --v=4
+        - --v=6
         - --config=/etc/adapter/config.yaml
         image: k8s.gcr.io/prometheus-adapter/prometheus-adapter:v0.9.1
         imagePullPolicy: IfNotPresent
