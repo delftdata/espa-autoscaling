@@ -58,6 +58,9 @@ public class BidPersonGeneratorKafka {
         if ((System.currentTimeMillis() - time) / 60000 < 10){
             limit = (int) (vertical_shift + amplitude * Math.cos(period * (horizontal_shift + 10)));
         }
+        else if ((System.currentTimeMillis() - time) / 60000 > 130){
+            limit = 0;
+        }
         else {
             limit = (int) (vertical_shift + amplitude * Math.cos(period * (horizontal_shift + elapsed_minutes)));
         }
