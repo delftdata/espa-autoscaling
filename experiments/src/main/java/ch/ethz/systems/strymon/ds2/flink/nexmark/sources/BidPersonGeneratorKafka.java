@@ -166,6 +166,7 @@ public class BidPersonGeneratorKafka {
         BidPersonGeneratorKafka test = new BidPersonGeneratorKafka(10000);
         try{
             test.run(args);
+            Thread.sleep(1200000);
         }
         catch (Exception e){
             System.out.println(e);
