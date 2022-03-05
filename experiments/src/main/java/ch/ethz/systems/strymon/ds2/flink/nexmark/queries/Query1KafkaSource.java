@@ -66,7 +66,7 @@ public class Query1KafkaSource {
                 .setTopics("bids_topic")
                 .setGroupId("consumer_group")
                 .setProperty("fetch.min.bytes", "1000")
-                .setStartingOffsets(OffsetsInitializer.committedOffsets(OffsetResetStrategy.EARLIEST))
+                .setStartingOffsets(OffsetsInitializer.committedOffsets())
                 .setValueOnlyDeserializer(new BidDeserializationSchema())
                 .build();
         DataStream<Bid> bids =
