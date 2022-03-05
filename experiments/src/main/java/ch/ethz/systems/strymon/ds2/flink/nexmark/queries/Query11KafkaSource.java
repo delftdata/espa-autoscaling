@@ -73,7 +73,7 @@ public class Query11KafkaSource {
         KafkaSource<Bid> source =
                 KafkaSource.<Bid>builder()
                         .setBootstrapServers("kafka-service:9092")
-                        .setTopics("topic")
+                        .setTopics("bids_topic")
                         .setGroupId("consumer_group")
                         .setProperty("fetch.min.bytes", "1000")
                         .setStartingOffsets(OffsetsInitializer.earliest())
