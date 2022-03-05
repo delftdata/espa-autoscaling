@@ -77,18 +77,20 @@ def extract_per_operator_metrics(metrics_json, include_subtask=False):
             metrics_per_operator[operator["metric"]["task_name"]] = float(operator["value"][1])
     return metrics_per_operator
 
+prometheus_ip = "34.65.63.211"
+
 while True:
     print('Executing DS2 Script')
 
     avg_over_time = "1m"
     input_rate_query = requests.get(
-        "http://localhost:9090/api/v1/query?query=avg_over_time(flink_taskmanager_job_task_numRecordsInPerSecond[1m])")
+        "http://" + prometheus_ip + ":9090/api/v1/query?query=avg_over_time(flink_taskmanager_job_task_numRecordsInPerSecond[1m])")
     output_rate_query = requests.get(
-        "http://localhost:9090/api/v1/query?query=avg_over_time(flink_taskmanager_job_task_numRecordsOutPerSecond[1m])")
+        "http://" + prometheus_ip + ":9090/api/v1/query?query=avg_over_time(flink_taskmanager_job_task_numRecordsOutPerSecond[1m])")
     busy_time_query = requests.get(
-        "http://localhost:9090/api/v1/query?query=avg_over_time(flink_taskmanager_job_task_busyTimeMsPerSecond[1m])")
+        "http://" + prometheus_ip + ":9090/api/v1/query?query=avg_over_time(flink_taskmanager_job_task_busyTimeMsPerSecond[1m])")
     number_of_processors_per_task = requests.get(
-        "http://localhost:9090/api/v1/query?query=count(flink_taskmanager_job_task_operator_numRecordsIn) by (task_name)")
+        "http://" + prometheus_ip + ":9090/api/v1/query?query=count(flink_taskmanager_job_task_operator_numRecordsIn) by (task_name)")
 
     input_rates_per_operator = extract_per_operator_metrics(input_rate_query, include_subtask=True)
     output_rates_per_operator = extract_per_operator_metrics(output_rate_query, include_subtask=True)
@@ -119,7 +121,7 @@ while True:
     # print(true_output_rate)
 
 
-    with open('./examples/demo/flink_rates.log', 'w', newline='') as f:
+    with open('./examples/demo/flink_rates_test.log', 'w', newline='') as f:
         writer = csv.writer(f)
         header = ["# operator_id", "operator_instance_id", "total_number_of_operator_instances", "epoch_timestamp", "true_processing_rate", "true_output_rate", "observed_processing_rate", "observed_output_rate"]
         writer.writerow(header)
@@ -135,7 +137,7 @@ while True:
     operator_set = set()
     topology_order = []
     topology_parallelism = {}
-    with open('./examples/demo/flink_topology.csv', newline='') as csvfile:
+    with open('./examples/demo/flink_topology_query_1.csv', newline='') as csvfile:
         reader = csv.reader(csvfile, delimiter=' ')
         for index, row in enumerate(reader):
             if index == 0:
@@ -160,38 +162,39 @@ while True:
             writer.writerow(row)
 
 
-    ds2_model_result = subprocess.run(["cargo", "run", "--release", "--bin", "policy", "--", "--topo", "examples/demo/flink_topology.csv", "--rates", "examples/demo/flink_rates.log", "--system", "flink"], capture_output=True)
+    ds2_model_result = subprocess.run(["cargo", "run", "--release", "--bin", "policy", "--", "--topo", "examples/demo/flink_topology2.csv", "--rates", "examples/demo/flink_rates_test.log", "--system", "flink"], capture_output=True)
     output_text = ds2_model_result.stdout.decode("utf-8").replace("\n", "")
     output_text_values = output_text.split(",")
     suggested_parallelism = {}
 
+    print(output_text)
     for i in range(0, len(output_text_values), 2):
         suggested_parallelism[output_text_values[i]] = output_text_values[i + 1]
 
     print(suggested_parallelism)
-    job_id_json = requests.get("http://localhost:8081/jobs/")
-    job_id = job_id_json.json()['jobs'][0]['id']
+    # job_id_json = requests.get("http://localhost:8081/jobs/")
+    # job_id = job_id_json.json()['jobs'][0]['id']
 
-    savepoint = requests.post("http://localhost:8081/jobs/" + job_id + "/savepoints")
+    # savepoint = requests.post("http://localhost:8081/jobs/" + job_id + "/savepoints")
 
-    #sleep so savepoint can be taken
-    time.sleep(5)
-    trigger_id = savepoint.json()['request-id']
-    savepoint_name = requests.get("http://localhost:8081/jobs/" + job_id + "/savepoints/" + trigger_id)
-    savepoint_path = savepoint_name.json()["operation"]["location"]
+    # #sleep so savepoint can be taken
+    # time.sleep(5)
+    # trigger_id = savepoint.json()['request-id']
+    # savepoint_name = requests.get("http://localhost:8081/jobs/" + job_id + "/savepoints/" + trigger_id)
+    # savepoint_path = savepoint_name.json()["operation"]["location"]
 
-    print(job_id)
-    print(trigger_id)
-    print(savepoint_path)
+    # print(job_id)
+    # print(trigger_id)
+    # print(savepoint_path)
 
-    # stop_request = requests.post("http://localhost:8081/jobs/" + job_id + "/stop")
-    # print(stop_request.text)
-    container = "9923/demo_custom_par:3"
-    job = "org.apache.flink.DemoJob"
-    p1 = 1
-    p2 = 2
-    p3 = 1
-    writeConfig(container=container,args =["standalone-job", "--job-classname", job, "--fromSavepoint", savepoint_path, "--topic", "topic", "--bootstrap.servers",
-           "kafka-service:9092", "--group.id", "yolo", "--p1", p1, "--p2", p2, "--p3", p3])
+    # # stop_request = requests.post("http://localhost:8081/jobs/" + job_id + "/stop")
+    # # print(stop_request.text)
+    # container = "9923/demo_custom_par:3"
+    # job = "org.apache.flink.DemoJob"
+    # p1 = 1
+    # p2 = 2
+    # p3 = 1
+    # writeConfig(container=container,args =["standalone-job", "--job-classname", job, "--fromSavepoint", savepoint_path, "--topic", "topic", "--bootstrap.servers",
+    #        "kafka-service:9092", "--group.id", "yolo", "--p1", p1, "--p2", p2, "--p3", p3])
 
     break
