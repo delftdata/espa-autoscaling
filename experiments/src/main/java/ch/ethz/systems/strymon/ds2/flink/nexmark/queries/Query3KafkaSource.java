@@ -82,7 +82,7 @@ public class Query3KafkaSource {
                         .setTopics("auction_topic")
                         .setGroupId("consumer_group1")
                         .setProperty("fetch.min.bytes", "1000")
-                        .setStartingOffsets(OffsetsInitializer.committedOffsets())
+                        .setStartingOffsets(OffsetsInitializer.committedOffsets(OffsetResetStrategy.EARLIEST))
                         .setValueOnlyDeserializer(new AuctionDeserializationSchema())
                         .build();
 
@@ -98,7 +98,7 @@ public class Query3KafkaSource {
                         .setTopics("person_topic")
                         .setGroupId("consumer_group2")
                         .setProperty("fetch.min.bytes", "1000")
-                        .setStartingOffsets(OffsetsInitializer.committedOffsets())
+                        .setStartingOffsets(OffsetsInitializer.committedOffsets(OffsetResetStrategy.EARLIEST))
                         .setValueOnlyDeserializer(new PersonDeserializationSchema())
                         .build();
 

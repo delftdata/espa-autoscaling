@@ -77,7 +77,7 @@ public class Query11KafkaSource {
                         .setTopics("bids_topic")
                         .setGroupId("consumer_group")
                         .setProperty("fetch.min.bytes", "1000")
-                        .setStartingOffsets(OffsetsInitializer.committedOffsets())
+                        .setStartingOffsets(OffsetsInitializer.committedOffsets(OffsetResetStrategy.EARLIEST))
                         .setValueOnlyDeserializer(new BidDeserializationSchema())
                         .build();
 
