@@ -185,7 +185,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "exemplar": true,
-          "expr": "avg(flink_taskmanager_job_task_operator_currentEmitEventTimeLag)",
+          "expr": "avg(flink_taskmanager_job_task_operator_currentEmitEventTimeLag) / 1000",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
