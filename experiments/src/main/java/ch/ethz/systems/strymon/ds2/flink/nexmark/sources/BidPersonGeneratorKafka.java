@@ -58,9 +58,6 @@ public class BidPersonGeneratorKafka {
         if ((System.currentTimeMillis() - time) / 60000 < 10){
             limit = (int) (vertical_shift + amplitude * Math.cos(period * (horizontal_shift + 10)));
         }
-        else if ((System.currentTimeMillis() - time) / 60000 > 130){
-            limit = 0;
-        }
         else {
             limit = (int) (vertical_shift + amplitude * Math.cos(period * (horizontal_shift + elapsed_minutes)));
         }
@@ -71,7 +68,7 @@ public class BidPersonGeneratorKafka {
 
     public void run(String[] args) throws Exception {
         final ParameterTool params = ParameterTool.fromArgs(args);
-        int experiment_time = params.getInt("time", 120);
+        int experiment_time = params.getInt("time", 130);
         int cosine_period = params.getInt("period", 90);
         int amplitude = params.getInt("amplitude", 50000);
         int vertical_shift = params.getInt("y-shift", 100000);

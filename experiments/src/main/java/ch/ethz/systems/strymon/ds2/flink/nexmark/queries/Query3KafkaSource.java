@@ -42,6 +42,7 @@ import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.co.RichCoFlatMapFunction;
 import org.apache.flink.util.Collector;
+import org.apache.kafka.clients.consumer.OffsetResetStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,7 +82,7 @@ public class Query3KafkaSource {
                         .setTopics("auction_topic")
                         .setGroupId("consumer_group1")
                         .setProperty("fetch.min.bytes", "1000")
-                        .setStartingOffsets(OffsetsInitializer.earliest())
+                        .setStartingOffsets(OffsetsInitializer.committedOffsets(OffsetResetStrategy.EARLIEST))
                         .setValueOnlyDeserializer(new AuctionDeserializationSchema())
                         .build();
 
@@ -97,7 +98,7 @@ public class Query3KafkaSource {
                         .setTopics("person_topic")
                         .setGroupId("consumer_group2")
                         .setProperty("fetch.min.bytes", "1000")
-                        .setStartingOffsets(OffsetsInitializer.earliest())
+                        .setStartingOffsets(OffsetsInitializer.committedOffsets(OffsetResetStrategy.EARLIEST))
                         .setValueOnlyDeserializer(new PersonDeserializationSchema())
                         .build();
 
