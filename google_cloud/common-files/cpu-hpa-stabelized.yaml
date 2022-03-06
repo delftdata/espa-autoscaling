@@ -4,7 +4,7 @@ metadata:
   name: flink-taskmanager
   namespace: default
 spec:
-  maxReplicas: 8
+  maxReplicas: 16
   minReplicas: 1
   metrics:
   - type: Resource
