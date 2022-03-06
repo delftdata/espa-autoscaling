@@ -30,6 +30,6 @@ kubectl exec kafka-2 -- /opt/kafka/bin/kafka-topics.sh --create -zookeeper zoo1:
 
 # kubectl expose job flink-jobmanager
 cd ..
-cd query-1-experiments
+cd query-3-experiments
 kubectl apply -f experiments-jobmanager.yaml
 kubectl apply -f workbench-deployment.yaml
