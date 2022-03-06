@@ -8,7 +8,7 @@ spec:
     kind: Deployment
     name: flink-taskmanager
   minReplicas: 1
-  maxReplicas: 3
+  maxReplicas: 16
   metrics:
   - type: Pods
     pods:
