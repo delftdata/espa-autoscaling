@@ -51,12 +51,15 @@ public class BidPersonGeneratorKafka {
         this.rate = srcRate;
     }
 
-    public int getPerSecondRate(long time, int cosine_period, int amplitude, int vertical_shift, int horizontal_shift) {
+    public int getPerSecondRate(long time, int cosine_period, int amplitude, int vertical_shift, int horizontal_shift, int zero_time) {
         int elapsed_minutes = (int)Math.floor((double) ((System.currentTimeMillis() - time) / 60000));
         double period = 2 * Math.PI / cosine_period;
         int limit;
         if ((System.currentTimeMillis() - time) / 60000 < 10){
             limit = (int) (vertical_shift + amplitude * Math.cos(period * (horizontal_shift + 10)));
+        }
+        else if ((System.currentTimeMillis() - time) / 60000 > zero_time){
+            limit = 1000;
         }
         else {
             limit = (int) (vertical_shift + amplitude * Math.cos(period * (horizontal_shift + elapsed_minutes)));
@@ -68,7 +71,8 @@ public class BidPersonGeneratorKafka {
 
     public void run(String[] args) throws Exception {
         final ParameterTool params = ParameterTool.fromArgs(args);
-        int experiment_time = params.getInt("time", 130);
+        int experiment_time = params.getInt("time", 150);
+        int zero_time = params.getInt("zero-time", 130);
         int cosine_period = params.getInt("period", 90);
         int amplitude = params.getInt("amplitude", 50000);
         int vertical_shift = params.getInt("y-shift", 100000);
@@ -98,7 +102,7 @@ public class BidPersonGeneratorKafka {
 
             int current_rate;
             if (mode == 1){
-                current_rate = getPerSecondRate(start_time, cosine_period, amplitude, vertical_shift, horizontal_shift);
+                current_rate = getPerSecondRate(start_time, cosine_period, amplitude, vertical_shift, horizontal_shift, zero_time);
             } else {
                 current_rate = rate;
             }
