@@ -17,11 +17,6 @@ from prometheus_client import start_http_server, Gauge
 # consumer_lag_metric = Gauge('consumer_lag', 'consumer lag')
 # consumer_lag_metric.set(-1)
 
-def keep_running():
-        try:
-                run()
-        except:
-                keep_running()
 
 def run():
         while True:
@@ -38,7 +33,7 @@ def run():
                 cpu_lower_threshold = float(os.environ['CPU_LOWER_THRESHOLD'])
                 cpu_upper_threshold = float(os.environ['CPU_UPPER_THRESHOLD'])
                 consumer_lag_threshold = float(os.environ['CONSUMER_LAG_THRESHOLD'])
-                scaling_factor = int(os.environ['SCALING_FACTOR_PERCENTAGE'])
+                scaling_factor = float(os.environ['SCALING_FACTOR_PERCENTAGE'])
 
                 # obtain backpressure metric from prometheus
                 backpressure_query = requests.get("http://prometheus-server/api/v1/query?query=max(avg_over_time(flink_taskmanager_job_task_backPressuredTimeMsPerSecond[" + avg_over_time +"]))")
@@ -104,8 +99,12 @@ def run():
                                 print("not scaling due to no change")
                 else:
                         print("in cooldown period")
-
                 time.sleep(sleep_time)
 
-if __name__ == "__main__":
-    keep_running()
+def keep_running():
+        try:
+                run()
+        except:
+                keep_running()
+
+keep_running()

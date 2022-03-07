@@ -22,6 +22,7 @@ spec:
         ports:
         - containerPort: 8000
         env:
+        args: ["python", "dhalionLogic.py"]
         - name: AVG_OVER_TIME
           value: "1m"
         - name: COOLDOWN
@@ -44,4 +45,8 @@ spec:
           value: "10000"
         - name: SCALING_FACTOR_PERCENTAGE
           value: "0.2"
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        - name: PYTHONIOENCODING
+          value: "UTF-8" 
   
