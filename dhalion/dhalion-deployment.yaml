@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: python-container
-        image: 9923/dhalion:16
+        image: 9923/dhalion:17
         imagePullPolicy: Always
         ports:
         - containerPort: 8000

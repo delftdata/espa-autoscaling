@@ -74,7 +74,7 @@ def run():
                 if float(previous_scaling_event) == 0:
                         # scaling logic
                         new_number_of_taskmanagers = current_number_of_taskmanagers
-                        if (float(backpressure_value) > backpressure_upper_threshold or float(cpu_upper_threshold)) and current_number_of_taskmanagers < max_replicas:
+                        if (float(backpressure_value) > backpressure_upper_threshold or float(cpu_load) > cpu_upper_threshold) and current_number_of_taskmanagers < max_replicas:
                                         if math.ceil(new_number_of_taskmanagers *  (1 + scaling_factor)) <= max_replicas:
                                                 new_number_of_taskmanagers = math.ceil(new_number_of_taskmanagers*(1+scaling_factor))
                                         else:
