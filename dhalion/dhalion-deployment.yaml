@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: python-container
-        image: 9923/dhalion:5
+        image: 9923/dhalion:6
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
@@ -32,15 +32,15 @@ spec:
         - name: MIN_REPLICAS
           value: "1"
         - name: MAX_REPLICAS
-          value: "2" 
+          value: "16" 
         - name: SLEEP_TIME
           value: "10"
         - name: BACKPRESSURE_LOWER_THRESHOLD
           value: "200"
         - name: BACKPRESSURE_UPPER_THRESHOLD
           value: "500"
-        - name: DERIV_CONSUMER_LAG_THRESHOLD
-          value: "1000"
+        - name: CONSUMER_LAG_THRESHOLD
+          value: "10000"
       volumes:
       - name: test-volume
         hostPath:

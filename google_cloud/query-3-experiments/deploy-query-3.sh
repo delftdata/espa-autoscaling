@@ -21,7 +21,7 @@ kubectl expose deployment grafana --type=LoadBalancer --name=my-external-grafana
 
 kubectl wait --timeout=3m --for=condition=ready pods --all
 
-kubectl wait --timeout=5m 
+kubectl wait --timeout=5m --for=condition=ready statefulset --all
 
 
 kubectl exec kafka-2 -- /opt/kafka/bin/kafka-topics.sh --create -zookeeper zoo1:2181  --replication-factor 1 --partitions 24 --topic auction_topic
