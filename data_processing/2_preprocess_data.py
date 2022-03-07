@@ -32,14 +32,19 @@ input_data = input_data.loc[input_data['minutes'] <= 140]
 input_data = input_data.drop(labels="__name__", axis="columns")
 
 # rename 'value' to metric name
-input_data = input_data.rename(columns={"value": "input_data"})
+input_data = input_data.rename(columns={"value": "input_rate"})
 
 for metric in metrics:
     df = pd.read_csv(path_to_files + metric  + " .csv")
     df = df.drop(labels="__name__", axis="columns")
     df = df.rename(columns={"value": metric})
     input_data = input_data.join(df.set_index('timestamp'), on="timestamp", how='left')
-    print(input_data)
-    # print(df)
 
-# print(input_data)
+
+metrics = ["input_rate", "backpressure", "busy_time", "CPU_load", "idle_time", "lag", "latency", "taskmanager", "throughput"]
+
+for metric in metrics:
+    input_data[metric] = input_data[metric].interpolate()
+
+input_data.to_csv("../experiment_data_processed/full_data/" + query + "_" + auto_scaler + "_" + percentage + ".csv")
+
