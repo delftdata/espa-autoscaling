@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: python-container
-        image: 9923/dhalion:10
+        image: 9923/dhalion:11
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
@@ -42,6 +42,6 @@ spec:
           value: "0.8"  
         - name: CONSUMER_LAG_THRESHOLD
           value: "10000"
-        - name: SCALING_FACTOR
-          value: "2"
+        - name: SCALING_FACTOR_PERCENTAGE
+          value: "0.2"
   

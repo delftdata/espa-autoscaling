@@ -9,4 +9,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD [ "bash", "./keep_running.sh" ]
+CMD [ "python", "dhalionLogic.py" ]
