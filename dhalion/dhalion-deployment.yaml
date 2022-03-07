@@ -17,18 +17,15 @@ spec:
     spec:
       containers:
       - name: python-container
-        image: 9923/dhalion:6
+        image: 9923/dhalion:7
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
-        volumeMounts:
-        - mountPath: /usr/src/app/test-pd
-          name: test-volume
         env:
         - name: AVG_OVER_TIME
           value: "1m"
         - name: COOLDOWN
-          value: "240"  
+          value: "240s"
         - name: MIN_REPLICAS
           value: "1"
         - name: MAX_REPLICAS
@@ -41,12 +38,3 @@ spec:
           value: "500"
         - name: CONSUMER_LAG_THRESHOLD
           value: "10000"
-      volumes:
-      - name: test-volume
-        hostPath:
-          # directory location on host
-          path: /host_mnt/c/temp/soccerdb-pv
-          # this field is optional
-          type: DirectoryOrCreate 
-        # - containerPort: 7071
-      

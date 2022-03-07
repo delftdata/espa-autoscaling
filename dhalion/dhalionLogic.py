@@ -41,6 +41,11 @@ while True:
         print("consumer lag value: " + str(consumer_lag))
         consumer_lag_metric.set(str(consumer_lag))
 
+        # obtain previous scaling event
+        previous_scaling_event = requests.get("http://prometheus-server/api/v1/query?query=deriv(flink_jobmanager_numRegisteredTaskManagers[" + cooldown + "])")
+        previous_scaling_event = previous_scaling_event.json()["data"]["result"][0]["value"][1]
+        print("taskmanager deriv: " + str(previous_scaling_event))
+
         # autenticate with kubernetes API
         config.load_incluster_config()
         v1 = client.AppsV1Api()
@@ -52,26 +57,8 @@ while True:
                 current_number_of_taskmanagers = int(i.spec.replicas)
         print("current number of taskmanagers: " + str(current_number_of_taskmanagers))
 
-        # check when previous scaling event was
-        cooldown_period_over = False
-        current_time = datetime.now()
-        new_cooldown_time = None
 
-        with open('./test-pd/cooldown.txt', 'r') as f:
-                last_scale_event_time = f.readlines()
-                f.close()
-        last_scale_event_time = last_scale_event_time[0].replace("\n", "")
-        last_scale_event_time = datetime.strptime(last_scale_event_time, "%Y-%m-%d %H:%M:%S.%f")
-        difference = (current_time - last_scale_event_time).seconds
-        if difference > cooldown:
-                        cooldown_period_over = True
-                        cooldown_metric.set(0)
-        else:
-                        cooldown_period_over = False
-                        cooldown_metric.set(str(cooldown - difference))
-
-
-        if cooldown_period_over:
+        if int(previous_scaling_event) == 0:
                 # scaling logic
                 new_number_of_taskmanagers = current_number_of_taskmanagers
                 if float(backpressure_value) > backpressure_upper_threshold and current_number_of_taskmanagers < max_replicas:
@@ -86,10 +73,6 @@ while True:
                         try:
                                 body = {"spec":{"replicas":new_number_of_taskmanagers}}
                                 api_response = v1.patch_namespaced_deployment_scale(name="flink-taskmanager", namespace="default", body=body, pretty=True)
-                                new_cooldown_time = str(datetime.now())
-                                with open('./test-pd/cooldown.txt', 'w') as f:
-                                        f.write(new_cooldown_time)
-                                        f.close()
                         except Exception as e:
                                 print(e)
                 else:
