@@ -21,8 +21,8 @@ spec:
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
-        env:
         args: ["python", "dhalionLogic.py"]
+        env:
         - name: AVG_OVER_TIME
           value: "1m"
         - name: COOLDOWN
