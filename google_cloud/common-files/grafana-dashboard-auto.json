@@ -361,7 +361,7 @@
               "options": {
                 "mode": "exclude",
                 "names": [
-                  "{task_name=\"Incremental_join\"}"
+                  "avg(sum(flink_taskmanager_job_task_numRecordsOutPerSecond{task_name!~\".*Sink.*\"}) by (task_name))\r\n\r\n"
                 ],
                 "prefix": "All except:",
                 "readOnly": true
@@ -405,7 +405,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "exemplar": true,
-          "expr": "sum(flink_taskmanager_job_task_numRecordsOutPerSecond{task_name!~\".*Sink.*\"}) by (task_name)\r\n",
+          "expr": "avg(sum(flink_taskmanager_job_task_numRecordsOutPerSecond{task_name!~\".*Sink.*\"}) by (task_name))\r\n\r\n",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -745,7 +745,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "exemplar": true,
-          "expr": "max(avg_over_time(flink_taskmanager_job_task_backPressuredTimeMsPerSecond[3m]))",
+          "expr": "max(avg_over_time(flink_taskmanager_job_task_backPressuredTimeMsPerSecond[1m]))",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
