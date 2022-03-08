@@ -24,11 +24,8 @@ data:
     classloader.resolve-order: parent-first
     state.backend: filesystem
     state.savepoints.dir: s3://pasaf-savepoints/savepoints/
-    # state.checkpoints.dir: s3://s3-bucket/checkpoints/ #"s3://<your-bucket>/<endpoint>"
-    # state.backend.fs.checkpointdir: s3://s3-bucket/checkpoints/ #"s3://<your-bucket>/<endpoint>"
-    s3.access-key: XXXXXXXXXXXXXXXXXXX #your-access-key
-    s3.secret-key: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx #your-secret-key
-    # s3.endpoint: http://127.0.0.1:9000 #your-endpoint-hostname (I have used Minio) 
+    s3.access-key: XXXXXXXXXXXXXXXXXXX 
+    s3.secret-key: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   log4j-console.properties: |+
     # This affects logging for both user code and Flink
     rootLogger.level = INFO
