@@ -16,7 +16,7 @@ spec:
       restartPolicy: OnFailure
       containers:
         - name: jobmanager
-          image: 9923/experiments:20
+          image: 9923/experiments:21
           imagePullPolicy: Always
           env:
           args: ["standalone-job", "--job-classname", "ch.ethz.systems.strymon.ds2.flink.nexmark.queries.Query1KafkaSource", "--source-max-parallelism", "20"]
@@ -37,8 +37,6 @@ spec:
           volumeMounts:
             - name: flink-config-volume
               mountPath: /opt/flink/conf
-            - name: savepoints
-              mountPath: "/opt/flink"  
           securityContext:
             runAsUser: 0  # refers to user _flink_ from official flink image, change if necessary
       volumes:
@@ -50,8 +48,4 @@ spec:
                 path: flink-conf.yaml
               - key: log4j-console.properties
                 path: log4j-console.properties
-        - name: savepoints
-          # This GCE PD must already exist.
-          gcePersistentDisk:
-            pdName: my-data-disk
-            fsType: ext4  
+
