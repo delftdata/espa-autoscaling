@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: dhalion-service
+  labels:
+    name: dhalion
+spec:
+  ports:
+  - port: 8000
+    name: dhalion-metrics
+    protocol: TCP
+  selector:
+    app: dhalion
+  type: ClusterIP
