@@ -36,6 +36,11 @@ spec:
           value: "9923/demo_custom_par:2"
         - name: JOB
           value: "org.apache.flink.DemoJob"  
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        - name: PYTHONIOENCODING
+          value: "UTF-8" 
+    
       volumes:
       - name: test-volume
         hostPath:

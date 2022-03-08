@@ -93,6 +93,7 @@ def run():
                                 try:
                                         body = {"spec":{"replicas":new_number_of_taskmanagers}}
                                         api_response = v1.patch_namespaced_deployment_scale(name="flink-taskmanager", namespace="default", body=body, pretty=True)
+                                        time.sleep(60)
                                 except Exception as e:
                                         print(e)
                         else:
@@ -105,6 +106,7 @@ def keep_running():
         try:
                 run()
         except:
+                time.sleep(10)
                 keep_running()
 
 keep_running()

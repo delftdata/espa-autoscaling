@@ -37,6 +37,9 @@ spec:
           volumeMounts:
             - name: flink-config-volume
               mountPath: /opt/flink/conf
+                volumeMounts:
+            - name: savepoints
+              mountPath: "/opt/flink"  
           securityContext:
             runAsUser: 0  # refers to user _flink_ from official flink image, change if necessary
       volumes:
@@ -48,3 +51,6 @@ spec:
                 path: flink-conf.yaml
               - key: log4j-console.properties
                 path: log4j-console.properties
+            volumeMounts:
+        - name: savepoints
+          emptyDir: {}        
