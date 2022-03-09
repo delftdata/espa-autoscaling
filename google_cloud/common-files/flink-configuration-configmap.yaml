@@ -24,6 +24,7 @@ data:
     classloader.resolve-order: parent-first
     state.backend: filesystem
     state.savepoints.dir: s3://pasaf-savepoints/savepoints/
+    state.checkpoints.dir: s3://pasaf-savepoints/checkpoints/
     s3.access-key: XXXXXXXXXXXXXXXXXXX 
     s3.secret-key: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   log4j-console.properties: |+
