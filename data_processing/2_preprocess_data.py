@@ -2,15 +2,15 @@ import pandas as pd
 from datetime import datetime
 pd.options.display.max_columns = None
 
-query = "query-1"
+query = "query-3"
 auto_scaler = "HPA"
-percentage = "80"
+percentage = "70"
 
 metrics = ["backpressure", "busy_time", "CPU_load", "idle_time", "lag", "latency", "taskmanager", "throughput"]
 
 path_to_files = "../experiment_data/" + query + "/" + auto_scaler + "/" + percentage + "/"
 
-input_data = pd.read_csv(path_to_files + "input_rate .csv")
+input_data = pd.read_csv(path_to_files + "input_rate.csv")
 
 
 
@@ -35,7 +35,7 @@ input_data = input_data.drop(labels="__name__", axis="columns")
 input_data = input_data.rename(columns={"value": "input_rate"})
 
 for metric in metrics:
-    df = pd.read_csv(path_to_files + metric  + " .csv")
+    df = pd.read_csv(path_to_files + metric  + ".csv")
     df = df.drop(labels="__name__", axis="columns")
     df = df.rename(columns={"value": metric})
     input_data = input_data.join(df.set_index('timestamp'), on="timestamp", how='left')
@@ -45,6 +45,8 @@ metrics = ["input_rate", "backpressure", "busy_time", "CPU_load", "idle_time", "
 
 for metric in metrics:
     input_data[metric] = input_data[metric].interpolate()
+
+input_data = input_data.fillna(0)
 
 input_data.to_csv("../experiment_data_processed/full_data/" + query + "_" + auto_scaler + "_" + percentage + ".csv")
 

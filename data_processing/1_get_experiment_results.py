@@ -3,10 +3,10 @@ from prometheus_api_client.utils import parse_datetime
 from datetime import timedelta
 
 
-# prometheus_host_ip = "35.222.67.103"
-# autoscaler = "HPA"
-# query_being_run = "query-3"
-# cpu_percentage = "80"
+prometheus_host_ip = "34.66.117.240"
+autoscaler = "HPA"
+query_being_run = "query-1"
+cpu_percentage = "70"
 
 prom = PrometheusConnect(url = "http://" + prometheus_host_ip + ":9090", disable_ssl=True)
 
