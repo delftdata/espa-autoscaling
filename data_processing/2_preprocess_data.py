@@ -2,9 +2,9 @@ import pandas as pd
 from datetime import datetime
 pd.options.display.max_columns = None
 
-query = "query-3"
+query = "query-1"
 auto_scaler = "HPA"
-percentage = "70"
+percentage = "50"
 
 metrics = ["backpressure", "busy_time", "CPU_load", "idle_time", "lag", "latency", "taskmanager", "throughput"]
 
