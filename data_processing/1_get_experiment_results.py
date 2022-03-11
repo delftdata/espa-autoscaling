@@ -3,8 +3,8 @@ from prometheus_api_client.utils import parse_datetime
 from datetime import timedelta
 
 
-prometheus_host_ip = "35.193.78.237"
-autoscaler = "HPA"
+prometheus_host_ip = "34.65.156.67"
+autoscaler = "varga"
 query_being_run = "query-1"
 cpu_percentage = "90"
 
