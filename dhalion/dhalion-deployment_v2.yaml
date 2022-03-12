@@ -50,5 +50,5 @@ spec:
         - name: PYTHONIOENCODING
           value: "UTF-8"
         - name: LAG_SIZE
-          value: "1"
+          value: "0.2"
   
