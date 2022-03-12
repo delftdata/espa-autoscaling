@@ -35,6 +35,7 @@ def run():
                 consumer_lag_threshold = float(os.environ['CONSUMER_LAG_THRESHOLD'])
                 scaling_factor = float(os.environ['SCALING_FACTOR_PERCENTAGE'])
                 lag_size = float(os.environ['LAG_SIZE'])
+                overprovisioning_factor = float(os.environ["OVERPROVISIONING_FACTOR"])
 
                 input_rate = requests.get(
                         "http://prometheus-server/api/v1/query?query=sum(rate(kafka_server_brokertopicmetrics_messagesin_total{topic=\"\"}[" + avg_over_time +"]))")
@@ -95,7 +96,7 @@ def run():
                 if float(previous_scaling_event) == 0:
                         if float(consumer_lag) > lag_size * float(input_rate) and float(deriv_consumer_lag) > 0:
                                 increase_factor = float(input_rate) / float(min_throughput)
-                                new_number_of_taskmanagers = math.ceil(current_number_of_taskmanagers*increase_factor)
+                                new_number_of_taskmanagers = math.ceil(current_number_of_taskmanagers*increase_factor * overprovisioning_factor)
                                 if new_number_of_taskmanagers > max_replicas:
                                         new_number_of_taskmanagers = max_replicas
                                 print("scaling up to: " + str(new_number_of_taskmanagers))

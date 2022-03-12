@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: python-container
-        image: 9923/dhalion:20
+        image: 9923/dhalion:24
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
@@ -51,4 +51,6 @@ spec:
           value: "UTF-8"
         - name: LAG_SIZE
           value: "0.2"
+        - name: OVERPROVISIONING_FACTOR
+          value: "1.2"
   
