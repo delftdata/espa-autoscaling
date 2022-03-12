@@ -26,7 +26,7 @@ spec:
         - name: AVG_OVER_TIME
           value: "1m"
         - name: COOLDOWN
-          value: "240s"
+          value: "120s"
         - name: MIN_REPLICAS
           value: "1"
         - name: MAX_REPLICAS
@@ -50,5 +50,5 @@ spec:
         - name: PYTHONIOENCODING
           value: "UTF-8"
         - name: LAG_SIZE
-          value: "5"
+          value: "1"
   

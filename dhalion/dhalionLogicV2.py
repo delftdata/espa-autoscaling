@@ -37,12 +37,12 @@ def run():
                 lag_size = float(os.environ['LAG_SIZE'])
 
                 input_rate = requests.get(
-                        "http://prometheus-server/api/v1/query?query=sum(rate(kafka_server_brokertopicmetrics_messagesin_total{topic=""}[" + avg_over_time +"]))")
+                        "http://prometheus-server/api/v1/query?query=sum(rate(kafka_server_brokertopicmetrics_messagesin_total{topic=\"\"}[" + avg_over_time +"]))")
                 input_rate = input_rate.json()["data"]["result"][0]["value"][1]
                 print("Input rate: " + str(input_rate))
 
                 busy_time = requests.get(
-                        "http://prometheus-server/api/v1/query?query=sum(rate(kafka_server_brokertopicmetrics_messagesin_total{topic=""}[" + avg_over_time + "]))")
+                        "http://prometheus-server/api/v1/query?query=avg(avg_over_time(flink_taskmanager_job_task_busyTimeMsPerSecond[" + avg_over_time +"])) / 1000")
                 busy_time = busy_time.json()["data"]["result"][0]["value"][1]
                 print("Busy time: " + str(busy_time))
 
@@ -94,16 +94,16 @@ def run():
 
                 if float(previous_scaling_event) == 0:
                         if float(consumer_lag) > lag_size * float(input_rate) and float(deriv_consumer_lag) > 0:
-                                increase_factor = input_rate / min_throughput
+                                increase_factor = float(input_rate) / float(min_throughput)
                                 new_number_of_taskmanagers = math.ceil(current_number_of_taskmanagers*increase_factor)
                                 if new_number_of_taskmanagers > max_replicas:
                                         new_number_of_taskmanagers = max_replicas
                                 print("scaling up to: " + str(new_number_of_taskmanagers))
 
                         elif float(backpressure_value) < backpressure_lower_threshold and float(consumer_lag) < lag_size * float(input_rate) and current_number_of_taskmanagers > min_replicas and float(cpu_load) < cpu_lower_threshold:
-                                if math.floor(new_number_of_taskmanagers * (1 - scaling_factor)) >= min_replicas:
+                                if math.floor(current_number_of_taskmanagers * (1 - scaling_factor)) >= min_replicas:
                                         new_number_of_taskmanagers = math.floor(
-                                                new_number_of_taskmanagers * (1 - scaling_factor))
+                                                current_number_of_taskmanagers * (1 - scaling_factor))
                                 else:
                                         new_number_of_taskmanagers = min_replicas
 
