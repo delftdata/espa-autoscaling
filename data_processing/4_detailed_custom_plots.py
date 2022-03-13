@@ -6,12 +6,12 @@ from matplotlib.transforms import Bbox
 
 query = "query-1"
 auto_scaler = "HPA"
-percentage = "80"
+percentage = "70"
 
 path_to_file = "../experiment_data_processed/full_data/" + query + "_" + auto_scaler + "_" + percentage + ".csv"
 df = pd.read_csv(path_to_file)
 
-metrics = ["input_rate", "taskmanager", "latency"]
+metrics = ["input_rate", "taskmanager", "latency", "CPU_load", "backpressure"]
 
 fig, axs = plt.subplots(len(metrics),1, figsize=(20, 10), facecolor='w', edgecolor='k', sharex='all')
 fig.subplots_adjust(hspace = .5, wspace=.001)
@@ -26,6 +26,5 @@ for i in range(0, len(metrics)):
     axs[i].grid()
 
 # plt.show()
-name="HPA_80"
-path = "../figures/cosine/query-1/detailed_figs/" + query + "_" + name + ".png"
+path = "../figures/cosine/" + query + "/detailed_figs/" + query + "_" + auto_scaler + "_" + percentage + ".png"
 plt.savefig(path, format="png", bbox_inches=Bbox([[0, 0], [18.0, 10.0]]), dpi=600)
