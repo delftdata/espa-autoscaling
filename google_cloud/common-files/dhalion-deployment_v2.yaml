@@ -17,16 +17,16 @@ spec:
     spec:
       containers:
       - name: python-container
-        image: 9923/dhalion:19
+        image: 9923/dhalion:24
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
-        args: ["python", "dhalionLogic.py"]
+        args: ["python", "dhalionLogicV2.py"]
         env:
         - name: AVG_OVER_TIME
           value: "1m"
         - name: COOLDOWN
-          value: "240s"
+          value: "120s"
         - name: MIN_REPLICAS
           value: "1"
         - name: MAX_REPLICAS
@@ -34,11 +34,11 @@ spec:
         - name: SLEEP_TIME
           value: "10"
         - name: BACKPRESSURE_LOWER_THRESHOLD
-          value: "200"
+          value: "100"
         - name: BACKPRESSURE_UPPER_THRESHOLD
           value: "500"
         - name: CPU_LOWER_THRESHOLD
-          value: "0.2"
+          value: "0.6"
         - name: CPU_UPPER_THRESHOLD
           value: "0.8"  
         - name: CONSUMER_LAG_THRESHOLD
@@ -48,5 +48,9 @@ spec:
         - name: PYTHONUNBUFFERED
           value: "1"
         - name: PYTHONIOENCODING
-          value: "UTF-8" 
+          value: "UTF-8"
+        - name: LAG_SIZE
+          value: "0.2"
+        - name: OVERPROVISIONING_FACTOR
+          value: "1.2"
   
