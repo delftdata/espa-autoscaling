@@ -10,8 +10,7 @@ data:
         overrides:
           kubernetes_namespace: {resource: "namespace"}
           kubernetes_pod_name: {resource: "pod"}
-      metricsQuery: '
-((sum(flink_taskmanager_job_task_operator_KafkaSourceReader_KafkaConsumer_records_lag_max * flink_taskmanager_job_task_operator_KafkaSourceReader_KafkaConsumer_assigned_partitions) by (<<.GroupBy>>) - 50000) / (abs(sum(flink_taskmanager_job_task_operator_KafkaSourceReader_KafkaConsumer_records_lag_max * flink_taskmanager_job_task_operator_KafkaSourceReader_KafkaConsumer_assigned_partitions) by (<<.GroupBy>>) - 50000)) )*(1 + deriv(sum(flink_taskmanager_job_task_operator_KafkaSourceReader_KafkaConsumer_records_lag_max * flink_taskmanager_job_task_operator_KafkaSourceReader_KafkaConsumer_assigned_partitions) by (<<.GroupBy>>)[1m:2s]) / sum(avg_over_time(flink_taskmanager_job_task_operator_KafkaSourceReader_KafkaConsumer_records_consumed_rate[1m])) by (<<.GroupBy>>))'  
+      metricsQuery: '((sum(flink_taskmanager_job_task_operator_KafkaSourceReader_KafkaConsumer_records_lag_max * flink_taskmanager_job_task_operator_KafkaSourceReader_KafkaConsumer_assigned_partitions) by (<<.GroupBy>>) - 50000) / (abs(sum(flink_taskmanager_job_task_operator_KafkaSourceReader_KafkaConsumer_records_lag_max * flink_taskmanager_job_task_operator_KafkaSourceReader_KafkaConsumer_assigned_partitions) by (<<.GroupBy>>) - 50000)) )*(1 + deriv(sum(flink_taskmanager_job_task_operator_KafkaSourceReader_KafkaConsumer_records_lag_max * flink_taskmanager_job_task_operator_KafkaSourceReader_KafkaConsumer_assigned_partitions) by (<<.GroupBy>>)[1m:2s]) / sum(avg_over_time(flink_taskmanager_job_task_operator_KafkaSourceReader_KafkaConsumer_records_consumed_rate[1m])) by (<<.GroupBy>>))'  
     - seriesQuery: 'flink_taskmanager_job_task_idleTimeMsPerSecond{kubernetes_namespace!="",kubernetes_pod_name!=""}'
       seriesFilters:
       - is: ".*flink_taskmanager_job_task_idleTimeMsPerSecond.*"
