@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 from matplotlib.transforms import Bbox
 
 query = "query-1"
-auto_scaler = "HPA"
-percentage = "50"
+auto_scaler = "varga"
+percentage = "90"
 
 path_to_file = "../experiment_data_processed/full_data/" + query + "_" + auto_scaler + "_" + percentage + ".csv"
 df = pd.read_csv(path_to_file)

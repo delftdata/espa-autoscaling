@@ -251,7 +251,7 @@
               "options": {
                 "mode": "exclude",
                 "names": [
-                  "avg(flink_taskmanager_job_task_operator_KafkaSourceReader_KafkaConsumer_records_lag_max)"
+                  "sum(flink_taskmanager_job_task_operator_KafkaSourceReader_KafkaConsumer_records_lag_max * flink_taskmanager_job_task_operator_KafkaSourceReader_KafkaConsumer_assigned_partitions)"
                 ],
                 "prefix": "All except:",
                 "readOnly": true

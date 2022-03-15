@@ -3,8 +3,8 @@ from datetime import datetime
 pd.options.display.max_columns = None
 
 query = "query-1"
-auto_scaler = "HPA"
-percentage = "50"
+auto_scaler = "dhalion"
+percentage = "03"
 
 metrics = ["backpressure", "busy_time", "CPU_load", "idle_time", "lag", "latency", "taskmanager", "throughput"]
 
