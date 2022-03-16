@@ -16,7 +16,7 @@ spec:
         name: utilization
       target:
         type: AverageValue
-        averageValue: 0.2
+        averageValue: 0.5
   - type: Pods
     pods:
       metric:

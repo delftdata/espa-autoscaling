@@ -19,7 +19,7 @@ data:
         overrides:
           kubernetes_namespace: {resource: "namespace"}
           kubernetes_pod_name: {resource: "pod"}
-      metricsQuery: '1 - (avg(flink_taskmanager_job_task_idleTimeMsPerSecond) by (<<.GroupBy>>) / 1000)'    
+      metricsQuery: '(1 - (avg(flink_taskmanager_job_task_idleTimeMsPerSecond) by (<<.GroupBy>>) / 1000)) * scalar((deriv(flink_jobmanager_numRegisteredTaskManagers[1m]) >= bool 0))'    
 kind: ConfigMap
 metadata:
   annotations:
