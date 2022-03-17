@@ -48,11 +48,13 @@ def decreasing(time):
         indices.append(i)
     return indices, values
 
-
+# query 1
 indices1, values1 = cosine_plot(140)
 indices2, values2 = random_walk(140)
 indices3, values3 = increasing(140)
 indices4, values4 = decreasing(140)
+
+# query 2
 
 all_values = [values1, values2, values3, values4]
 titles = ["Cosine", "Random", "Increasing", "Decreasing"]
@@ -66,8 +68,8 @@ for i in range(0, 4):
     axs[i].set_ylabel("Records per second")
 
 axs[3].set_xlabel("Minutes")
-# plt.show()
+plt.show()
 
-name = "load_patterns"
-path = "../figures/other/" + name + ".png"
-plt.savefig(path, format="png", bbox_inches=Bbox([[0, 0], [18.0, 10.0]]), dpi=600)
+# name = "load_patterns"
+# path = "../figures/other/" + name + ".png"
+# plt.savefig(path, format="png", bbox_inches=Bbox([[0, 0], [18.0, 10.0]]), dpi=600)
