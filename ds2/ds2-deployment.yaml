@@ -14,22 +14,14 @@ spec:
     spec:
       containers:
       - name: python-container
-        image: 9923/ds2:5
+        image: 9923/ds2:8
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
-        volumeMounts:
-        - mountPath: /usr/src/app/test-pd
-          name: test-volume
+        args: ["python", "ds2LogicReactive.py"]
         env:
         - name: AVG_OVER_TIME
           value: "1m"
-        - name: COOLDOWN
-          value: "240"  
-        - name: MIN_REPLICAS
-          value: "1"
-        - name: MAX_REPLICAS
-          value: "2" 
         - name: SLEEP_TIME
           value: "10"
         - name: CONTAINER
@@ -40,13 +32,14 @@ spec:
           value: "1"
         - name: PYTHONIOENCODING
           value: "UTF-8" 
-    
-      volumes:
-      - name: test-volume
-        hostPath:
-          # directory location on host
-          path: /host_mnt/c/temp/soccerdb-pv
-          # this field is optional
-          type: DirectoryOrCreate 
-        # - containerPort: 7071
-      
+        - name: MIN_REPLICAS
+          value: "1"
+        - name: MAX_REPLICAS
+          value: "16"
+        - name: COOLDOWN
+          value: "120s"
+        - name: BIDSQUERY
+          value: "yes"
+        - name: QUERY
+          value: "query-1"
+

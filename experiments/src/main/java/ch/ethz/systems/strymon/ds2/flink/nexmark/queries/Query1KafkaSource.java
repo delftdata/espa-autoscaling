@@ -70,10 +70,10 @@ public class Query1KafkaSource {
                 .setValueOnlyDeserializer(new BidDeserializationSchema())
                 .build();
         DataStream<Bid> bids =
-                env.fromSource(source, WatermarkStrategy.noWatermarks(), "Bids Source")
+                env.fromSource(source, WatermarkStrategy.noWatermarks(), "BidsSource")
                         .setParallelism(params.getInt("p-source", 1))
                         .setMaxParallelism(max_parallelism_source)
-                        .uid("Bids-Source");
+                        .uid("BidsSource");
 
 
         DataStream<Tuple4<Long, Long, Long, Long>> mapped  = bids.map(new MapFunction<Bid, Tuple4<Long, Long, Long, Long>>() {
@@ -89,8 +89,8 @@ public class Query1KafkaSource {
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         mapped.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
                 .setParallelism(params.getInt("p-sink", 1))
-        .name("Latency Sink")
-        .uid("Latency-Sink");
+        .name("LatencySink")
+        .uid("LatencySink");
     
         // execute program
         env.execute("Nexmark Query1");

@@ -87,10 +87,10 @@ public class Query3KafkaSource {
                         .build();
 
         DataStream<Auction> auctions =
-                env.fromSource(auction_source, WatermarkStrategy.noWatermarks(), "auctions Source")
+                env.fromSource(auction_source, WatermarkStrategy.noWatermarks(), "auctionsSource")
                         .setParallelism(params.getInt("p-auction-source", 1))
                         .setMaxParallelism(max_parallelism_source)
-                        .uid("Bids-Source");
+                        .uid("auctionsSource");
 
         KafkaSource<Person> person_source =
                 KafkaSource.<Person>builder()
@@ -102,7 +102,7 @@ public class Query3KafkaSource {
                         .setValueOnlyDeserializer(new PersonDeserializationSchema())
                         .build();
 
-        DataStream<Person> persons = env.fromSource(person_source, WatermarkStrategy.noWatermarks(), "person Source").setParallelism(params.getInt("p-person-source", 1)).setMaxParallelism(max_parallelism_source).filter(new FilterFunction<Person>() {
+        DataStream<Person> persons = env.fromSource(person_source, WatermarkStrategy.noWatermarks(), "personSource").setParallelism(params.getInt("p-person-source", 1)).setMaxParallelism(max_parallelism_source).filter(new FilterFunction<Person>() {
                     @Override
                     public boolean filter(Person person) throws Exception {
                         return (person.state.equals("OR") || person.state.equals("ID") || person.state.equals("CA"));
@@ -131,7 +131,7 @@ public class Query3KafkaSource {
                 });
 
         DataStream<Tuple4<String, String, String, Long>> joined = keyedAuctions.connect(keyedPersons)
-                .flatMap(new JoinPersonsWithAuctions()).name("Incremental join").setParallelism(params.getInt("p-join", 1));
+                .flatMap(new JoinPersonsWithAuctions()).name("Incrementaljoin").setParallelism(params.getInt("p-join", 1));
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         joined.transform("Sink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
