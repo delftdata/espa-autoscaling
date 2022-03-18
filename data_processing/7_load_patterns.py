@@ -92,6 +92,7 @@ def decreasing(time, query):
         values.append(val)
         indices.append(i)
     values = [int(val) for val in values]
+    values = [-1*val if val < 0 else val for val in values]
     return indices, values
 
 
