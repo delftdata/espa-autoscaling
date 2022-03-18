@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: workbench-container
-        image: 9923/workbench:18
+        image: 9923/workbench:19
         imagePullPolicy: Always
         resources:
           requests:
