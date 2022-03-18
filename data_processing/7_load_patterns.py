@@ -5,7 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.transforms import Bbox
 
-random.seed(12)
+random.seed(23)
 
 def save_time_series(data, query, load_pattern):
     file_name = query + "_" + load_pattern
@@ -39,6 +39,7 @@ def cosine_plot(time, query):
         values.append(val)
         indices.append(i)
     values = [int(val) for val in values]
+    values = [-1*val if val < 0 else val for val in values]
     return indices, values
 
 def random_walk(time, query):
@@ -56,6 +57,7 @@ def random_walk(time, query):
         values.append(val)
         indices.append(i)
     values = [int(val) for val in values]
+    values = [-1*val if val < 0 else val for val in values]
     return indices, values
 
 def increasing(time, query):
@@ -64,16 +66,17 @@ def increasing(time, query):
     elif query == "query-3":
         magnitude = 75000
     elif query == "query-11":
-        magnitude = 15000
+        magnitude = 150000
     initial_val = magnitude
     values = []
     indices = []
     val = 2000
     for i in range(0, time):
-        val += random.randrange(int(-initial_val * (1 / 30)), int(initial_val * (1 / 20)))
+        val += random.randrange(int(-initial_val * (1 / 30)), int(initial_val * (1 / 22)))
         values.append(val)
         indices.append(i)
     values = [int(val) for val in values]
+    values = [-1*val if val < 0 else val for val in values]
     return indices, values
 
 def decreasing(time, query):
@@ -82,7 +85,7 @@ def decreasing(time, query):
     elif query == "query-3":
         val = 80000
     elif query == "query-11":
-        val = 15000
+        val = 150000
     initial_val = val
     values = []
     indices = []
@@ -111,10 +114,10 @@ def decreasing(time, query):
 
 
 # query 11
-indices1, values1 = cosine_plot(140, "query-11")
-indices2, values2 = random_walk(140, "query-11")
-indices3, values3 = increasing(140, "query-11")
-indices4, values4 = decreasing(140, "query-11")
+# indices1, values1 = cosine_plot(140, "query-1")
+# indices2, values2 = random_walk(140, "query-1")
+# indices3, values3 = increasing(140, "query-1")
+# indices4, values4 = decreasing(140, "query-1")
 
 experiment_time = 140
 queries = ["query-1", "query-3", "query-11"]
@@ -131,8 +134,6 @@ for query in queries:
     print("length increasing: {} negative values: {}".format(len(values1), min(values3)))
     print("length decreasing: {} negative values: {}".format(len(values1), min(values4)))
 
-
-
     save_time_series(values1, query, "cosine")
     save_time_series(values2, query, "random")
     save_time_series(values3, query, "increasing")
@@ -140,19 +141,19 @@ for query in queries:
 
 
 # plotting the load patterns
-# all_values = [values1, values2, values3, values4]
-# titles = ["Cosine", "Random", "Increasing", "Decreasing"]
-# fig, axs = plt.subplots(4,1, figsize=(20, 10), facecolor='w', edgecolor='k', sharex='all')
-# fig.subplots_adjust(hspace = .5, wspace=.001)
-#
-# for i in range(0, 4):
-#     axs[i].title.set_text(titles[i])
-#     axs[i].plot(indices1, all_values[i], color="red")
-#     axs[i].grid()
-#     axs[i].set_ylabel("Records per second")
-#
-# axs[3].set_xlabel("Minutes")
-# plt.show()
+    all_values = [values1, values2, values3, values4]
+    titles = ["Cosine", "Random", "Increasing", "Decreasing"]
+    fig, axs = plt.subplots(4,1, figsize=(20, 10), facecolor='w', edgecolor='k', sharex='all')
+    fig.subplots_adjust(hspace = .5, wspace=.001)
+
+    for i in range(0, 4):
+        axs[i].title.set_text(titles[i])
+        axs[i].plot(indices1, all_values[i], color="red")
+        axs[i].grid()
+        axs[i].set_ylabel("Records per second")
+
+    axs[3].set_xlabel("Minutes")
+    plt.show()
 
 # name = "load_patterns"
 # path = "../figures/other/" + name + ".png"
