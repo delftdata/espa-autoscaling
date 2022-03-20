@@ -5,6 +5,7 @@ import time
 import csv
 import subprocess
 import os
+import traceback
 from kubernetes import client, config, utils
 
 # extract metrics from prometheus query
@@ -126,7 +127,7 @@ def run():
                     operator_set.add(row_values[3])
 
 
-        with open('./ds2_query_data/flink_topology_' + query + '.csv', 'w', newline='') as f:
+        with open('./ds2_query_data/flink_topology_' + query + '2.csv', 'w', newline='') as f:
             writer = csv.writer(f)
             header = ["# operator_id1","operator_name1","total_number_of_operator_instances1","operator_id2","operator_name2","total_number_of_operator_instances2"]
             writer.writerow(header)
@@ -135,7 +136,7 @@ def run():
                 writer.writerow(row)
         print("Wrote topology file")
 
-        ds2_model_result = subprocess.run(["cargo", "run", "--release", "--bin", "policy", "--", "--topo", "ds2_query_data/flink_topology_" + query + ".csv", "--rates", "ds2_query_data/flink_rates_" + query + ".log", "--system", "flink"], capture_output=True)
+        ds2_model_result = subprocess.run(["cargo", "run", "--release", "--bin", "policy", "--", "--topo", "ds2_query_data/flink_topology_" + query + "2.csv", "--rates", "ds2_query_data/flink_rates_" + query + ".log", "--system", "flink"], capture_output=True)
         output_text = ds2_model_result.stdout.decode("utf-8").replace("\n", "")
         output_text_values = output_text.split(",")
         suggested_parallelism = {}
@@ -197,6 +198,7 @@ def keep_running():
     try:
         run()
     except:
+        traceback.print_exc()
         time.sleep(10)
         keep_running()
 

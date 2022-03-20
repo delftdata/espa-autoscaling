@@ -12,6 +12,7 @@ RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
 
 ENV PATH="/root/.cargo/bin:${PATH}"
 
+COPY . .
+
 RUN cargo run --release --bin policy -- --topo examples/offline/flink_wordcount_topology.csv --rates examples/offline/flink_rates.log --system flink
 
-COPY . .
