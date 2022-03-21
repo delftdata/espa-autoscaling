@@ -35,23 +35,21 @@ sleep_time = int(os.environ['SLEEP_TIME'])
 container = os.environ["CONTAINER"]
 query = os.environ["QUERY"]
 job = os.environ["JOB"]
-bidsQuery= os.environ["BIDSQUERY"]
 min_replicas = int(os.environ['MIN_REPLICAS'])
 max_replicas = int(os.environ['MAX_REPLICAS'])
 cooldown = os.environ['COOLDOWN']
+overprovisioning_factor = float(os.environ["OVERPROVISIONING_FACTOR"])
 
 # sourceOperator= os.environ["SOURCEOPERATOR"]
-
-# SourceOperator = "Source:_BidsSource"
-# SourceOperator2 = "No"
 # cooldown = "120s"
+# bids_query = 0
 # min_replicas = 1
 # max_replicas = 16
 # sleep_time = 10
-# bidsQuery = "yes"
 # avg_over_time = "1m"
 # query = "query-1"
-# prometheus_address = "localhost:9090"
+# overprovisioning_factor = 1.1
+# prometheus_address = "34.65.94.160:9090"
 prometheus_address = "prometheus-server"
 def run():
     while True:
@@ -66,7 +64,7 @@ def run():
         number_of_processors_per_task = requests.get(
             "http://" + prometheus_address + "/api/v1/query?query=count(flink_taskmanager_job_task_operator_numRecordsIn) by (task_name)")
         input_rate_kafka = requests.get(
-            "http://" + prometheus_address + "/api/v1/query?query=rate(kafka_server_brokertopicmetrics_messagesin_total[1m])")
+            "http://" + prometheus_address + "/api/v1/query?query=sum(rate(kafka_server_brokertopicmetrics_messagesin_total[1m])) by (topic)")
         true_processing = requests.get(
             "http://" + prometheus_address + "/api/v1/query?query=avg(flink_taskmanager_job_task_numRecordsOutPerSecond) by (task_name) / (avg(flink_taskmanager_job_task_busyTimeMsPerSecond) by (task_name) / 1000)")
 
@@ -75,7 +73,6 @@ def run():
         previous_scaling_event = previous_scaling_event.json()["data"]["result"][0]["value"][1]
         print("taskmanager deriv: " + str(previous_scaling_event))
 
-
         input_rates_per_operator = extract_per_operator_metrics(input_rate_query, include_subtask=True)
         output_rates_per_operator = extract_per_operator_metrics(output_rate_query, include_subtask=True)
         busy_time_per_operator = extract_per_operator_metrics(busy_time_query, include_subtask=True)
@@ -83,6 +80,12 @@ def run():
         operators = list(processors_per_operator.keys())
         input_rate_kafka = extract_topic_input_rate(input_rate_kafka)
         source_true_processing = extract_per_operator_metrics(true_processing)
+        try:
+            del input_rate_kafka["__consumer_offsets"]
+        except:
+            print("coudn't delete key")
+
+        print(input_rate_kafka)
 
         print("Obtained metrics")
         print(operators)
@@ -101,6 +104,10 @@ def run():
             writer.writerow(header)
 
             timestamp = time.time_ns()
+            for key in input_rate_kafka.keys():
+                row = [key, 0, 1, timestamp, 1, 1, 1, 1]
+                writer.writerow(row)
+
             for key in input_rates_per_operator:
                 formatted_key = key.split(" ")
                 operator, operator_id = formatted_key[0], formatted_key[1]
@@ -126,6 +133,18 @@ def run():
                     topology_order.append(row_values[3])
                     operator_set.add(row_values[3])
 
+        with open("ds2_query_data/" + query + "_source_rates.csv", 'w', newline='') as f:
+            writer = csv.writer(f)
+            header = ["# source_operator_name","output_rate_per_instance (records/s)"]
+            writer.writerow(header)
+            for key, value in input_rate_kafka.items():
+                row = [key, input_rate_kafka[key]]
+                writer.writerow(row)
+        print("Wrote source rate file")
+
+        # setting number of operators for kafka topic to 1 so it can be used in topology.
+        for key in input_rate_kafka.keys():
+            processors_per_operator[key] = 1
 
         with open('./ds2_query_data/flink_topology_' + query + '2.csv', 'w', newline='') as f:
             writer = csv.writer(f)
@@ -136,39 +155,38 @@ def run():
                 writer.writerow(row)
         print("Wrote topology file")
 
-        ds2_model_result = subprocess.run(["cargo", "run", "--release", "--bin", "policy", "--", "--topo", "ds2_query_data/flink_topology_" + query + "2.csv", "--rates", "ds2_query_data/flink_rates_" + query + ".log", "--system", "flink"], capture_output=True)
+        ds2_model_result = subprocess.run(["cargo", "run", "--release", "--bin", "policy", "--", "--topo", "ds2_query_data/flink_topology_" + query + "2.csv", "--rates", "ds2_query_data/flink_rates_" + query + ".log", "--source-rates", "ds2_query_data/" + query + "_source_rates.csv", "--system", "flink"], capture_output=True)
         output_text = ds2_model_result.stdout.decode("utf-8").replace("\n", "")
         output_text_values = output_text.split(",")
         suggested_parallelism = {}
 
-        for i in range(0, len(output_text_values), 2):
-            suggested_parallelism[output_text_values[i]] = output_text_values[i + 1].replace("\"", "")
+        filtered = []
+        for val in output_text_values:
+            if "topic" not in val:
+                val = val.replace(" NodeIndex(0)\"", "")
+                filtered.append(val)
+
+        for i in range(0, len(filtered), 2):
+            suggested_parallelism[filtered[i]] = filtered[i + 1].replace("\"", "")
 
         print("DS2 model result")
         print(suggested_parallelism)
 
-        source1_parallelism = 0
-        source2_parallelism = 0
-        if bidsQuery == "yes":
-            source1_parallelism = math.ceil(input_rate_kafka['bids_topic'] / source_true_processing['Source:_BidsSource'])
-        if bidsQuery == "no":
-            source1_parallelism = math.ceil(input_rate_kafka['auction_topic'] / source_true_processing['Source:_AuctionSource'])
-            source2_parallelism = math.ceil(input_rate_kafka['person_topic'] / source_true_processing['Source:_PersonSource'])
 
-        print("source 1 parallelism", source1_parallelism)
-        print("source 2 parallelism", source2_parallelism)
+        number_of_taskmanagers = 0
+        for key, val in suggested_parallelism.items():
+            number_of_taskmanagers = max(number_of_taskmanagers, int(val))
 
-        number_of_taskmanagers = max(source2_parallelism, source1_parallelism)
+        print("Suggested number of taskmanagers", number_of_taskmanagers)
+
+        number_of_taskmanagers = math.ceil(overprovisioning_factor * number_of_taskmanagers)
+
+        print("Suggested number of taskmanagers after overporivisioning", number_of_taskmanagers)
 
         if number_of_taskmanagers > max_replicas:
             number_of_taskmanagers = 16
         if number_of_taskmanagers <= 0:
             number_of_taskmanagers = 1
-
-        for key, val in suggested_parallelism.items():
-            number_of_taskmanagers = max(number_of_taskmanagers, int(val))
-
-        print("Suggested number of taskmanagers", number_of_taskmanagers)
 
         # autenticate with kubernetes API
         config.load_incluster_config()
@@ -181,7 +199,7 @@ def run():
         for i in ret.items:
             current_number_of_taskmanagers = int(i.spec.replicas)
         print("current number of taskmanagers: " + str(current_number_of_taskmanagers))
-        if float(previous_scaling_event) == 0:
+        if float(previous_scaling_event) == 0 and current_number_of_taskmanagers != number_of_taskmanagers:
             print("rescaling to", number_of_taskmanagers)
             # scale taskmanager
             new_number_of_taskmanagers = number_of_taskmanagers

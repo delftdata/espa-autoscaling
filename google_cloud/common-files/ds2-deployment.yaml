@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: python-container
-        image: 9923/ds2:9
+        image: 9923/ds2:11
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
@@ -23,7 +23,7 @@ spec:
         - name: AVG_OVER_TIME
           value: "1m"
         - name: SLEEP_TIME
-          value: "10"
+          value: "20"
         - name: CONTAINER
           value: "9923/demo_custom_par:2"
         - name: JOB
@@ -37,9 +37,11 @@ spec:
         - name: MAX_REPLICAS
           value: "16"
         - name: COOLDOWN
-          value: "120s"
+          value: "240s"
         - name: BIDSQUERY
           value: "yes"
         - name: QUERY
           value: "query-1"
+        - name: OVERPROVISIONING_FACTOR
+          value: "1.2"
 

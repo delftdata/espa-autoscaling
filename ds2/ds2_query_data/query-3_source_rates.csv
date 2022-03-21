@@ -1,0 +1,2 @@
+# source_operator_name,output_rate_per_instance (records/s)
+Kafka,200000
