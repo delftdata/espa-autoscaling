@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: python-container
-        image: 9923/ds2:13
+        image: 9923/ds2:18
         imagePullPolicy: Always
         ports:
         - containerPort: 8000

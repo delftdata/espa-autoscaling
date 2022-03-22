@@ -238,6 +238,12 @@ def run():
 
         for i in range(0, len(filtered), 2):
             suggested_parallelism[filtered[i]] = math.ceil(float(filtered[i + 1].replace("\"", ""))*overprovisioning_factor)
+            if suggested_parallelism[filtered[i]] == 0:
+                raise Exception("parallelism is zero")
+            if suggested_parallelism[filtered[i]] > 16:
+                suggested_parallelism[filtered[i]] = 16
+            if suggested_parallelism[filtered[i]] <= 0:
+                suggested_parallelism[filtered[i]] = 1
 
         print("DS2 model result")
         print(suggested_parallelism)
@@ -266,84 +272,89 @@ def run():
         job_id_json = requests.get("http://flink-jobmanager-rest:8081/jobs/")
         job_id = job_id_json.json()['jobs'][0]['id']
 
-        savepoint = requests.post("http://flink-jobmanager-rest:8081/jobs/" + job_id + "/savepoints")
-
-        # sleep so savepoint can be taken
-        time.sleep(5)
-        trigger_id = savepoint.json()['request-id']
-        savepoint_name = requests.get("http://flink-jobmanager-rest:8081/jobs/" + job_id + "/savepoints/" + trigger_id)
-        savepoint_path = savepoint_name.json()["operation"]["location"]
-        print(savepoint_path)
-
-        stop_request = requests.post("http://flink-jobmanager-rest:8081/jobs/" + job_id + "/stop")
-        print(stop_request)
-
-        if query == "query-1":
-            p1 = suggested_parallelism['Source:_BidsSource']
-            p2 = suggested_parallelism['Mapper']
-            p3 = suggested_parallelism['LatencySink']
-            writeConfig(container=container,
-                        args=["standalone-job", "--job-classname", job, "--fromSavepoint", savepoint_path, "--p-source", p1,
-                              "--p-map", p2, "--p-sink", p3])
-        if query == "query-3":
-            p1 = suggested_parallelism['Source:_auctionsSource']
-            p2 = suggested_parallelism['Source:_personSource']
-            p3 = suggested_parallelism['Incrementaljoin']
-            writeConfig(container=container,
-                        args=["standalone-job", "--job-classname", job, "--fromSavepoint", savepoint_path, "--p-auction-source", p1,
-                              "--p-person-source", p2, "--p-join", p3])
-        if query == "query-11":
-            p1 = suggested_parallelism['Source:_BidsSource']
-            p2 = suggested_parallelism['SessionWindow']
-            writeConfig(container=container,
-                        args=["standalone-job", "--job-classname", job, "--fromSavepoint", savepoint_path, "--p-source",p1,"--p-window", p2])
-
-
-        # autenticate with kubernetes API
-        config.load_incluster_config()
-        v1 = client.AppsV1Api()
-
         for i in ret.items:
             current_number_of_taskmanagers = int(i.spec.replicas)
         print("current number of taskmanagers: " + str(current_number_of_taskmanagers))
-        if float(previous_scaling_event) == 0 and current_number_of_taskmanagers != number_of_taskmanagers:
-            print("rescaling to", number_of_taskmanagers)
-            # scale taskmanager
-            new_number_of_taskmanagers = number_of_taskmanagers
-            body = {"spec": {"replicas": new_number_of_taskmanagers}}
-            api_response = v1.patch_namespaced_deployment_scale(name="flink-taskmanager", namespace="default", body=body, pretty=True)
+
+        if current_number_of_taskmanagers != number_of_taskmanagers and float(previous_scaling_event) == 0 :
+            savepoint = requests.post("http://flink-jobmanager-rest:8081/jobs/" + job_id + "/savepoints")
+
+            # sleep so savepoint can be taken
+            time.sleep(5)
+            trigger_id = savepoint.json()['request-id']
+            savepoint_name = requests.get("http://flink-jobmanager-rest:8081/jobs/" + job_id + "/savepoints/" + trigger_id)
+            savepoint_path = savepoint_name.json()["operation"]["location"]
+            print(savepoint_path)
+
+            stop_request = requests.post("http://flink-jobmanager-rest:8081/jobs/" + job_id + "/stop")
+            print(stop_request)
+
+            if query == "query-1":
+                p1 = suggested_parallelism['Source:_BidsSource']
+                p2 = suggested_parallelism['Mapper']
+                p3 = suggested_parallelism['LatencySink']
+                writeConfig(container=container,
+                            args=["standalone-job", "--job-classname", job, "--fromSavepoint", savepoint_path, "--p-source",str(p1),
+                                  "--p-map",str(p2), "--p-sink",str(p3)])
+            if query == "query-3":
+                p1 = suggested_parallelism['Source:_auctionsSource']
+                p2 = suggested_parallelism['Source:_personSource']
+                p3 = suggested_parallelism['Incrementaljoin']
+                writeConfig(container=container,
+                            args=["standalone-job", "--job-classname", job, "--fromSavepoint", savepoint_path, "--p-auction-source",str(p1),
+                                  "--p-person-source",str(p2), "--p-join",str(p3)])
+            if query == "query-11":
+                p1 = suggested_parallelism['Source:_BidsSource']
+                p2 = suggested_parallelism['SessionWindow']
+                writeConfig(container=container,
+                            args=["standalone-job", "--job-classname", job, "--fromSavepoint", savepoint_path, "--p-source",str(p1),"--p-window",str(p2)])
+
+
+            # autenticate with kubernetes API
+            config.load_incluster_config()
+            v1 = client.AppsV1Api()
+
+            if float(previous_scaling_event) == 0 and current_number_of_taskmanagers != number_of_taskmanagers:
+                print("rescaling to", number_of_taskmanagers)
+                # scale taskmanager
+                new_number_of_taskmanagers = number_of_taskmanagers
+                body = {"spec": {"replicas": new_number_of_taskmanagers}}
+                api_response = v1.patch_namespaced_deployment_scale(name="flink-taskmanager", namespace="default", body=body, pretty=True)
+            else:
+                print("in cooldown")
+
+            # delete old jobmanager
+            v1 = client.BatchV1Api()
+            api_response = v1.delete_namespaced_job(name="flink-jobmanager", namespace="default", pretty=True)
+
+            time.sleep(5)
+
+            # delete the remaining jobmanager pod
+            v1 = client.CoreV1Api()
+            response = v1.list_namespaced_pod(namespace="default")
+
+            # find name
+            jobmanager_name = None
+            for i in response.items:
+                if "jobmanager" in i.metadata.name:
+                    print("Found jobmanager id: " + str(i.metadata.name))
+                    jobmanager_name = i.metadata.name
+
+            # delete pod
+            if jobmanager_name is not None:
+                response = v1.delete_namespaced_pod(name=jobmanager_name, namespace="default")
+                print("deleted pod")
+            else:
+                print("No jobmanager pod found")
+
+            time.sleep(10)
+
+            # deploy new job file with updated parrelalism
+            k8s_client = client.ApiClient()
+            yaml_file = "jobmanager_from_savepoint.yaml"
+            utils.create_from_yaml(k8s_client, yaml_file)
         else:
-            print("in cooldown")
-
-        # delete old jobmanager
-        api_response = v1.delete_namespaced_job(name="flink-jobmanager", namespace="default", pretty=True)
-
-        time.sleep(5)
-
-        # delete the remaining jobmanager pod
-        v1 = client.CoreV1Api()
-        response = v1.list_namespaced_pod(namespace="default")
-
-        # find name
-        jobmanager_name = None
-        for i in response.items:
-            if "jobmanager" in i.metadata.name:
-                print("Found jobmanager id: " + str(i.metadata.name))
-                jobmanager_name = i.metadata.name
-
-        # delete pod
-        if jobmanager_name is not None:
-            response = v1.delete_namespaced_pod(name=jobmanager_name, namespace="default")
-            print("deleted pod")
-        else:
-            print("No jobmanager pod found")
-
-        time.sleep(10)
-
-        # deploy new job file with updated parrelalism
-        k8s_client = client.ApiClient()
-        yaml_file = "jobmanager_from_savepoint.yaml"
-        utils.create_from_yaml(k8s_client, yaml_file)
+            print("No change")
 
         time.sleep(sleep_time)
 
