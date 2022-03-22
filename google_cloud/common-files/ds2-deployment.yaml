@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: python-container
-        image: 9923/ds2:11
+        image: 9923/ds2:12
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
@@ -44,4 +44,6 @@ spec:
           value: "query-1"
         - name: OVERPROVISIONING_FACTOR
           value: "1.2"
+        - name: LAG_PROCESSING_TIME
+          value: "120"
 

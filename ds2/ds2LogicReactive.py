@@ -39,17 +39,17 @@ min_replicas = int(os.environ['MIN_REPLICAS'])
 max_replicas = int(os.environ['MAX_REPLICAS'])
 cooldown = os.environ['COOLDOWN']
 overprovisioning_factor = float(os.environ["OVERPROVISIONING_FACTOR"])
+lag_processing_time = int(os.environ['LAG_PROCESSING_TIME'])
 
-# sourceOperator= os.environ["SOURCEOPERATOR"]
+# lag_processing_time = 120
 # cooldown = "120s"
-# bids_query = 0
 # min_replicas = 1
 # max_replicas = 16
 # sleep_time = 10
 # avg_over_time = "1m"
 # query = "query-1"
 # overprovisioning_factor = 1.1
-# prometheus_address = "34.65.94.160:9090"
+# prometheus_address = "34.65.62.83:9090"
 prometheus_address = "prometheus-server"
 def run():
     while True:
@@ -67,6 +67,8 @@ def run():
             "http://" + prometheus_address + "/api/v1/query?query=sum(rate(kafka_server_brokertopicmetrics_messagesin_total[1m])) by (topic)")
         true_processing = requests.get(
             "http://" + prometheus_address + "/api/v1/query?query=avg(flink_taskmanager_job_task_numRecordsOutPerSecond) by (task_name) / (avg(flink_taskmanager_job_task_busyTimeMsPerSecond) by (task_name) / 1000)")
+        lag = requests.get(
+            "http://" + prometheus_address + "/api/v1/query?query=sum(flink_taskmanager_job_task_operator_KafkaSourceReader_KafkaConsumer_records_lag_max * flink_taskmanager_job_task_operator_KafkaSourceReader_KafkaConsumer_assigned_partitions) by (task_name)")
 
         previous_scaling_event = requests.get(
             "http://" + prometheus_address + "/api/v1/query?query=deriv(flink_jobmanager_numRegisteredTaskManagers[" + cooldown + "])")
@@ -79,13 +81,14 @@ def run():
         processors_per_operator = extract_per_operator_metrics(number_of_processors_per_task)
         operators = list(processors_per_operator.keys())
         input_rate_kafka = extract_topic_input_rate(input_rate_kafka)
+        lag = extract_per_operator_metrics(lag)
         source_true_processing = extract_per_operator_metrics(true_processing)
+
         try:
             del input_rate_kafka["__consumer_offsets"]
         except:
             print("coudn't delete key")
 
-        print(input_rate_kafka)
 
         print("Obtained metrics")
         print(operators)
@@ -117,28 +120,41 @@ def run():
 
         operator_set = set()
         topology_order = []
-        topology_parallelism = {}
+        edges = {}
         with open('./ds2_query_data/flink_topology_' + query + '.csv', newline='') as csvfile:
             reader = csv.reader(csvfile, delimiter='\n')
             for index, row in enumerate(reader):
                 if index == 0:
                     continue
                 row_values = row[0].split(",")
-                topology_parallelism[row_values[0]] = row_values[2]
-                topology_parallelism[row_values[3]] = row_values[5]
-                if row_values[0] not in operator_set:
-                    topology_order.append(row_values[0])
-                    operator_set.add(row_values[0])
-                if row_values[3] not in operator_set:
-                    topology_order.append(row_values[3])
-                    operator_set.add(row_values[3])
+                if row_values[0] not in edges:
+                    edges[row_values[0]] = [row_values[3]]
+                else:
+                    edges[row_values[0]].append(row_values[3])
+                # if row_values[0] not in operator_set:
+                #     topology_order.append(row_values[0])
+                #     operator_set.add(row_values[0])
+                # if row_values[3] not in operator_set:
+                #     topology_order.append(row_values[3])
+                #     operator_set.add(row_values[3])
+        print(edges)
+
+        lag_per_topic = {}
+        source_to_topic={"Source:_BidsSource":"bids_topic", "Source:_auctionsSource":"auction_topic", "Source:_personSource":"person_topic"}
+        for key, value in lag.items():
+            lag_per_topic[source_to_topic[key]] = float(value) / lag_processing_time
+
+        print("source rate")
+        print(input_rate_kafka)
+        print("extra rate due to lag")
+        print(lag_per_topic)
 
         with open("ds2_query_data/" + query + "_source_rates.csv", 'w', newline='') as f:
             writer = csv.writer(f)
             header = ["# source_operator_name","output_rate_per_instance (records/s)"]
             writer.writerow(header)
             for key, value in input_rate_kafka.items():
-                row = [key, input_rate_kafka[key]]
+                row = [key, input_rate_kafka[key] + lag_per_topic[key]]
                 writer.writerow(row)
         print("Wrote source rate file")
 
@@ -150,9 +166,10 @@ def run():
             writer = csv.writer(f)
             header = ["# operator_id1","operator_name1","total_number_of_operator_instances1","operator_id2","operator_name2","total_number_of_operator_instances2"]
             writer.writerow(header)
-            for i in range(0, len(topology_order) - 1):
-                row = [topology_order[i], topology_order[i], int(processors_per_operator[topology_order[i]]), topology_order[i + 1], topology_order[i + 1], int(processors_per_operator[topology_order[i + 1]])]
-                writer.writerow(row)
+            for key in edges.keys():
+                for edge in edges[key]:
+                    row = [key, key, int(processors_per_operator[key]),edge, edge,int(processors_per_operator[edge])]
+                    writer.writerow(row)
         print("Wrote topology file")
 
         ds2_model_result = subprocess.run(["cargo", "run", "--release", "--bin", "policy", "--", "--topo", "ds2_query_data/flink_topology_" + query + "2.csv", "--rates", "ds2_query_data/flink_rates_" + query + ".log", "--source-rates", "ds2_query_data/" + query + "_source_rates.csv", "--system", "flink"], capture_output=True)
@@ -164,6 +181,7 @@ def run():
         for val in output_text_values:
             if "topic" not in val:
                 val = val.replace(" NodeIndex(0)\"", "")
+                val = val.replace(" NodeIndex(4)\"", "")
                 filtered.append(val)
 
         for i in range(0, len(filtered), 2):

@@ -1,2 +1,3 @@
 # source_operator_name,output_rate_per_instance (records/s)
-Kafka,200000
+auction_topic,62288.109090909085
+person_topic,58392.52727272727
