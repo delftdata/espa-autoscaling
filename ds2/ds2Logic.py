@@ -183,8 +183,7 @@ while True:
     p1 = 1
     p2 = 2
     p3 = 1
-    writeConfig(container=container,args =["standalone-job", "--job-classname", job, "--fromSavepoint", savepoint_path, "--topic", "topic", "--bootstrap.servers",
-           "kafka-service:9092", "--group.id", "yolo", "--p1", p1, "--p2", p2, "--p3", p3])
+    writeConfig(container=container,args =["standalone-job", "--job-classname", job, "--fromSavepoint", savepoint_path,"--p1", p1, "--p2", p2, "--p3", p3])
 
     # autenticate with kubernetes API
     config.load_incluster_config()

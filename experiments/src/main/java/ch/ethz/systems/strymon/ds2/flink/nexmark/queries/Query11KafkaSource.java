@@ -64,7 +64,7 @@ public class Query11KafkaSource {
 
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
         env.getConfig().setAutoWatermarkInterval(1000);
-        env.disableOperatorChaining();
+//        env.disableOperatorChaining();
 
 
         // enable latency tracking
@@ -102,7 +102,7 @@ public class Query11KafkaSource {
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         windowed.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
-                .setParallelism(params.getInt("p-sink", 1));
+                .setParallelism(params.getInt("p-window", 1));
 
 
         // execute program
