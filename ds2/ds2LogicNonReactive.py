@@ -92,6 +92,10 @@ max_replicas = int(os.environ['MAX_REPLICAS'])
 cooldown = os.environ['COOLDOWN']
 overprovisioning_factor = float(os.environ["OVERPROVISIONING_FACTOR"])
 lag_processing_time = int(os.environ['LAG_PROCESSING_TIME'])
+time_after_delete_job = int(os.environ["DELETE_TIME_JOB"])
+time_after_delete_pod = int(os.environ['DELETE_TIME_POD'])
+time_after_savepoint = int(os.environ['SAVEPOINT_TIME'])
+
 
 # lag_processing_time = 120
 # cooldown = "120s"
@@ -280,7 +284,7 @@ def run():
             savepoint = requests.post("http://flink-jobmanager-rest:8081/jobs/" + job_id + "/savepoints")
 
             # sleep so savepoint can be taken
-            time.sleep(5)
+            time.sleep(time_after_savepoint)
             trigger_id = savepoint.json()['request-id']
             savepoint_name = requests.get("http://flink-jobmanager-rest:8081/jobs/" + job_id + "/savepoints/" + trigger_id)
             savepoint_path = savepoint_name.json()["operation"]["location"]
@@ -327,7 +331,7 @@ def run():
             v1 = client.BatchV1Api()
             api_response = v1.delete_namespaced_job(name="flink-jobmanager", namespace="default", pretty=True)
 
-            time.sleep(5)
+            time.sleep(time_after_delete_job)
 
             # delete the remaining jobmanager pod
             v1 = client.CoreV1Api()
@@ -347,7 +351,7 @@ def run():
             else:
                 print("No jobmanager pod found")
 
-            time.sleep(10)
+            time.sleep(time_after_delete_pod)
 
             # deploy new job file with updated parrelalism
             k8s_client = client.ApiClient()

@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: python-container
-        image: 9923/ds2:18
+        image: 9923/ds2:19
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
@@ -46,4 +46,10 @@ spec:
           value: "1.2"
         - name: LAG_PROCESSING_TIME
           value: "120"
+        - name: DELETE_TIME_JOB
+          value: "5"
+        - name: DELETE_TIME_POD
+          value: "10"
+        - name: SAVEPOINT_TIME
+          value: "4"  
 
