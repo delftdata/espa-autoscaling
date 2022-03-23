@@ -361,7 +361,7 @@
               "options": {
                 "mode": "exclude",
                 "names": [
-                  "avg(sum(flink_taskmanager_job_task_numRecordsOutPerSecond{task_name!~\".*Sink.*\"}) by (task_name))\r\n\r\n"
+                  "{task_name=\"LatencySink\"}"
                 ],
                 "prefix": "All except:",
                 "readOnly": true
@@ -405,7 +405,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "exemplar": true,
-          "expr": "avg(sum(flink_taskmanager_job_task_numRecordsOutPerSecond{task_name!~\".*Sink.*\"}) by (task_name))\r\n\r\n",
+          "expr": "sum(flink_taskmanager_job_task_numRecordsInPerSecond{task_name=~\".*ink.*\"}) by (task_name)",
           "interval": "",
           "legendFormat": "",
           "refId": "A"

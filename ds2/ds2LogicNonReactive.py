@@ -127,7 +127,7 @@ def run():
             "http://" + prometheus_address + "/api/v1/query?query=sum(flink_taskmanager_job_task_operator_KafkaSourceReader_KafkaConsumer_records_lag_max * flink_taskmanager_job_task_operator_KafkaSourceReader_KafkaConsumer_assigned_partitions) by (task_name)")
 
         previous_scaling_event = requests.get(
-            "http://" + prometheus_address + "/api/v1/query?query=deriv(flink_jobmanager_numRegisteredTaskManagers[" + cooldown + "])")
+            "http://" + prometheus_address + "/api/v1/query?query=sum(deriv(flink_jobmanager_numRegisteredTaskManagers[" + cooldown + "]))")
         previous_scaling_event = previous_scaling_event.json()["data"]["result"][0]["value"][1]
         print("taskmanager deriv: " + str(previous_scaling_event))
 
