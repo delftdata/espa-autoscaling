@@ -47,9 +47,9 @@ spec:
         - name: LAG_PROCESSING_TIME
           value: "120"
         - name: DELETE_TIME_JOB
-          value: "5"
+          value: "4"
         - name: DELETE_TIME_POD
-          value: "10"
+          value: "4"
         - name: SAVEPOINT_TIME
           value: "4"  
 
