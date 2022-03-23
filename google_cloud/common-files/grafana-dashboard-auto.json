@@ -490,7 +490,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "exemplar": true,
-          "expr": "flink_jobmanager_numRegisteredTaskManagers",
+          "expr": "sum(flink_jobmanager_numRegisteredTaskManagers)\r\n\r\n\r\n",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
