@@ -1,15 +1,14 @@
 #!/bin/bash
 
-
-
-bash deploy-query-1.sh
+bash deploy-query-1-non-reactive.sh
 
 cd ..
 
 cd common-files
 
-kubectl wait --timeout=3m --for=condition=ready statefulset --all
+kubectl wait --timeout=4m --for=condition=ready statefulset --all
+
 kubectl apply -f rules_ds2.yaml
-kubectl apply -f ds2-deployment.yaml
+kubectl apply -f ds2-deployment-non-reactive.yaml
 
 
