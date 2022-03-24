@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 from matplotlib.transforms import Bbox
 
 query = "query-1"
-auto_scaler = "varga"
-percentage = "90"
+auto_scaler = "varga_original"
+percentage = "70"
 
 path_to_file = "../experiment_data_processed/full_data/" + query + "_" + auto_scaler + "_" + percentage + ".csv"
 df = pd.read_csv(path_to_file)
@@ -26,5 +26,5 @@ for i in range(0, len(metrics)):
 axs[len(metrics) - 1].set_xlabel("Minutes")
 
 # plt.show()
-path = "../figures/cosine/" + query + "/experiment_figs/" + query + "_" + auto_scaler + "_" + percentage + ".png"
+path = "../figures_final/cosine/" + query + "/experiment_figs/" + query + "_" + auto_scaler + "_" + percentage + ".png"
 plt.savefig(path, format="png", bbox_inches=Bbox([[0, 0], [18.0, 10.0]]), dpi=600)

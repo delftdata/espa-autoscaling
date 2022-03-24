@@ -2,3 +2,5 @@
 *.idea/
 *.jar/
 *.jar
+*.png
+*.PNG
