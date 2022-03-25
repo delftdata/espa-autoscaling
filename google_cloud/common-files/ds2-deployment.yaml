@@ -18,7 +18,7 @@ spec:
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
-        args: ["python", "ds2LogicReactive.py"]
+        args: ["python", "ds2Reactive-v1.py"]
         env:
         - name: AVG_OVER_TIME
           value: "1m"
@@ -46,4 +46,6 @@ spec:
           value: "1.2"
         - name: LAG_PROCESSING_TIME
           value: "120"
+        - name: INPUT_RATE_MULTIPLIER
+          value: "1"
 

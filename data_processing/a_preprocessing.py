@@ -2,10 +2,10 @@ from b_get_experiment_results import scrape_data
 from c_preprocess_data import combine_all_metrics
 from d_plot_time_series import plot_experiments
 
-prometheus_ip = "34.65.60.112"
+prometheus_ip = "34.65.112"
 query = "query-1"
-load_pattern = "cosine"
-autoscaler = "dhalion"
+load_pattern = "csine"
+autoscaler = "dhaion"
 metric = "10"
 
 scrape_data(prometheus_ip, query, autoscaler, metric, load_pattern)

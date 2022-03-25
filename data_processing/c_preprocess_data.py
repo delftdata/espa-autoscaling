@@ -3,7 +3,7 @@ from datetime import datetime
 pd.options.display.max_columns = None
 
 # query = "query-1"
-# auto_scaler = "varga_original"
+# auto_scaler = "vargav1"
 # percentage = "70"
 
 

@@ -4,7 +4,7 @@ from datetime import timedelta
 
 
 # prometheus_host_ip = ""
-# autoscaler = "varga_v2"
+# autoscaler = "vargav2"
 # query_being_run = "query-1"
 # cpu_percentage = "70"
 def scrape_data(prometheus_host_ip, query_being_run, autoscaler, cpu_percentage, load_pattern):
