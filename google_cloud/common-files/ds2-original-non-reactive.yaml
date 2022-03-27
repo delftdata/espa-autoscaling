@@ -14,11 +14,11 @@ spec:
     spec:
       containers:
       - name: python-container
-        image: 9923/ds2:21
+        image: 9923/ds2:22
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
-        args: ["python", "ds2NonReactive-v1.py"]
+        args: ["python", "ds2_standard_non_reactive.py"]
         env:
         - name: AVG_OVER_TIME
           value: "1m"
@@ -43,7 +43,7 @@ spec:
         - name: QUERY
           value: "query-1"
         - name: OVERPROVISIONING_FACTOR
-          value: "1.2"
+          value: "1.0"
         - name: LAG_PROCESSING_TIME
           value: "120"
         - name: DELETE_TIME_JOB
@@ -53,5 +53,9 @@ spec:
         - name: SAVEPOINT_TIME
           value: "4"  
         - name: INPUT_RATE_MULTIPLIER
+          value: "1"
+        - name: SCALE_UP_LAG_THRESHOLD
+          value: "5"
+        - name: SCALE_DOWN_LAG_THRESHOLD
           value: "1"
 
