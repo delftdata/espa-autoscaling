@@ -48,7 +48,7 @@ plt.savefig(path, format="png", bbox_inches=Bbox([[0, 0], [8.0, 5.0]]), dpi=600)
 #
 # query = "query-1"
 #
-# HPA_data = ["50", "70", "90", "50", "70", "90", "01", "02", "03"]
+# HPA_data = ["05", "70", "90", "05", "70", "90", "01", "02", "03"]
 # latency_per_autoscaler = []
 # taskmanagers_per_autoscaler = []
 #
