@@ -320,7 +320,7 @@ def run():
                                   "--p-person-source",str(p2), "--p-join",str(p3)])
             if query == "query-11":
                 p1 = suggested_parallelism['Source:_BidsSource']
-                p2 = suggested_parallelism['SessionWindow']
+                p2 = suggested_parallelism['SessionWindow____DummyLatencySink']
                 writeConfig(container=container,
                             args=["standalone-job", "--job-classname", job, "--fromSavepoint", savepoint_path, "--p-source",str(p1),"--p-window",str(p2)])
 
