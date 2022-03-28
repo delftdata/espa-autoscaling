@@ -1,6 +1,6 @@
 #!/bin/bash
 
-bash deploy-query-3-non-reactive.sh
+bash deploy-query-11-non-reactive.sh
 
 cd ..
 

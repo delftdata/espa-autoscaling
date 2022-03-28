@@ -1,6 +1,6 @@
 #!/bin/bash
 
-bash deploy-query-3.sh
+bash deploy-query-11.sh
 
 cd ..
 
