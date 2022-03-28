@@ -5,14 +5,16 @@ from adjustText import adjust_text
 import os
 
 load_pattern = "cosine"
-query = "query-1"
+query = "query-3"
 path = "../experiment_data_processed/full_data/" + load_pattern + "/" + query
 
 
 files = os.listdir(path)
 
 fig, ax = plt.subplots()
-color_per_autoscaler ={"HPA": "red", "vargav1": "purple","vargav2":"orange", "dhalion": "green", "ds2":"black"}
+# color_per_autoscaler ={"HPA": "red", "vargav1": "purple","vargav2":"orange", "dhalion": "green", "ds2":"black"}
+color_per_autoscaler ={"HPA": "red", "vargav1": "purple","vargav2":"orange", "dhalion": "green", "ds2":"black", "ds2-adapted-reactive": "pink", "ds2-original-reactive":"brown"}
+
 
 latency_per_autoscaler = []
 taskmanagers_per_autoscaler = []
@@ -34,7 +36,6 @@ for file in files:
     texts.append(ax.text(average_taskmanager, average_latency, auto_scaler + " " + metric, ha='center', va='center', size=6))
 
 adjust_text(texts, arrowprops=dict(arrowstyle='->', color='red'))
-
 plt.legend(loc=(1.02,0), labelspacing=1)
 plt.grid()
 plt.xlabel("Average number of taskmanagers")
