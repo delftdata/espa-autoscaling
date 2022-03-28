@@ -3,6 +3,9 @@ from matplotlib.transforms import Bbox
 import pandas as pd
 from adjustText import adjust_text
 import os
+from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes
+from mpl_toolkits.axes_grid1.inset_locator import mark_inset
+
 
 load_pattern = "cosine"
 query = "query-3"
@@ -13,7 +16,7 @@ files = os.listdir(path)
 
 fig, ax = plt.subplots()
 # color_per_autoscaler ={"HPA": "red", "vargav1": "purple","vargav2":"orange", "dhalion": "green", "ds2":"black"}
-color_per_autoscaler ={"HPA": "red", "vargav1": "purple","vargav2":"orange", "dhalion": "green", "ds2":"black", "ds2-adapted-reactive": "pink", "ds2-original-reactive":"brown"}
+color_per_autoscaler ={"HPA": "red", "vargav1": "purple","vargav2":"orange", "dhalion": "green", "ds2":"black", "ds2-adapted-reactive": "pink", "ds2-original-reactive":"brown", "ds2-adapted-non-reactive":"blue", "ds2-original-non-reactive":"blue"}
 
 
 latency_per_autoscaler = []
@@ -35,11 +38,22 @@ for file in files:
     ax.scatter(average_taskmanager,average_latency, s=20, color=color_per_autoscaler[auto_scaler], label=auto_scaler + "_" + metric)
     texts.append(ax.text(average_taskmanager, average_latency, auto_scaler + " " + metric, ha='center', va='center', size=6))
 
+plt.ylim([0,100])
+plt.xlim([0,16])
 adjust_text(texts, arrowprops=dict(arrowstyle='->', color='red'))
 plt.legend(loc=(1.02,0), labelspacing=1)
 plt.grid()
 plt.xlabel("Average number of taskmanagers")
 plt.ylabel("Average latency (s)")
+
+# Make the zoom-in plot:
+# axins = zoomed_inset_axes(ax, 3, loc=1) # zoom = 2
+# axins.scatter(1,1)
+# axins.set_xlim(0, 5)
+# axins.set_ylim(0, 5)
+# plt.xticks(visible=False)
+# plt.yticks(visible=False)
+# plt.draw()
 # plt.show()
 
 path = "../figures_final/" + load_pattern + "/" + query + "/pareto_figs/" + query + "_pareto.png"
