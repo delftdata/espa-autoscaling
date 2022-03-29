@@ -27,8 +27,8 @@ def cosine_plot(time, query):
         yshift = 50000
 
     elif query == "query-11":
-        amplitude = 50000
-        yshift = 100000
+        amplitude = 15000
+        yshift = 30000
 
     values = []
     indices = []
@@ -48,7 +48,7 @@ def random_walk(time, query):
     elif query == "query-3":
         val = 50000
     elif query == "query-11":
-        val = 100000
+        val = 30000
 
     values = []
     indices = []

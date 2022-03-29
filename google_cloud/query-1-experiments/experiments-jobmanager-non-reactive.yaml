@@ -16,7 +16,7 @@ spec:
       restartPolicy: OnFailure
       containers:
         - name: jobmanager
-          image: 9923/experiments:31
+          image: 9923/experiments:32
           imagePullPolicy: Always
           env:
           args: ["standalone-job", "--job-classname", "ch.ethz.systems.strymon.ds2.flink.nexmark.queries.Query1KafkaSource", "--source-max-parallelism", "20", "--p-source", "8","--p-map","8", "--p-sink","8"]
