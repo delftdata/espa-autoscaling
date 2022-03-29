@@ -8,7 +8,7 @@ from mpl_toolkits.axes_grid1.inset_locator import mark_inset
 
 
 load_pattern = "cosine"
-query = "query-3"
+query = "query-1"
 path = "../experiment_data_processed/full_data/" + load_pattern + "/" + query
 
 
@@ -22,11 +22,13 @@ color_per_autoscaler ={"HPA": "red", "vargav1": "purple","vargav2":"orange", "dh
 latency_per_autoscaler = []
 taskmanagers_per_autoscaler = []
 texts = []
-
+seen = set()
 for file in files:
     file_info = file.split("_")
     query = file_info[0]
     auto_scaler = file_info[1]
+    if "non" in auto_scaler:
+        continue
     metric = file_info[2].replace(".csv", "")
     df = pd.read_csv("../experiment_data_processed/full_data/" + load_pattern + "/" + query + "/" + file)
     latency_list = df['latency'].tolist()
@@ -35,13 +37,17 @@ for file in files:
     average_taskmanager = sum(taskmanager_list) / len(taskmanager_list)
     latency_per_autoscaler.append(average_latency)
     taskmanagers_per_autoscaler.append(average_taskmanager)
-    ax.scatter(average_taskmanager,average_latency, s=20, color=color_per_autoscaler[auto_scaler], label=auto_scaler + "_" + metric)
-    texts.append(ax.text(average_taskmanager, average_latency, auto_scaler + " " + metric, ha='center', va='center', size=6))
+    ax.scatter(average_taskmanager,average_latency, s=20, color=color_per_autoscaler[auto_scaler], label=auto_scaler if auto_scaler not in seen else "")
+    # ax.annotate(metric, (average_taskmanager, average_latency), ha='center', size=6)
+    seen.add(auto_scaler)
+    texts.append(ax.text(average_taskmanager, average_latency, metric, ha='center', va='center', size=6))
 
-plt.ylim([0,100])
+plt.ylim([0,20])
 plt.xlim([0,16])
-adjust_text(texts, arrowprops=dict(arrowstyle='->', color='red'))
-plt.legend(loc=(1.02,0), labelspacing=1)
+# adjust_text(texts)
+# adjust_text(texts, arrowprops=dict(arrowstyle='->', color='red'))
+adjust_text(texts, only_move={'points':'y', 'texts':'y'}, arrowprops=dict(arrowstyle="->", color='r', lw=0))
+plt.legend(loc=(1.02,0.5), labelspacing=1)
 plt.grid()
 plt.xlabel("Average number of taskmanagers")
 plt.ylabel("Average latency (s)")
