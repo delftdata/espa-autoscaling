@@ -16,7 +16,7 @@ data:
     restart-strategy: fixeddelay
     restart-strategy.fixed-delay.attempts: 100000
     metrics.reporter.prom.class: org.apache.flink.metrics.prometheus.PrometheusReporter
-    execution.checkpointing.interval: 10s
+    execution.checkpointing.interval: 90s
     heartbeat.timeout: 8000
     heartbeat.interval: 5000
     rest.flamegraph.enabled: true
