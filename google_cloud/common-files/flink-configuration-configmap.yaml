@@ -22,7 +22,7 @@ data:
     heartbeat.interval: 5000
     rest.flamegraph.enabled: true
     classloader.resolve-order: parent-first
-    state.backend: filesystem
+    # state.backend: filesystem
     # state.savepoints.dir: s3://pasaf-savepoints/savepoints/
     # state.checkpoints.dir: s3://pasaf-savepoints/checkpoints/
     # s3.access-key: XXXXXXXXXXXXXXXXXXX 

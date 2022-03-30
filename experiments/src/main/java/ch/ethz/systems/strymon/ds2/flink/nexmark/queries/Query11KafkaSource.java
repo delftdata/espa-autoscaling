@@ -87,6 +87,7 @@ public class Query11KafkaSource {
                 env.fromSource(source, WatermarkStrategy.noWatermarks(), "BidsSource")
                         .setParallelism(params.getInt("p-source", 1))
                         .setMaxParallelism(max_parallelism_source)
+                        .assignTimestampsAndWatermarks(new Query11KafkaSource.BidTimestampAssigner())
                         .uid("BidsSource");
 
         DataStream<Tuple2<Long, Long>> windowed = bids.keyBy(new KeySelector<Bid, Long>() {
