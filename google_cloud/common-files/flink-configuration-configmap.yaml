@@ -22,6 +22,7 @@ data:
     heartbeat.interval: 5000
     rest.flamegraph.enabled: true
     classloader.resolve-order: parent-first
+    akka.framesize: 150242880
     # state.backend: filesystem
     # state.savepoints.dir: s3://pasaf-savepoints/savepoints/
     # state.checkpoints.dir: s3://pasaf-savepoints/checkpoints/
