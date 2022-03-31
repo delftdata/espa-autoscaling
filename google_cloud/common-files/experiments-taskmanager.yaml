@@ -48,10 +48,8 @@ spec:
           mountPath: /opt/flink/conf/
         - name: my-pvc-nfs
           mountPath: /opt/flink/savepoints 
-        securityContext:
-          privileged: true
-          runAsUser: 0  # refers to user _flink_ from official flink image, change if necessary
-          fsGroup: 1000
+      securityContext:
+        fsGroup: 1000
       volumes:
       - name: flink-config-volume
         configMap:
