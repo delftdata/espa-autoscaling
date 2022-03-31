@@ -57,7 +57,7 @@ spec:
           items:
           - key: flink-conf.yaml
             path: flink-conf.yaml
-          - key: log4j-console.properties0
+          - key: log4j-console.properties
             path: log4j-console.properties
       - name: my-pvc-nfs
         persistentVolumeClaim:
