@@ -29,5 +29,5 @@ spec:
             name: mypvc
       volumes:
         - name: mypvc
-          persistenVolumeClaim:
+          persistentVolumeClaim:
             claimName: gce-nfs-disk
