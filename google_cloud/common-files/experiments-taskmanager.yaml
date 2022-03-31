@@ -51,6 +51,7 @@ spec:
         securityContext:
           privileged: true
           runAsUser: 0  # refers to user _flink_ from official flink image, change if necessary
+          fsGroup: 1000
       volumes:
       - name: flink-config-volume
         configMap:
@@ -58,7 +59,7 @@ spec:
           items:
           - key: flink-conf.yaml
             path: flink-conf.yaml
-          - key: log4j-console.properties
+          - key: log4j-console.properties0
             path: log4j-console.properties
       - name: my-pvc-nfs
         persistentVolumeClaim:

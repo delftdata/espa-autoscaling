@@ -43,7 +43,9 @@ spec:
               mountPath: /opt/flink/savepoints   
           securityContext:
             privileged: true
-            runAsUser: 0  # refers to user _flink_ from official flink image, change if necessary
+            runAsUser: 0  # refers to user _flink_ from official flink image, change if necessar
+            fsGroup: 1000
+
       volumes:
         - name: flink-config-volume
           configMap:
