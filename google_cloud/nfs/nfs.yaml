@@ -29,6 +29,5 @@ spec:
             name: mypvc
       volumes:
         - name: mypvc
-          gcePersistentDisk:
-            pdName: gce-nfs-disk
-            fsType: ext4
+          persistenVolumeClaim:
+            claimName: gce-nfs-disk
