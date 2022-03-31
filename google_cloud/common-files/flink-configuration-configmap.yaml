@@ -22,10 +22,9 @@ data:
     heartbeat.interval: 5000
     rest.flamegraph.enabled: true
     classloader.resolve-order: parent-first
-    akka.framesize: 150242880
-    # state.backend: filesystem
-    # state.savepoints.dir: s3://pasaf-savepoints/savepoints/
-    # state.checkpoints.dir: s3://pasaf-savepoints/checkpoints/
+    state.backend: filesystem
+    state.savepoints.dir: file:///opt/flink/savepoints
+    state.checkpoints.dir: file:///opt/flink/savepoints
     # s3.access-key: XXXXXXXXXXXXXXXXXXX 
     # s3.secret-key: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   log4j-console.properties: |+

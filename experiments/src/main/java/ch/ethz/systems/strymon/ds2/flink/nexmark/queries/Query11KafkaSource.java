@@ -64,7 +64,7 @@ public class Query11KafkaSource {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
-        env.getCheckpointConfig().setCheckpointStorage(new JobManagerCheckpointStorage(120242880));
+//        env.getCheckpointConfig().setCheckpointStorage(new JobManagerCheckpointStorage(120242880));
         env.getConfig().setAutoWatermarkInterval(1000);
 //        env.disableOperatorChaining();
 
