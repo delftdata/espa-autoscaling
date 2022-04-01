@@ -13,6 +13,7 @@ def pareto_plot(query, zoomed, latency_limit, zoomed_latency_limit):
     files = os.listdir(path)
     fig, ax = plt.subplots()
     color_per_autoscaler ={"HPA": "red", "vargav1": "purple","vargav2":"orange", "dhalion": "green", "ds2":"black", "ds2-adapted-reactive": "pink", "ds2-original-reactive":"brown", "ds2-adapted-non-reactive":"blue", "ds2-original-non-reactive":"blue"}
+    marker_per_autoscaler ={"HPA": "o", "vargav1": "*","vargav2":"P", "dhalion": "X", "ds2":"P", "ds2-adapted-reactive": "D", "ds2-original-reactive":"s", "ds2-adapted-non-reactive":"blue", "ds2-original-non-reactive":"blue"}
 
 
     latency_per_autoscaler = []
@@ -37,7 +38,7 @@ def pareto_plot(query, zoomed, latency_limit, zoomed_latency_limit):
             continue
         latency_per_autoscaler.append(average_latency)
         taskmanagers_per_autoscaler.append(average_taskmanager)
-        ax.scatter(average_taskmanager,average_latency, s=50, color=color_per_autoscaler[auto_scaler], label=auto_scaler if auto_scaler not in seen else "")
+        ax.scatter(average_taskmanager,average_latency, s=50, color=color_per_autoscaler[auto_scaler], marker=marker_per_autoscaler[auto_scaler], label=auto_scaler if auto_scaler not in seen else "")
         # ax.annotate(metric, (average_taskmanager, average_latency), ha='center', size=6)
         seen.add(auto_scaler)
         texts.append(ax.text(average_taskmanager, average_latency, metric, ha='right', va='top', size=10))
