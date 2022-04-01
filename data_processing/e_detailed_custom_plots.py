@@ -26,5 +26,5 @@ for i in range(0, len(metrics)):
     axs[i].grid()
 
 # plt.show()
-path = "../figures/cosine/" + query + "/detailed_figs/" + query + "_" + auto_scaler + "_" + percentage + ".png"
+path = "../figures/cosine_failed/" + query + "/detailed_figs/" + query + "_" + auto_scaler + "_" + percentage + ".png"
 plt.savefig(path, format="png", bbox_inches=Bbox([[0, 0], [18.0, 10.0]]), dpi=600)

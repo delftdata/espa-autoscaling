@@ -16,7 +16,7 @@ def number_of_rescales(taskmanager):
     return scaling_events
 
 query = "query-3"
-load_pattern = "cosine"
+load_pattern = "cosine_failed"
 path = "../experiment_data_processed/full_data/" + load_pattern + "/" + query
 files = os.listdir(path)
 
