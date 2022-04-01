@@ -8,7 +8,7 @@ from mpl_toolkits.axes_grid1.inset_locator import mark_inset
 
 
 def pareto_plot(query, zoomed, latency_limit, zoomed_latency_limit):
-    load_pattern = "cosine_failed"
+    load_pattern = "cosine"
     path = "../experiment_data_processed/full_data/" + load_pattern + "/" + query
     files = os.listdir(path)
     fig, ax = plt.subplots()

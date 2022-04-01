@@ -6,7 +6,7 @@ prometheus_ip = "34.65.141.22"
 query = "query-11"
 load_pattern = "cosine"
 autoscaler = "HPA"
-metric = "70"
+metric = "90"
 
 scrape_data(prometheus_ip, query, autoscaler, metric, load_pattern)
 

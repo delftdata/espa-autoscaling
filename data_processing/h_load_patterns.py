@@ -129,12 +129,12 @@ for query in queries:
     indices3, values3 = increasing(experiment_time, query)
     indices4, values4 = decreasing(experiment_time, query)
 
-    print("length cosine_failed: {} negative values: {}".format(len(values1), min(values1)))
+    print("length cosine: {} negative values: {}".format(len(values1), min(values1)))
     print("length random: {} negative values: {}".format(len(values1), min(values2)))
     print("length increasing: {} negative values: {}".format(len(values1), min(values3)))
     print("length decreasing: {} negative values: {}".format(len(values1), min(values4)))
 
-    save_time_series(values1, query, "cosine_failed")
+    save_time_series(values1, query, "cosine")
     save_time_series(values2, query, "random")
     save_time_series(values3, query, "increasing")
     save_time_series(values4, query, "decreasing")
