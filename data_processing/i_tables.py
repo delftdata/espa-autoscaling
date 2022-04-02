@@ -37,6 +37,8 @@ for file in files:
     if "non" in auto_scaler:
         continue
     metric = file_info[2].replace(".csv", "")
+    if "i" in metric:
+        continue
     df = pd.read_csv("../experiment_data_processed/full_data/" + load_pattern + "/" + query + "/" + file)
     latency_list = df['latency'].tolist()
     taskmanager_list = df['taskmanager'].tolist()

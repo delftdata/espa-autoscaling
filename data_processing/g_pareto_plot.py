@@ -27,6 +27,8 @@ def pareto_plot(query, zoomed, latency_limit, zoomed_latency_limit):
         if "non" in auto_scaler:
             continue
         metric = file_info[2].replace(".csv", "")
+        if "i" in metric:
+            continue
         df = pd.read_csv("../experiment_data_processed/full_data/" + load_pattern + "/" + query + "/" + file)
         latency_list = df['latency'].tolist()
         taskmanager_list = df['taskmanager'].tolist()
@@ -63,7 +65,7 @@ def pareto_plot(query, zoomed, latency_limit, zoomed_latency_limit):
     plt.savefig(path, format="png", bbox_inches=Bbox([[0, 0], [8.0, 5.0]]), dpi=600)
 
 
-pareto_plot("query-11", False, 1000, 20)
+pareto_plot("query-11", False, 1000, 100)
 
-pareto_plot("query-11", True, 1000, 20)
+pareto_plot("query-11", True, 1000, 100)
 
