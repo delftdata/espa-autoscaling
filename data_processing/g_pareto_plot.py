@@ -63,7 +63,7 @@ def pareto_plot(query, zoomed, latency_limit, zoomed_latency_limit):
     plt.savefig(path, format="png", bbox_inches=Bbox([[0, 0], [8.0, 5.0]]), dpi=600)
 
 
-pareto_plot("query-1", False, 200, 20)
+pareto_plot("query-11", False, 1000, 20)
 
-pareto_plot("query-1", True, 200, 20)
+pareto_plot("query-11", True, 1000, 20)
 
