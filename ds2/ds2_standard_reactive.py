@@ -141,7 +141,7 @@ def run():
         print(edges)
 
         lag_per_topic = {}
-        source_to_topic={"Source:_BidsSource":"bids_topic", "Source:_auctionsSource":"auction_topic", "Source:_personSource":"person_topic"}
+        source_to_topic={"Source:_BidsSource":"bids_topic", "Source:_auctionsSource":"auction_topic", "Source:_personSource":"person_topic", "Source:_BidsSource____Timestamps_Watermarks":"bids_topic"}
         for key, value in lag.items():
             lag_per_topic[source_to_topic[key]] = float(value) / lag_processing_time
 
