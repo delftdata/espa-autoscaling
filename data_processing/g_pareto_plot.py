@@ -14,7 +14,7 @@ def pareto_plot(query, zoomed, latency_limit, zoomed_latency_limit):
     fig, ax = plt.subplots()
     color_per_autoscaler ={"HPA": "red", "vargav1": "purple","vargav2":"orange", "dhalion": "green", "ds2":"black", "ds2-adapted-reactive": "pink", "ds2-original-reactive":"brown", "ds2-adapted-non-reactive":"blue", "ds2-original-non-reactive":"blue"}
     marker_per_autoscaler ={"HPA": "o", "vargav1": "*","vargav2":"P", "dhalion": "X", "ds2":"P", "ds2-adapted-reactive": "D", "ds2-original-reactive":"s", "ds2-adapted-non-reactive":"blue", "ds2-original-non-reactive":"blue"}
-
+    rename = {"HPA":"HPA", "vargav1":"Vargav1", "vargav2":"Vargav2", "dhalion":"Dhalion-adapted", "ds2-original-reactive": "DS2-modern", "ds2-adapted-reactive": "DS2-modern-adapted"}
 
     latency_per_autoscaler = []
     taskmanagers_per_autoscaler = []
@@ -40,7 +40,7 @@ def pareto_plot(query, zoomed, latency_limit, zoomed_latency_limit):
             continue
         latency_per_autoscaler.append(average_latency)
         taskmanagers_per_autoscaler.append(average_taskmanager)
-        ax.scatter(average_taskmanager,average_latency, s=50, color=color_per_autoscaler[auto_scaler], marker=marker_per_autoscaler[auto_scaler], label=auto_scaler if auto_scaler not in seen else "")
+        ax.scatter(average_taskmanager,average_latency, s=50, color=color_per_autoscaler[auto_scaler], marker=marker_per_autoscaler[auto_scaler], label=rename[auto_scaler] if auto_scaler not in seen else "")
         # ax.annotate(metric, (average_taskmanager, average_latency), ha='center', size=6)
         seen.add(auto_scaler)
         texts.append(ax.text(average_taskmanager, average_latency, metric, ha='right', va='top', size=10))
@@ -65,7 +65,15 @@ def pareto_plot(query, zoomed, latency_limit, zoomed_latency_limit):
     plt.savefig(path, format="png", bbox_inches=Bbox([[0, 0], [8.0, 5.0]]), dpi=600)
 
 
-pareto_plot("query-11", False, 1000, 100)
+# pareto_plot("query-1", False, 50, 20)
+#
+# pareto_plot("query-1", True, 50, 20)
 
-pareto_plot("query-11", True, 1000, 100)
+# pareto_plot("query-3", False, 200, 50)
+#
+# pareto_plot("query-3", True, 200, 50)
+
+pareto_plot("query-11", False, 100, 20)
+
+pareto_plot("query-11", True, 100, 20)
 

@@ -15,7 +15,7 @@ def number_of_rescales(taskmanager):
         previous_number_taskmanagers = val
     return scaling_events
 
-query = "query-3"
+query = "query-11"
 load_pattern = "cosine"
 path = "../experiment_data_processed/full_data/" + load_pattern + "/" + query
 files = os.listdir(path)
@@ -23,6 +23,8 @@ files = os.listdir(path)
 
 pd.set_option('precision', 2)
 
+rename = {"HPA": "HPA", "vargav1": "Vargav1", "vargav2": "Vargav2", "dhalion": "Dhalion-adapted",
+          "ds2-original-reactive": "DS2-modern", "ds2-adapted-reactive": "DS2-modern-adapted"}
 name = []
 metric_per_autoscaler = []
 latency_per_autoscaler = []
@@ -45,7 +47,7 @@ for file in files:
     average_latency = sum(latency_list) / len(latency_list)
     average_taskmanager = sum(taskmanager_list) / len(taskmanager_list)
     rescales = number_of_rescales(df['taskmanager'].tolist())
-    name.append(auto_scaler)
+    name.append(rename[auto_scaler])
     metric_per_autoscaler.append(metric)
     taskmanagers_per_autoscaler.append(average_taskmanager)
     latency_per_autoscaler.append(average_latency)
