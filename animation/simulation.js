@@ -98,6 +98,7 @@ class Circle {
         og_date = new Date();
         date = new Date();
         seconds = date.getSeconds();
+        time = date.getTime();
         
         position_user_devices = 0.05 * canvas.width
 
@@ -105,11 +106,14 @@ class Circle {
 
         position_queue_start = 0.2 * canvas.width
 
-        position_queue_end = 0.6 * canvas.width
+        position_queue_end = 0.7 * canvas.width
         
-
         cooldown = 0;
 
+        rates = [1250, 1000, 750, 1000, 1250];
+        rate_index = 0;
+        rate = rates[rate_index];
+        rate_change_cooldown = 60;
 
         packet_radius = 5;
 
@@ -125,7 +129,7 @@ class Circle {
         max_servers = 4;
 
         servers = [];
-        online_servers = 2;
+        online_servers = 1;
 
         initial_server = 0;
 
@@ -134,7 +138,7 @@ class Circle {
 
         // servers
         servers.push(new Server(position_servers, canvas.height*0.8 - 50, 100, 100, "blue", "server", "offline"))
-        servers.push(new Server(position_servers, canvas.height*0.6 - 50, 100, 100, "blue", "server", "online"))
+        servers.push(new Server(position_servers, canvas.height*0.6 - 50, 100, 100, "blue", "server", "offline"))
         servers.push(new Server(position_servers, canvas.height*0.4 - 50, 100, 100, "blue", "server", "online"))
         servers.push(new Server(position_servers, canvas.height*0.2 - 50, 100, 100, "blue", "server", "offline"))
 
@@ -182,13 +186,6 @@ class Circle {
                 ctx.lineTo(position_servers + 50, servers[i].y_pos + 50);
             }
         }
-        // // line to server
-        // ctx.moveTo(position_queue_end, canvas.height / 2);
-        // ctx.lineTo(position_servers + 50, canvas.height*0.4);
-
-        // // line to server
-        // ctx.moveTo(position_queue_end, canvas.height / 2);
-        // ctx.lineTo(position_servers + 50, canvas.height*0.6);
 
         ctx.stroke();
 
@@ -219,9 +216,9 @@ class Circle {
 
         var date2 = new Date();
         var seconds2 = date2.getSeconds();
+        var time2 = date2.getTime();
 
-        // generate particle ever second
-        if (seconds2 != seconds){
+        if (time2 - time >= rate){
             y_generation_pos = 0
             if (initial_user_device == 0) {
                 y_generation_pos = canvas.height*0.25;
@@ -236,10 +233,16 @@ class Circle {
             }
             packet = new Circle(position_user_devices + 25, y_generation_pos, packet_radius, packet_color)
             packet.velocitiesToPoint(position_queue_start, canvas.height*0.5, 5);
-            pre_queue.push(packet);   
-            seconds = seconds2;
+            pre_queue.push(packet); 
+            time = time2;
 
+        }
+
+        // generate particle ever second
+        if (seconds2 != seconds){  
+            seconds = seconds2;
             cooldown -= 1;
+            rate_change_cooldown -= 1;
             localStorage.setItem('queue_length', packets.length);
             localStorage.setItem('servers', online_servers);
         }
@@ -320,7 +323,7 @@ class Circle {
         }
 
         // add servers if queue length is more than 10
-        if (packets.length > 10 && online_servers <= max_servers && cooldown <= 0){
+        if (packets.length > 15 && online_servers <= max_servers && cooldown <= 0){
             for (var i = 0; i < servers.length; i++){
                 if (servers[i].status === "offline"){
                     servers[i].status = "online";
@@ -331,13 +334,14 @@ class Circle {
             }
         }
 
-        // remove servers if queue length is less than 10
+        // remove servers if queue length is less than 5
         if (packets.length < 5 && online_servers > min_servers && cooldown <= 0){
             for (var i = 0; i < servers.length; i++){
                 if (servers[i].status === "online" && servers[i].device_type === "server"){
                     console.log("here");
 
                     servers[i].status = "offline";
+                    servers[i].packet.sleep = 0;
                     online_servers -= 1;
                     cooldown = 15
                     break;
@@ -353,6 +357,19 @@ class Circle {
             }
         }
         consumed_packets = survived
+
+        // adjust rate at which packets are prodcued
+        if (rate_change_cooldown <= 0){
+            if (rate_index < 4){
+                rate_index += 1;
+            } else{
+                rate_index = 0;
+            }
+            rate = rates[rate_index];
+            rate_change_cooldown = 60;
+            console.log("changing rate to");
+            console.log(rate);
+        }
 
 
         draw();
