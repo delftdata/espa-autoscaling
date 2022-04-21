@@ -1,0 +1,33 @@
+#graphs
+{
+    height:400px;
+    margin-top:500px;
+    /* border-style:solid; */
+}
+.row:after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+.col {
+    float: left;
+    width: 50%;
+    height: 400px;
+  }
+
+/* .graphs {
+    margin-top:100px;
+    bottom: 10px;
+    width: 50%;
+    border: 3px solid #8AC007;
+  }
+  .row:after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+  .col {
+    float: left;
+    width: 50%;
+    height: 270px;
+  } */

@@ -1,11 +1,13 @@
 class Server {
-    constructor(x, y, width, height, color, device_type) {
+    constructor(x, y, width, height, color, device_type, status) {
         this.x_pos = x;
         this.y_pos = y;
         this.width = width;
         this.height = height
         this.color = color
         this.device_type = device_type
+        this.status = status;
+        this.packet = -1;
     }
 
     draw(ctx) {
@@ -34,7 +36,7 @@ class Circle {
         this.dx = 5;
         this.dy = 0;
         this.color = color
-        this.sleep = 90
+        this.sleep = 250
     }
 
     draw(ctx) {
@@ -91,7 +93,7 @@ class Circle {
         canvas.style.left = "0px";     
         canvas.style.top = "0px";
         canvas.width = innerWidth;         
-        canvas.height = innerHeight;
+        canvas.height = innerHeight / 2 ;
 
         og_date = new Date();
         date = new Date();
@@ -106,6 +108,9 @@ class Circle {
         position_queue_end = 0.6 * canvas.width
         
 
+        cooldown = 0;
+
+
         packet_radius = 5;
 
         packet_color = 'red';
@@ -116,7 +121,11 @@ class Circle {
 
         consumed_packets = [];
 
+        min_servers = 2;
+        max_servers = 4;
+
         servers = [];
+        online_servers = 2;
 
         initial_server = 0;
 
@@ -124,14 +133,15 @@ class Circle {
 
 
         // servers
-        servers.push(new Server(position_servers, canvas.height*0.4 - 50, 100, 100, "blue", "server"))
-
-        servers.push(new Server(position_servers, canvas.height*0.6 - 50, 100, 100, "blue", "server"))
+        servers.push(new Server(position_servers, canvas.height*0.8 - 50, 100, 100, "blue", "server", "offline"))
+        servers.push(new Server(position_servers, canvas.height*0.6 - 50, 100, 100, "blue", "server", "online"))
+        servers.push(new Server(position_servers, canvas.height*0.4 - 50, 100, 100, "blue", "server", "online"))
+        servers.push(new Server(position_servers, canvas.height*0.2 - 50, 100, 100, "blue", "server", "offline"))
 
         // user devices
-        servers.push(new Server(position_user_devices, canvas.height*0.75 - 25, 50, 50, "green", "client"))
-        servers.push(new Server(position_user_devices, canvas.height*0.5 - 25, 50, 50, "green", "phone"))
-        servers.push(new Server(position_user_devices, canvas.height*0.25 - 25, 50, 50, "green", "client"))
+        servers.push(new Server(position_user_devices, canvas.height*0.75 - 25, 50, 50, "green", "client", "online"))
+        servers.push(new Server(position_user_devices, canvas.height*0.5 - 25, 50, 50, "green", "phone", "online"))
+        servers.push(new Server(position_user_devices, canvas.height*0.25 - 25, 50, 50, "green", "client", "online"))
 
         // begin update loop
         window.requestAnimationFrame(update);
@@ -166,23 +176,29 @@ class Circle {
         ctx.moveTo(position_user_devices, canvas.height*0.75 + 25);
         ctx.lineTo(position_queue_start, canvas.height / 2);
 
-        // line to server
-        ctx.moveTo(position_queue_end, canvas.height / 2);
-        ctx.lineTo(position_servers + 50, canvas.height*0.4);
+        for (var i = 0; i < servers.length; i++) {
+            if (servers[i].device_type === "server" && servers[i].status === "online"){
+                ctx.moveTo(position_queue_end, canvas.height / 2);
+                ctx.lineTo(position_servers + 50, servers[i].y_pos + 50);
+            }
+        }
+        // // line to server
+        // ctx.moveTo(position_queue_end, canvas.height / 2);
+        // ctx.lineTo(position_servers + 50, canvas.height*0.4);
 
-        // line to server
-        ctx.moveTo(position_queue_end, canvas.height / 2);
-        ctx.lineTo(position_servers + 50, canvas.height*0.6);
-
+        // // line to server
+        // ctx.moveTo(position_queue_end, canvas.height / 2);
+        // ctx.lineTo(position_servers + 50, canvas.height*0.6);
 
         ctx.stroke();
 
         ctx.setLineDash([]);
 
         for (var i = 0; i < servers.length; i++) {
-            servers[i].draw(ctx);
+            if (servers[i].status === "online"){
+                servers[i].draw(ctx);
+            }
         }
-
 
         // draw packets
         for (var i = 0; i < pre_queue.length; i++) {
@@ -222,6 +238,10 @@ class Circle {
             packet.velocitiesToPoint(position_queue_start, canvas.height*0.5, 5);
             pre_queue.push(packet);   
             seconds = seconds2;
+
+            cooldown -= 1;
+            localStorage.setItem('queue_length', packets.length);
+            localStorage.setItem('servers', online_servers);
         }
 
         // change packet velocity when start of queue is reached
@@ -257,6 +277,14 @@ class Circle {
             }
         }
 
+        // find server with no packet assigned
+        initial_server = -1;
+        for (var i = 0; i < servers.length; i++) {
+            if (servers[i].device_type === "server" && servers[i].status === "online" && servers[i].packet == -1){
+                initial_server = i;
+            }
+        }
+
         // make packet wait at middle
         if (packets.length > 0){
             if (packets[0].x_pos >= position_queue_end){
@@ -264,15 +292,10 @@ class Circle {
             }
 
             // remove packet from queue and move queue forward
-            if (packets[0].x_pos >= position_queue_end && packets[0].sleep < 0){
+            if (packets[0].x_pos >= position_queue_end && initial_server >= 0){
                 consumed_packet = packets.shift();
-                if (initial_server == 0){
-                    consumed_packet.velocitiesToPoint(position_servers + 50, canvas.height*0.4, 5);
-                    initial_server = 1
-                } else{
-                    consumed_packet.velocitiesToPoint(position_servers + 50, canvas.height*0.6, 5);
-                    initial_server = 0
-                }
+                consumed_packet.velocitiesToPoint(position_servers + 50, servers[initial_server].y_pos + 50, 5);
+                servers[initial_server].packet = consumed_packet
                 consumed_packets.push(consumed_packet);
                 for (var i = 0; i < packets.length; i++) {
                     packets[i].dx = 5
@@ -286,10 +309,46 @@ class Circle {
             consumed_packets[i].bound(position_servers + 50);
         }
 
-        // remove packets outside of screen
+        // let server process packets
+        for (var i = 0; i < servers.length; i++){
+            if (servers[i].device_type === "server" && servers[i].packet != -1){
+                servers[i].packet.sleep -= 1
+                if (servers[i].packet.sleep <= 0){
+                    servers[i].packet = -1;
+                }
+            }
+        }
+
+        // add servers if queue length is more than 10
+        if (packets.length > 10 && online_servers <= max_servers && cooldown <= 0){
+            for (var i = 0; i < servers.length; i++){
+                if (servers[i].status === "offline"){
+                    servers[i].status = "online";
+                    online_servers += 1;
+                    cooldown = 15
+                    break;
+                }
+            }
+        }
+
+        // remove servers if queue length is less than 10
+        if (packets.length < 5 && online_servers > min_servers && cooldown <= 0){
+            for (var i = 0; i < servers.length; i++){
+                if (servers[i].status === "online" && servers[i].device_type === "server"){
+                    console.log("here");
+
+                    servers[i].status = "offline";
+                    online_servers -= 1;
+                    cooldown = 15
+                    break;
+                }
+            }
+        }
+
+        // remove packets after they have finished processing
         survived = []
         for (var i = 0; i < consumed_packets.length; i++){
-            if (consumed_packets[i].x_pos <= canvas.width - 100){
+            if (consumed_packets[i].sleep > 0){
                 survived.push(consumed_packets[i])
             }
         }
