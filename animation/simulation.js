@@ -8,6 +8,7 @@ class Server {
         this.device_type = device_type
         this.status = status;
         this.packet = -1;
+        this.time = new Date().getTime();
     }
 
     draw(ctx) {
@@ -26,6 +27,16 @@ class Server {
         }
         ctx.drawImage(img1, this.x_pos, this.y_pos, this.height, this.width);
     }
+
+    generatePacket(time2, offset){
+        if (time2 - this.time > 1500 + 90*offset){
+        var generated_packet = new Circle(this.x_pos + 50, this.y_pos + 25, packet_radius, packet_color, speed);
+        generated_packet.velocitiesToPoint(position_queue_start, canvas.height*0.5, speed);
+        this.time = time2
+        return generated_packet;
+        }
+        return null;
+    }
 }
 
 class Circle {
@@ -36,7 +47,7 @@ class Circle {
         this.dx = speed;
         this.dy = 0;
         this.color = color
-        this.sleep = 250
+        this.sleep = 200
     }
 
     draw(ctx) {
@@ -102,15 +113,17 @@ class Circle {
         
         position_user_devices = 0.05 * canvas.width
 
-        position_servers = 0.9 * canvas.width
+        position_servers = 0.95 * canvas.width
 
         position_queue_start = 0.2 * canvas.width
 
-        position_queue_end = 0.7 * canvas.width
+        position_queue_end = 0.8 * canvas.width
         
         cooldown = 0;
 
         speed = 9;
+        packet_queue_distance = speed*2;
+
 
         rates = [1250, 1000, 750, 1000, 1250];
         rate_index = 0;
@@ -120,6 +133,7 @@ class Circle {
         packet_radius = 5;
 
         packet_color = 'red';
+
 
         pre_queue = [];
 
@@ -138,7 +152,7 @@ class Circle {
         initial_user_device = 0;
 
         localStorage.setItem('queue_length', 0);
-        localStorage.setItem('servers', online_servers);
+        localStorage.setItem('servers', 0);
 
 
         // servers
@@ -174,17 +188,21 @@ class Circle {
         ctx.strokeStyle = "grey"
         ctx.lineWidth = 2;
         ctx.setLineDash([5, 10]);
-        ctx.moveTo(position_user_devices, canvas.height / 2);
+
+        // main line
+        ctx.moveTo(position_queue_start, canvas.height / 2);
         ctx.lineTo(position_queue_end, canvas.height / 2);
 
-        // line to queue device 0
-        ctx.moveTo(position_user_devices, canvas.height*0.25 - 25);
-        ctx.lineTo(position_queue_start, canvas.height / 2);
+        // draw user device lines
+        for (var i = 0; i < servers.length; i++) {
+            if (servers[i].device_type !== "server" && servers[i].status === "online"){
+                ctx.moveTo(servers[i].x_pos + 50, servers[i].y_pos + 25);
+                ctx.lineTo(position_queue_start, canvas.height / 2);
+            }
+        }
+        
 
-        // line to queue device 2
-        ctx.moveTo(position_user_devices, canvas.height*0.75 + 25);
-        ctx.lineTo(position_queue_start, canvas.height / 2);
-
+        // draw server lines
         for (var i = 0; i < servers.length; i++) {
             if (servers[i].device_type === "server" && servers[i].status === "online"){
                 ctx.moveTo(position_queue_end, canvas.height / 2);
@@ -223,24 +241,13 @@ class Circle {
         var seconds2 = date2.getSeconds();
         var time2 = date2.getTime();
 
-        if (time2 - time >= rate){
-            y_generation_pos = 0
-            if (initial_user_device == 0) {
-                y_generation_pos = canvas.height*0.25;
-                initial_user_device = 1
-            }
-            else if (initial_user_device == 1){
-                y_generation_pos = canvas.height*0.5;
-                initial_user_device = 2
-            } else{
-                y_generation_pos = canvas.height*0.75;
-                initial_user_device = 0
-            }
-            packet = new Circle(position_user_devices + 25, y_generation_pos, packet_radius, packet_color, speed)
-            packet.velocitiesToPoint(position_queue_start, canvas.height*0.5, speed);
-            pre_queue.push(packet); 
-            time = time2;
-
+        for (var i = 0; i < servers.length; i++){
+            if (servers[i].device_type !== "server" && servers[i].status === "online"){
+                generated = servers[i].generatePacket(time2, i);
+                if (generated !== null){
+                    pre_queue.push(generated);
+                }
+            }    
         }
 
         // generate particle ever second
@@ -279,7 +286,7 @@ class Circle {
                 initial_bound = position_queue_end
             }
             else{
-                new_bound = initial_bound -packet_radius*3
+                new_bound = initial_bound - packet_queue_distance;
                 packets[i].bound(new_bound);
                 initial_bound = new_bound
             }
