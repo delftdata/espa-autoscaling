@@ -29,11 +29,11 @@ class Server {
 }
 
 class Circle {
-    constructor(x, y, radius, color) {
+    constructor(x, y, radius, color, speed) {
         this.x_pos = x;
         this.y_pos = y;
         this.radius = radius;
-        this.dx = 5;
+        this.dx = speed;
         this.dy = 0;
         this.color = color
         this.sleep = 250
@@ -110,6 +110,8 @@ class Circle {
         
         cooldown = 0;
 
+        speed = 9;
+
         rates = [1250, 1000, 750, 1000, 1250];
         rate_index = 0;
         rate = rates[rate_index];
@@ -134,6 +136,9 @@ class Circle {
         initial_server = 0;
 
         initial_user_device = 0;
+
+        localStorage.setItem('queue_length', 0);
+        localStorage.setItem('servers', online_servers);
 
 
         // servers
@@ -231,8 +236,8 @@ class Circle {
                 y_generation_pos = canvas.height*0.75;
                 initial_user_device = 0
             }
-            packet = new Circle(position_user_devices + 25, y_generation_pos, packet_radius, packet_color)
-            packet.velocitiesToPoint(position_queue_start, canvas.height*0.5, 5);
+            packet = new Circle(position_user_devices + 25, y_generation_pos, packet_radius, packet_color, speed)
+            packet.velocitiesToPoint(position_queue_start, canvas.height*0.5, speed);
             pre_queue.push(packet); 
             time = time2;
 
@@ -259,7 +264,7 @@ class Circle {
                 packet = pre_queue.shift();
                 packet.x_pos = position_queue_start
                 packet.y_pos = canvas.height * 0.5
-                packet.dx = 5
+                packet.dx = speed;
                 packets.push(packet)
             }
         }
@@ -297,11 +302,11 @@ class Circle {
             // remove packet from queue and move queue forward
             if (packets[0].x_pos >= position_queue_end && initial_server >= 0){
                 consumed_packet = packets.shift();
-                consumed_packet.velocitiesToPoint(position_servers + 50, servers[initial_server].y_pos + 50, 5);
+                consumed_packet.velocitiesToPoint(position_servers + 50, servers[initial_server].y_pos + 50, speed);
                 servers[initial_server].packet = consumed_packet
                 consumed_packets.push(consumed_packet);
                 for (var i = 0; i < packets.length; i++) {
-                    packets[i].dx = 5
+                    packets[i].dx = speed;
                 }
             }        
         }
