@@ -28,9 +28,9 @@ class Server {
         ctx.drawImage(img1, this.x_pos, this.y_pos, this.height, this.width);
     }
 
-    generatePacket(time2, offset, rate){
+    generatePacket(time2, offset, rate, size, speed){
         if (time2 - this.time > rate + 90*offset){
-        var generated_packet = new Circle(this.x_pos + 50, this.y_pos + 25, packet_radius, packet_color, speed);
+        var generated_packet = new Circle(this.x_pos + size / 2, this.y_pos + size / 2, size / 10, packet_color, speed);
         generated_packet.velocitiesToPoint(position_queue_start, canvas.height*0.5, speed);
         this.time = time2
         return generated_packet;
@@ -105,9 +105,9 @@ class Button {
 
     draw(ctx) {
         ctx.beginPath();
-        ctx.strokeStyle = 'green';
+        ctx.strokeStyle = 'white';
         ctx.lineWidth = 5;
-        ctx.fillStyle = 'green';
+        ctx.fillStyle = 'white';
         ctx.fillRect(this.x_pos, this.y_pos, this.width, this.height);
         ctx.stroke();
 
@@ -116,10 +116,10 @@ class Button {
 
     drawText(ctx) {
         ctx.beginPath();
-        ctx.font = "15px Arial";
-        ctx.strokeStyle = 'green';
-        ctx.fillStyle = 'green';
-        ctx.fillText(this.text, this.x_pos - 200, this.y_pos + 12.5);
+        ctx.font = String(this.width) +"px Arial";
+        ctx.strokeStyle = 'white';
+        ctx.fillStyle = 'white';
+        ctx.fillText(this.text, this.x_pos - this.width*11, this.y_pos + this.width / 1.7);
         ctx.stroke()
     }
 
@@ -154,7 +154,10 @@ class Button {
         
         cooldown = 0;
 
-        speed = 9;
+        object_heights = canvas.height / 10
+
+
+        speed = object_heights / 5;
         packet_queue_distance = speed*2;
 
 
@@ -194,10 +197,10 @@ class Button {
         rate_increase_button_ypos = 0.7 * canvas.height
         rate_decrease_button_ypos = 0.6 * canvas.height
 
-        buttons.push(new Button(button_xpos, 0.6 * canvas.height, 25, 25, "Decrease user devices:", "user", false))
-        buttons.push(new Button(button_xpos, 0.7 * canvas.height, 25, 25, "Increase user devices:", "user", true))
-        buttons.push(new Button(button_xpos, 0.8 * canvas.height, 25, 25, "Decrease load:", "rate", false))
-        buttons.push(new Button(button_xpos, 0.9 * canvas.height, 25, 25, "Increase load:", "rate", true))
+        buttons.push(new Button(button_xpos, 0.6 * canvas.height, object_heights / 2, object_heights / 2, "Decrease user devices:", "user", false))
+        buttons.push(new Button(button_xpos, 0.7 * canvas.height, object_heights / 2, object_heights / 2, "Increase user devices:", "user", true))
+        buttons.push(new Button(button_xpos, 0.8 * canvas.height, object_heights / 2, object_heights / 2, "Decrease load:", "rate", false))
+        buttons.push(new Button(button_xpos, 0.9 * canvas.height, object_heights / 2, object_heights / 2, "Increase load:", "rate", true))
 
 
         canvas.addEventListener('click', function(evt) {
@@ -222,15 +225,15 @@ class Button {
                 
 
         // servers
-        servers.push(new Server(position_servers, canvas.height*0.8 - 50, 100, 100, "blue", "server", "offline"))
-        servers.push(new Server(position_servers, canvas.height*0.6 - 50, 100, 100, "blue", "server", "offline"))
-        servers.push(new Server(position_servers, canvas.height*0.4 - 50, 100, 100, "blue", "server", "online"))
-        servers.push(new Server(position_servers, canvas.height*0.2 - 50, 100, 100, "blue", "server", "offline"))
+        servers.push(new Server(position_servers, canvas.height*0.8 - object_heights, object_heights*2, object_heights*2, "blue", "server", "offline"))
+        servers.push(new Server(position_servers, canvas.height*0.6 - object_heights, object_heights*2, object_heights*2, "blue", "server", "offline"))
+        servers.push(new Server(position_servers, canvas.height*0.4 - object_heights, object_heights*2, object_heights*2, "blue", "server", "online"))
+        servers.push(new Server(position_servers, canvas.height*0.2 - object_heights, object_heights*2, object_heights*2, "blue", "server", "offline"))
 
         // user devices
-        servers.push(new Server(position_user_devices, canvas.height*0.75 - 25, 50, 50, "green", "client", "offline"))
-        servers.push(new Server(position_user_devices, canvas.height*0.5 - 25, 50, 50, "green", "phone", "offline"))
-        servers.push(new Server(position_user_devices, canvas.height*0.25 - 25, 50, 50, "green", "client", "online"))
+        servers.push(new Server(position_user_devices, canvas.height*0.75 - object_heights / 2, object_heights, object_heights, "green", "client", "offline"))
+        servers.push(new Server(position_user_devices, canvas.height*0.5 - object_heights / 2, object_heights, object_heights, "green", "phone", "offline"))
+        servers.push(new Server(position_user_devices, canvas.height*0.25 - object_heights / 2, object_heights, object_heights, "green", "client", "online"))
 
         // begin update loop
         window.requestAnimationFrame(update);
@@ -262,7 +265,7 @@ class Button {
         // draw user device lines
         for (var i = 0; i < servers.length; i++) {
             if (servers[i].device_type !== "server" && servers[i].status === "online"){
-                ctx.moveTo(servers[i].x_pos + 50, servers[i].y_pos + 25);
+                ctx.moveTo(servers[i].x_pos + object_heights /2, servers[i].y_pos + object_heights / 2);
                 ctx.lineTo(position_queue_start, canvas.height / 2);
             }
         }
@@ -272,7 +275,7 @@ class Button {
         for (var i = 0; i < servers.length; i++) {
             if (servers[i].device_type === "server" && servers[i].status === "online"){
                 ctx.moveTo(position_queue_end, canvas.height / 2);
-                ctx.lineTo(position_servers + 50, servers[i].y_pos + 50);
+                ctx.lineTo(position_servers + object_heights , servers[i].y_pos + object_heights);
             }
         }
         ctx.stroke();
@@ -316,7 +319,7 @@ class Button {
 
         for (var i = 0; i < servers.length; i++){
             if (servers[i].device_type !== "server" && servers[i].status === "online"){
-                generated = servers[i].generatePacket(time2, i, rate);
+                generated = servers[i].generatePacket(time2, i, rate, object_heights, speed);
                 if (generated !== null){
                     pre_queue.push(generated);
                 }
@@ -381,7 +384,8 @@ class Button {
             // remove packet from queue and move queue forward
             if (packets[0].x_pos >= position_queue_end && initial_server >= 0){
                 consumed_packet = packets.shift();
-                consumed_packet.velocitiesToPoint(position_servers + 50, servers[initial_server].y_pos + 50, speed);
+                consumed_packet.velocitiesToPoint(position_servers + object_heights, servers[initial_server].y_pos + object_heights, speed);
+                // consumed_packet.velocitiesToPoint(position_servers + 50, servers[initial_server].y_pos + 50, speed);
                 servers[initial_server].packet = consumed_packet
                 consumed_packets.push(consumed_packet);
                 for (var i = 0; i < packets.length; i++) {
@@ -393,7 +397,7 @@ class Button {
         // update velocity of packet towards server
         for (var i = 0; i < consumed_packets.length; i++){
             consumed_packets[i].move();
-            consumed_packets[i].bound(position_servers + 50);
+            consumed_packets[i].bound(position_servers + object_heights);
         }
 
         // let server process packets

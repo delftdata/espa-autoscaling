@@ -24,14 +24,14 @@
         {                
           value:5,
           color:"red",
-          label : "Scale In threshold",
+          label : "Remove Server Threshold",
           labelFontColor: "black",
           thickness: 2
         }, 
         {                
           value:15,
           color:"red",
-          label : "Scale Out threshold",
+          label : "Add Server Threshold",
           labelFontColor: "black",
           thickness: 2
         }
@@ -131,6 +131,7 @@ setInterval(function(){updateChart1()}, updateInterval);
       </head>
 
   <body>
+    <div id="upper_half">
     <div id="divCanvas">
       <canvas id="canvasId" width=window.innerWidth height=window.innerHeight style="border:0px; margin: 0px; padding: 0px;" >
         Your browser does not support the canvas element.
@@ -139,20 +140,26 @@ setInterval(function(){updateChart1()}, updateInterval);
 
     <script src="simulation.js">
     </script>
+    </div>
+
 
     <!-- <div id ="graphs">THE DIV I WANT TO PUT</div> -->
     <!-- <div id="graphs">
       <div id="chartContainer" style="height: 370px; width: 100%;"></div>
     </div> -->
 
-    <div id="graphs">
+    <div id="lower_half">
       <div class="row">
-        <div class="col"id="chartContainer0"></div>
-        <div class="col" id="chartContainer1"></div>
+        <div class="col" id="chartContainer0" style="background-color:#aaa;">
+        <!-- <h2>Column 1</h2> -->
       </div>
-    </div>
+        <div class="col" id="chartContainer1" style="background-color:#bbb;">
+        <!-- <h2>Column 2</h2> -->
+      </div>
+      </div>
     <script src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>
     <script src="https://canvasjs.com/assets/script/jquery.canvasjs.min.js"></script>
+    </div>
 
   </body>
 </html>
