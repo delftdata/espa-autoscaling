@@ -28,8 +28,8 @@ class Server {
         ctx.drawImage(img1, this.x_pos, this.y_pos, this.height, this.width);
     }
 
-    generatePacket(time2, offset){
-        if (time2 - this.time > 1500 + 90*offset){
+    generatePacket(time2, offset, rate){
+        if (time2 - this.time > rate + 90*offset){
         var generated_packet = new Circle(this.x_pos + 50, this.y_pos + 25, packet_radius, packet_color, speed);
         generated_packet.velocitiesToPoint(position_queue_start, canvas.height*0.5, speed);
         this.time = time2
@@ -92,6 +92,39 @@ class Circle {
 
 }
 
+class Button {
+    constructor(x, y, width, height, text, type, increase) {
+        this.x_pos = x;
+        this.y_pos = y;
+        this.width = width;
+        this.height = height;
+        this.text = text;
+        this.type = type
+        this.increase = increase;
+    }
+
+    draw(ctx) {
+        ctx.beginPath();
+        ctx.strokeStyle = 'green';
+        ctx.lineWidth = 5;
+        ctx.fillStyle = 'green';
+        ctx.fillRect(this.x_pos, this.y_pos, this.width, this.height);
+        ctx.stroke();
+
+
+    }
+
+    drawText(ctx) {
+        ctx.beginPath();
+        ctx.font = "15px Arial";
+        ctx.strokeStyle = 'green';
+        ctx.fillStyle = 'green';
+        ctx.fillText(this.text, this.x_pos - 200, this.y_pos + 12.5);
+        ctx.stroke()
+    }
+
+}
+
 
 ; (function () {
 
@@ -125,10 +158,7 @@ class Circle {
         packet_queue_distance = speed*2;
 
 
-        rates = [1250, 1000, 750, 1000, 1250];
-        rate_index = 0;
-        rate = rates[rate_index];
-        rate_change_cooldown = 60;
+        rate = 1500
 
         packet_radius = 5;
 
@@ -146,6 +176,7 @@ class Circle {
 
         servers = [];
         online_servers = 1;
+        online_user_devices = 1;
 
         initial_server = 0;
 
@@ -154,6 +185,41 @@ class Circle {
         localStorage.setItem('queue_length', 0);
         localStorage.setItem('servers', 0);
 
+        buttons = []
+
+        button_xpos = 0.4 * canvas.width
+
+        increase_button_ypos = 0.9 * canvas.height
+        decrease_button_ypos = 0.8 * canvas.height
+        rate_increase_button_ypos = 0.7 * canvas.height
+        rate_decrease_button_ypos = 0.6 * canvas.height
+
+        buttons.push(new Button(button_xpos, 0.6 * canvas.height, 25, 25, "Decrease user devices:", "user", false))
+        buttons.push(new Button(button_xpos, 0.7 * canvas.height, 25, 25, "Increase user devices:", "user", true))
+        buttons.push(new Button(button_xpos, 0.8 * canvas.height, 25, 25, "Decrease load:", "rate", false))
+        buttons.push(new Button(button_xpos, 0.9 * canvas.height, 25, 25, "Increase load:", "rate", true))
+
+
+        canvas.addEventListener('click', function(evt) {
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].x_pos
+                buttons[i].y_pos
+                buttons[i].width
+                buttons[i].length
+                if (evt.clientX > buttons[i].x_pos && evt.clientX < buttons[i].x_pos+buttons[i].width && evt.clientY < buttons[i].y_pos+buttons[i].height && evt.clientY > buttons[i].y_pos){
+                    if (buttons[i].type === "rate" && buttons[i].increase && rate > 200){
+                        rate -= 200;
+                    } else if (buttons[i].type === "rate" && !buttons[i].increase){
+                        rate += 200;
+                    } else if (buttons[i].type === "user" && buttons[i].increase && online_user_devices < 3){
+                        online_user_devices += 1;
+
+                    } else if (buttons[i].type === "user" && !buttons[i].increase && online_user_devices > 1){
+                        online_user_devices -= 1;
+                    } else{
+                    }
+                }}}, false);
+                
 
         // servers
         servers.push(new Server(position_servers, canvas.height*0.8 - 50, 100, 100, "blue", "server", "offline"))
@@ -162,8 +228,8 @@ class Circle {
         servers.push(new Server(position_servers, canvas.height*0.2 - 50, 100, 100, "blue", "server", "offline"))
 
         // user devices
-        servers.push(new Server(position_user_devices, canvas.height*0.75 - 25, 50, 50, "green", "client", "online"))
-        servers.push(new Server(position_user_devices, canvas.height*0.5 - 25, 50, 50, "green", "phone", "online"))
+        servers.push(new Server(position_user_devices, canvas.height*0.75 - 25, 50, 50, "green", "client", "offline"))
+        servers.push(new Server(position_user_devices, canvas.height*0.5 - 25, 50, 50, "green", "phone", "offline"))
         servers.push(new Server(position_user_devices, canvas.height*0.25 - 25, 50, 50, "green", "client", "online"))
 
         // begin update loop
@@ -209,16 +275,21 @@ class Circle {
                 ctx.lineTo(position_servers + 50, servers[i].y_pos + 50);
             }
         }
-
         ctx.stroke();
-
         ctx.setLineDash([]);
+
+        // draw buttons
+        for (var i = 0; i < buttons.length; i++) {
+            buttons[i].draw(ctx);
+            buttons[i].drawText(ctx);
+        }
 
         for (var i = 0; i < servers.length; i++) {
             if (servers[i].status === "online"){
                 servers[i].draw(ctx);
             }
         }
+
 
         // draw packets
         for (var i = 0; i < pre_queue.length; i++) {
@@ -230,6 +301,8 @@ class Circle {
         for (var i = 0; i < consumed_packets.length; i++) {
             consumed_packets[i].draw(ctx);
         }
+
+        
 
     }
 
@@ -243,7 +316,7 @@ class Circle {
 
         for (var i = 0; i < servers.length; i++){
             if (servers[i].device_type !== "server" && servers[i].status === "online"){
-                generated = servers[i].generatePacket(time2, i);
+                generated = servers[i].generatePacket(time2, i, rate);
                 if (generated !== null){
                     pre_queue.push(generated);
                 }
@@ -254,7 +327,6 @@ class Circle {
         if (seconds2 != seconds){  
             seconds = seconds2;
             cooldown -= 1;
-            rate_change_cooldown -= 1;
             localStorage.setItem('queue_length', packets.length);
             localStorage.setItem('servers', online_servers);
         }
@@ -337,10 +409,10 @@ class Circle {
         // add servers if queue length is more than 10
         if (packets.length > 15 && online_servers <= max_servers && cooldown <= 0){
             for (var i = 0; i < servers.length; i++){
-                if (servers[i].status === "offline"){
+                if (servers[i].status === "offline" && servers[i].device_type === "server"){
                     servers[i].status = "online";
                     online_servers += 1;
-                    cooldown = 15
+                    cooldown = 10
                     break;
                 }
             }
@@ -350,12 +422,10 @@ class Circle {
         if (packets.length < 5 && online_servers > min_servers && cooldown <= 0){
             for (var i = 0; i < servers.length; i++){
                 if (servers[i].status === "online" && servers[i].device_type === "server"){
-                    console.log("here");
-
                     servers[i].status = "offline";
                     servers[i].packet.sleep = 0;
                     online_servers -= 1;
-                    cooldown = 15
+                    cooldown = 10
                     break;
                 }
             }
@@ -370,23 +440,82 @@ class Circle {
         }
         consumed_packets = survived
 
-        // adjust rate at which packets are prodcued
-        if (rate_change_cooldown <= 0){
-            if (rate_index < 4){
-                rate_index += 1;
-            } else{
-                rate_index = 0;
+        // count number of user devices online
+        current_number_online_users = 0     
+        for (var i = 0; i < servers.length; i++){
+            if (servers[i].status === "online" && servers[i].device_type != "server"){
+                current_number_online_users+= 1
             }
-            rate = rates[rate_index];
-            rate_change_cooldown = 60;
-            console.log("changing rate to");
-            console.log(rate);
         }
 
+        // turn user device on 
+        for (var i = 0; i < servers.length; i++){
+            if (servers[i].status === "offline" && servers[i].device_type !== "server" && current_number_online_users < online_user_devices){
+                servers[i].status = "online";
+                break;
+            }
+        }
+
+        // turn user device off
+        for (var i = 0; i < servers.length; i++){
+            if (servers[i].status === "online" && servers[i].device_type !== "server" && current_number_online_users > online_user_devices){
+                servers[i].status = "offline";
+                break;
+            }
+        }
+        
+
+        // // adjust rate at which packets are prodcued
+        // if (rate_change_cooldown <= 0){
+        //     if (rate_index < 4){
+        //         rate_index += 1;
+        //     } else{
+        //         rate_index = 0;
+        //     }
+        //     rate = rates[rate_index];
+        //     rate_change_cooldown = 60;
+        //     console.log("changing rate to");
+        //     console.log(rate);
+        // }
 
         draw();
 
     }
+
+    // function getMousePos(canvas, event) {
+    //     var rect = canvas.getBoundingClientRect();
+    //     return {
+    //         x: event.clientX - rect.left,
+    //         y: event.clientY - rect.top
+    //     };
+    // }
+    // //Function to check whether a point is inside a rectangle
+    // function isInside(pos, rect){
+    //     return pos.x > rect.x && pos.x < rect.x+rect.width && pos.y < rect.y+rect.height && pos.y > rect.y
+    // }
+
+    // //The rectangle should have x,y,width,height properties
+    // var rect = {
+    //     x:250,
+    //     y:350,
+    //     width:200,
+    //     height:100
+    // };
+    // //Binding the click event on the canvas
+    // canvas.addEventListener('click', function(evt) {
+    //     console.log('hello')
+    // }
+
+    // canvas.addEventListener('click', function(evt) {
+    //     console.log("hello")
+    //     var mousePos = getMousePos(canvas, evt);
+    
+    //     if (isInside(mousePos,rect)) {
+    //         alert('clicked inside rect');
+    //     }else{
+    //         alert('clicked outside rect');
+    //     }   
+    // }, false);
 
     // start our code once the page has loaded
     document.addEventListener('DOMContentLoaded', init);
