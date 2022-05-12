@@ -5,15 +5,15 @@ import matplotlib.pyplot as plt
 from matplotlib.transforms import Bbox
 
 query = "query-1"
-auto_scaler = "HPA"
-percentage = "70"
+auto_scaler = "dhalion"
+percentage = "05"
 
 path_to_file = "../experiment_data_processed/full_data/cosine/" + query + "/" + query + "_" + auto_scaler + "_" + percentage + ".csv"
 df = pd.read_csv(path_to_file)
 
-# metrics = ["input_rate", "taskmanager", "latency", "throughput"]
+metrics = ["input_rate", "taskmanager", "latency", "throughput"]
 # metrics = ["input_rate", "taskmanager", "latency", "throughput", "backpressure"]
-metrics = ["input_rate", "taskmanager", "lag", "latency", "throughput", "CPU_load", "busy_time", "idle_time", "backpressure"]
+# metrics = ["input_rate", "taskmanager", "lag", "latency", "throughput", "CPU_load", "busy_time", "idle_time", "backpressure"]
 
 meric_names = {"input_rate": "Kafka input rate (records per second)", "taskmanager": "Taskmanagers", "latency":"Latency (s)", "throughput":"Throughput (records per second)", "backpressure":"Backpressure (ms)", "CPU_load":"CPU utilization", "lag": "Lag (records)", "busy_time": "Busy time (ms)", "idle_time":"Idle time (ms)"}
 ylabel = {"input_rate": "records per seconds", "taskmanager": "# taskmanagers", "latency": "seconds", "CPU_load":"", "backpressure": "ms"}
