@@ -1,18 +1,18 @@
 #!/bin/bash
-minikube start --memory 8192 --cpus 4
+minikube start --memory 2200 --cpus 4 #8092 was set earlier
 
 minikube addons enable metrics-server
 
-
-
 kubectl apply -f flink-configuration-configmap.yaml
-# kubectl apply -f jobmanager-application.yaml
+kubectl apply -f jobmanager-application.yaml
 kubectl apply -f jobmanager-rest-service.yaml
 kubectl apply -f jobmanager-service.yaml
-# kubectl apply -f taskmanager-job-deployment.yaml
+kubectl apply -f taskmanager-job-deployment.yaml
 
 kubectl apply -f zookeeper-service.yaml
 kubectl apply -f zookeeper-deployment.yaml
+
+echo "starting kafka"
 
 # start kafka
 kubectl apply -f kafka-service.yaml
@@ -21,8 +21,6 @@ kubectl apply -f kafka-deployment.yaml
 # kubectl apply -f ./dhalion/ds2-deployment.yaml
 # kubectl apply -f ./dhalion/ds2-service.yaml
 # kubectl apply -f ./dhalion/rbac_rules.yaml
-
-
 
 # launch a container for running the data generator
 
@@ -37,5 +35,7 @@ helm install grafana grafana --repo https://grafana.github.io/helm-charts --valu
 
 echo "Waiting for everything to be ready"
 
-  kubectl wait --timeout=5m --for=condition=available deployments --all
-  kubectl wait --timeout=5m --for=condition=ready pods --all
+kubectl wait --timeout=5m --for=condition=available deployments --all
+kubectl wait --timeout=5m --for=condition=ready pods --all
+
+echo "deployment done"

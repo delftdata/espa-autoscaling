@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd reactive-mode-demo-jobs
+cd ./reactive-mode-demo-jobs
 mvn clean install
 cd ..
 

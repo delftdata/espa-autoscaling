@@ -1,9 +1,9 @@
 #!/bin/bash
 
-set -x
+#set -x
 
-./undeploy.sh
-./deploy.sh
+bash ./undeploy.sh
+bash ./deploy.sh
 
 
 #JM_POD=`kubectl get pods --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' | grep "jobm"`

@@ -1,20 +1,20 @@
 # flink-reactive-mode-k8s-demo
 
+# Very old read-me added in oktober 2021.
+# Uses 
 
 ```
-# build image
-docker build -t rmetzger/flink:1.13.0-reactive-demo .
+# start doccker
+sudo service docker start
 
+
+# flink-reactive demo
+docker build -t rmetzger/flink:1.13.0-reactive-demo .
 # publish image
 docker push rmetzger/flink:1.13.0-reactive-demo
 
 
-brew install minikube
-
-# if existing install is broken:
-brew unlink minikube
-brew link minikube
-
+# Install minikube!
 # start minikube
 minikube start
 
