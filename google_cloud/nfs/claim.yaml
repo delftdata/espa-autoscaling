@@ -8,7 +8,7 @@ spec:
   accessModes:
     - ReadWriteMany
   nfs:
-    server: <ClusterIP>
+#    server: <ClusterIP>
     path: "/"
 
 ---
