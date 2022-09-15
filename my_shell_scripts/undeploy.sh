@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "Undeploying PODS"
+
 kubectl delete --wait=true -f zookeeper-deployment.yaml
 
 kubectl delete --wait=true -f kafka-service.yaml
@@ -11,5 +13,6 @@ kubectl delete --wait=true -f jobmanager-rest-service.yaml
 kubectl delete --wait=true -f jobmanager-service.yaml
 kubectl delete --wait=true -f taskmanager-job-deployment.yaml
 
-kubectl delete --wait=true pod workbench
 kubectl delete --wait=true horizontalpodautoscalers flink-taskmanager
+
+echo "Finished undeploying PODS"

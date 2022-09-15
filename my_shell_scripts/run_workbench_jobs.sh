@@ -1,46 +1,11 @@
 #!/bin/bash
 
-# Setup containers
-bash deploy.sh
-
-# Forward applications to ports
-  # When run in WSL
-  bash port_forwards_WSL.sh
-  # TODO: run in default ubuntu
-
-# Create Ubuntu to run PASAF
-kubectl run workbench --image ubuntu -- sleep infinity
-
-# Wait for all PODS to be ready
-echo "Waiting for everything to be ready"
-  kubectl wait --timeout=5m --for=condition=ready pods --all
-
-# Now it is time to run our experiments
-
-#########################
-# EXPERIMENT CONFIGURATIONS
-#########################
-
 # DEMO_COS DEMO_SQUARE DEMO_CONSTANT EXPERIMENT_DEFAULT EXPERIMENT_SPECIALISED
-DATASET_RUN=EXPERIMENT_SPECIALISED
+DATASET_RUN=EXPERIMENT_DEFAULT
 
-##########################
-# Run experiments
-##########################
+echo "Running experiment: ${DATASET_RUN}"
+echo "Warning: Workbench pod should be deployed beforehand!"
 
-# Setup PASAF on workbench
-kubectl exec workbench -- bash -c "
-  apt update &&
-  apt install -y maven git htop iputils-ping wget net-tools &&
-  git clone https://github.com/WybeKoper/PASAF.git
-"
-
-# Install reactive-mode-demo-jobs
-kubectl exec workbench -- bash -c "cd PASAF/reactive-mode-demo-jobs && mvn clean install"
-# Install experiment jobs
-kubectl exec workbench -- bash -c "cd PASAF/experiments && mvn clean install"
-
-# Run
 case $DATASET_RUN in
   DEMO_COS)
       # Run reactive-mode-demo-jobs - cos
@@ -64,3 +29,4 @@ case $DATASET_RUN in
     ;;
 esac
 
+echo "Finished running experiment: ${DATASET_RUN}"

@@ -51,10 +51,13 @@ public class Query1 {
         // enable latency tracking
         env.getConfig().setLatencyTrackingInterval(5000);
 
+        // Add source
         DataStream<Bid> bids = env.addSource(new BidSourceFunction(srcRate))
                 .setParallelism(params.getInt("p-source", 1))
                 .name("Bids Source")
                 .uid("Bids-Source");
+
+        // Query 1: "What are the values of the bids in euros?
         // SELECT auction, DOLTOEUR(price), bidder, datetime
         DataStream<Tuple4<Long, Long, Long, Long>> mapped  = bids.map(new MapFunction<Bid, Tuple4<Long, Long, Long, Long>>() {
             @Override
@@ -66,6 +69,7 @@ public class Query1 {
                 .uid("Mapper");
 
 
+        // Set sink as "Latency Sink"
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         mapped.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
                 .setParallelism(params.getInt("p-map", 1))

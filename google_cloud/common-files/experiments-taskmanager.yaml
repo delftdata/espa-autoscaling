@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: flink-taskmanager
 spec:
-  replicas: 8 # here, we configure the scale
+  replicas: 3 # here, we configure the scale
   selector:
     matchLabels:
       app: flink

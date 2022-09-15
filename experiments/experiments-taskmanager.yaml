@@ -13,7 +13,7 @@ spec:
       annotations:
         prometheus.io/port: '9249'
         ververica.com/scrape_every_2s: 'true'
-        # prometheus.io/scrape: 'true'
+        prometheus.io/scrape: 'true'
       labels:
         app: flink
         component: taskmanager
