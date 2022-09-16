@@ -55,5 +55,5 @@ spec:
         - name: savepoint-volume
           hostPath:
             # directory location on host
-            path: /mnt/c/temp/soccerdb-pv
+            path: /host_mnt/c/temp/soccerdb-pv
             type: DirectoryOrCreate 
