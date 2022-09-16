@@ -1,4 +1,6 @@
 #!/bin/bash
+# Deploy NFS server required for flink-jobmanager setup
+# Script assumes execution from the google_cloud directory.
 
 # Deploy nfs-service
 echo "Creating nfs-server service"

@@ -1,6 +1,9 @@
 #!/bin/bash
 
 cd ..
+bash nfs/deploy_nfs_server.sh
+
+cd ..
 cd common-files
 kubectl apply -f flink-configuration-configmap.yaml
 kubectl apply -f jobmanager-rest-service.yaml
