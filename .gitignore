@@ -4,3 +4,6 @@
 *.jar
 *.png
 *.PNG
+*.sha256
+kubectl
+/target/**
