@@ -20,8 +20,6 @@ gcloud container clusters create $CLUSTER \
    --disk-size=100
    # --scopes $SCOPE \
 
-gcloud container clusters create pasaf-experiments --zone europe-west4-a --machine-type "e2-standard-8" --num-nodes=3 --disk-size=100
-
 # bigger cluster
 #gcloud container clusters create $CLUSTER \
 #   --zone $ZONE \
@@ -37,3 +35,9 @@ gcloud container clusters get-credentials $CLUSTER \
 gcloud container clusters delete $CLUSTER --zone $ZONE
 
 gcloud container clusters resize $CLUSTER --num-nodes 7
+
+
+# Local commands
+gcloud auth login jobkanis@gmail.com
+gcloud cloud-shell ssh
+gcloud container clusters create pasaf-experiments --zone europe-west4-a --machine-type "e2-standard-8" --num-nodes=3 --disk-size=100
