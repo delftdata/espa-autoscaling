@@ -4,20 +4,66 @@
 
 # Required installations
 Install java v8
+Install maven
+Install docker
 Install minikube
-Install Helm
 Install kubectl
-
+Install Helm
 
 # Run application
 Enable docker
 ```
 sudo service docker start
 ```
-Enable minikube
+Configure minikube
 ```
-minikube start
+minikube ssh 'sudo ip link set docker0 promisc on'
 ```
+
+navigate to shell scripts (TODO)
+```
+cd my_shell_scripts
+```
+
+## Deployment
+Deploy setup
+```
+bash deploy.sh
+```
+
+Deploy workbench
+```
+bash deploy_workbench.sh
+```
+## Run jobs
+Deploy run_workbench_jobs
+The jobs can be configured in this script
+```
+bash run_workbench_jobs.sh
+```
+
+## Undeploy
+Undeploy setup
+```
+bash undeploy.sh
+```
+
+Undeploy workbench
+```
+bash undeploy_workbench.sh
+```
+
+
+
+
+
+
+
+
+
+
+
+# OLD WORKROUTINE
 
 Build reactive-mode-demo-jobs for reactive-mode of Apache Flink
 ### Run build_docker.sh
