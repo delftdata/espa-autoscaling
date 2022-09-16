@@ -11,6 +11,8 @@ nano ./nfs/claim.yaml
 
 NFS_SERVICE_IP=
 
+envsubst < ./nfs/claim.yaml | kubectl apply -f -
+
 kubectl apply -f ./nfs/claim.yaml
 kubectl apply -f ./nfs/nfs.yaml
 
