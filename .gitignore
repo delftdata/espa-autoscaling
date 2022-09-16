@@ -6,4 +6,4 @@
 *.PNG
 *.sha256
 kubectl
-/target/
+/target/**
