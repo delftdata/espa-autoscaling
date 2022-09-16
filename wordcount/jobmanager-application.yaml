@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flink-jobmanager
+spec:
+  replicas: 1 # here, we configure the scale
+  selector:
+    matchLabels:
+      app: flink
+      component: jobmanager
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: '9249'
+        # prometheus.io/scrape: 'true'
+        ververica.com/scrape_every_2s: 'true'
+      labels:
+        app: flink
+        component: jobmanager
+    spec:
+      containers:
+        - name: jobmanager
+          image: 9923/wordcount:latest
+          imagePullPolicy: Always
+          env:
+          args: ["sleep", "infinity"]
+          # args: ["standalone-job", "--job-classname", "org.apache.flink.streaming.examples.wordcount.WordCount"]
+          ports:
+            - containerPort: 6123
+              name: rpc
+            - containerPort: 6124
+              name: blob-server
+            - containerPort: 8081
+              name: webui
+          livenessProbe:
+            tcpSocket:
+              port: 6123
+            initialDelaySeconds: 30
+            periodSeconds: 60
+          volumeMounts:
+            - name: flink-config-volume
+              mountPath: /opt/flink/conf
+          securityContext:
+            runAsUser: 9999  # refers to user _flink_ from official flink image, change if necessary
+      volumes:
+        - name: flink-config-volume
+          configMap:
+            name: flink-config
+            items:
+              - key: flink-conf.yaml
+                path: flink-conf.yaml
+              - key: log4j-console.properties
+                path: log4j-console.properties

@@ -1,0 +1,14 @@
+#!/bin/bash
+
+bash deploy-query-3-non-reactive.sh
+
+cd ..
+
+cd common-files
+
+kubectl wait --timeout=4m --for=condition=ready statefulset --all
+
+kubectl apply -f rules_ds2.yaml
+kubectl apply -f ds2-original-non-reactive.yaml
+
+

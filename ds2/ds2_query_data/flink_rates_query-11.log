@@ -1,0 +1,6 @@
+# operator_id,operator_instance_id,total_number_of_operator_instances,epoch_timestamp,true_processing_rate,true_output_rate,observed_processing_rate,observed_output_rate
+bids_topic,0,1,1648896538655206400,1,1,1,1
+SessionWindow____DummyLatencySink,0,4,1648896538655206400,38697.94918885827,0.0,34479.87272727273,0.0
+Source:_BidsSource____Timestamps_Watermarks,0,4,1648896538655206400,48755.16699370241,25847.17482201379,35952.87272727272,19060.1375
+SessionWindow____DummyLatencySink,1,4,1648896538655206400,46910.30792923592,0.0,35690.92594949366,0.0
+Source:_BidsSource____Timestamps_Watermarks,1,4,1648896538655206400,52001.1644506389,26484.83674247237,34108.430449248226,17371.845833333333

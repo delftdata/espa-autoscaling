@@ -1,0 +1,52 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: dhalion
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dhalion
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: '8000'
+        ververica.com/scrape_every_2s: 'true'
+      labels:
+        app: dhalion
+    spec:
+      containers:
+      - name: python-container
+        image: 9923/dhalion:17
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+        args: ["python", "dhalionLogic.py"]
+        env:
+        - name: AVG_OVER_TIME
+          value: "1m"
+        - name: COOLDOWN
+          value: "240s"
+        - name: MIN_REPLICAS
+          value: "1"
+        - name: MAX_REPLICAS
+          value: "16" 
+        - name: SLEEP_TIME
+          value: "10"
+        - name: BACKPRESSURE_LOWER_THRESHOLD
+          value: "200"
+        - name: BACKPRESSURE_UPPER_THRESHOLD
+          value: "500"
+        - name: CPU_LOWER_THRESHOLD
+          value: "0.2"
+        - name: CPU_UPPER_THRESHOLD
+          value: "0.8"  
+        - name: CONSUMER_LAG_THRESHOLD
+          value: "10000"
+        - name: SCALING_FACTOR_PERCENTAGE
+          value: "0.2"
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        - name: PYTHONIOENCODING
+          value: "UTF-8" 
+  

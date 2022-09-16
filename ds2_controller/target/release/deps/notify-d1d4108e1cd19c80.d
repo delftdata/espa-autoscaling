@@ -1,0 +1,12 @@
+C:\Users\WybeK\Documents\ds2_repo\ds2-master\controller\target\release\deps\notify-d1d4108e1cd19c80.rmeta: C:\Users\WybeK\.cargo\registry\src\github.com-1ecc6299db9ec823\notify-4.0.17\src\lib.rs C:\Users\WybeK\.cargo\registry\src\github.com-1ecc6299db9ec823\notify-4.0.17\src\windows.rs C:\Users\WybeK\.cargo\registry\src\github.com-1ecc6299db9ec823\notify-4.0.17\src\null.rs C:\Users\WybeK\.cargo\registry\src\github.com-1ecc6299db9ec823\notify-4.0.17\src\poll.rs C:\Users\WybeK\.cargo\registry\src\github.com-1ecc6299db9ec823\notify-4.0.17\src\debounce\mod.rs C:\Users\WybeK\.cargo\registry\src\github.com-1ecc6299db9ec823\notify-4.0.17\src\debounce\timer.rs
+
+C:\Users\WybeK\Documents\ds2_repo\ds2-master\controller\target\release\deps\libnotify-d1d4108e1cd19c80.rlib: C:\Users\WybeK\.cargo\registry\src\github.com-1ecc6299db9ec823\notify-4.0.17\src\lib.rs C:\Users\WybeK\.cargo\registry\src\github.com-1ecc6299db9ec823\notify-4.0.17\src\windows.rs C:\Users\WybeK\.cargo\registry\src\github.com-1ecc6299db9ec823\notify-4.0.17\src\null.rs C:\Users\WybeK\.cargo\registry\src\github.com-1ecc6299db9ec823\notify-4.0.17\src\poll.rs C:\Users\WybeK\.cargo\registry\src\github.com-1ecc6299db9ec823\notify-4.0.17\src\debounce\mod.rs C:\Users\WybeK\.cargo\registry\src\github.com-1ecc6299db9ec823\notify-4.0.17\src\debounce\timer.rs
+
+C:\Users\WybeK\Documents\ds2_repo\ds2-master\controller\target\release\deps\notify-d1d4108e1cd19c80.d: C:\Users\WybeK\.cargo\registry\src\github.com-1ecc6299db9ec823\notify-4.0.17\src\lib.rs C:\Users\WybeK\.cargo\registry\src\github.com-1ecc6299db9ec823\notify-4.0.17\src\windows.rs C:\Users\WybeK\.cargo\registry\src\github.com-1ecc6299db9ec823\notify-4.0.17\src\null.rs C:\Users\WybeK\.cargo\registry\src\github.com-1ecc6299db9ec823\notify-4.0.17\src\poll.rs C:\Users\WybeK\.cargo\registry\src\github.com-1ecc6299db9ec823\notify-4.0.17\src\debounce\mod.rs C:\Users\WybeK\.cargo\registry\src\github.com-1ecc6299db9ec823\notify-4.0.17\src\debounce\timer.rs
+
+C:\Users\WybeK\.cargo\registry\src\github.com-1ecc6299db9ec823\notify-4.0.17\src\lib.rs:
+C:\Users\WybeK\.cargo\registry\src\github.com-1ecc6299db9ec823\notify-4.0.17\src\windows.rs:
+C:\Users\WybeK\.cargo\registry\src\github.com-1ecc6299db9ec823\notify-4.0.17\src\null.rs:
+C:\Users\WybeK\.cargo\registry\src\github.com-1ecc6299db9ec823\notify-4.0.17\src\poll.rs:
+C:\Users\WybeK\.cargo\registry\src\github.com-1ecc6299db9ec823\notify-4.0.17\src\debounce\mod.rs:
+C:\Users\WybeK\.cargo\registry\src\github.com-1ecc6299db9ec823\notify-4.0.17\src\debounce\timer.rs:

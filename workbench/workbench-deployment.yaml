@@ -1,0 +1,27 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: workbench
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: workbench
+  template:
+    metadata:
+      labels:
+        app: workbench
+    spec:
+      containers:
+      - name: workbench-container
+        image: 9923/workbench:6
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: 1500m
+          limits:
+            cpu: 2000m
+        env:
+        args: ["mvn", "exec:java", "-Dexec.mainClass=ch.ethz.systems.strymon.ds2.flink.nexmark.sources.BidSourceFunctionGeneratorKafka", "-Dexec.args=--mode 0 --rate 50000"]
+
+      

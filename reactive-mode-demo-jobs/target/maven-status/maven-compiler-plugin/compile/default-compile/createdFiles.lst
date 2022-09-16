@@ -1,0 +1,4 @@
+org/apache/flink/DataGen.class
+org/apache/flink/DemoJob$ThroughputLogger.class
+org/apache/flink/DemoJob.class
+org/apache/flink/DemoJob$CPULoadMapper.class
