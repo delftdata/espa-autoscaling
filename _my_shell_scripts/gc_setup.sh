@@ -41,4 +41,5 @@ gcloud container clusters resize $CLUSTER --num-nodes 7
 gcloud auth login jobkanis@gmail.com
 gcloud cloud-shell ssh --authorize-session
 gcloud container clusters create pasaf-experiments --zone europe-west4-a --machine-type "e2-standard-8" --num-nodes=3 --disk-size=100
+gcloud container clusters create pasaf-experiments --zone europe-west4-a --machine-type "e2-standard-4" --num-nodes=4 --disk-size=100
 gcloud container clusters delete pasaf-experiments --zone europe-west4-a

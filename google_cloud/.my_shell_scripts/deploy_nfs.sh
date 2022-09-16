@@ -9,6 +9,8 @@ kubectl apply -f ./nfs/nfs-service.yaml
 kubectl get svc
 nano ./nfs/claim.yaml
 
+NFS_SERVICE_IP=
+
 kubectl apply -f ./nfs/claim.yaml
 kubectl apply -f ./nfs/nfs.yaml
 
