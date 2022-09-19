@@ -9,7 +9,7 @@ random.seed(23)
 
 def save_time_series(data, query, load_pattern):
     file_name = query + "_" + load_pattern
-    with open('../load_patterns/' + file_name +'.txt', "w") as text_file:
+    with open('../new_load_patterns/' + file_name +'.txt', "w") as text_file:
         row = ""
         for val in data:
             row += str(val) + ","

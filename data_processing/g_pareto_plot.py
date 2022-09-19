@@ -9,7 +9,7 @@ from mpl_toolkits.axes_grid1.inset_locator import mark_inset
 
 def pareto_plot(query, zoomed, latency_limit, zoomed_latency_limit):
     load_pattern = "cosine"
-    path = "../experiment_data_processed/full_data/" + load_pattern + "/" + query
+    path = "../new_experiment_data_processed/full_data/" + load_pattern + "/" + query
     files = os.listdir(path)
     fig, ax = plt.subplots()
     color_per_autoscaler ={"HPA": "red", "vargav1": "purple","vargav2":"orange", "dhalion": "green", "ds2":"black", "ds2-adapted-reactive": "pink", "ds2-original-reactive":"brown", "ds2-adapted-non-reactive":"blue", "ds2-original-non-reactive":"blue"}
@@ -29,7 +29,7 @@ def pareto_plot(query, zoomed, latency_limit, zoomed_latency_limit):
         metric = file_info[2].replace(".csv", "")
         if "i" in metric:
             continue
-        df = pd.read_csv("../experiment_data_processed/full_data/" + load_pattern + "/" + query + "/" + file)
+        df = pd.read_csv("../new_experiment_data_processed/full_data/" + load_pattern + "/" + query + "/" + file)
         latency_list = df['latency'].tolist()
         taskmanager_list = df['taskmanager'].tolist()
         average_latency = sum(latency_list) / len(latency_list)
@@ -59,9 +59,9 @@ def pareto_plot(query, zoomed, latency_limit, zoomed_latency_limit):
     plt.ylabel("Average latency (s)")
 
     if zoomed:
-        path = "../figures_final/" + load_pattern + "/" + query + "/pareto_figs/" + query + "_pareto_zoomed.png"
+        path = "../new_figures_final/" + load_pattern + "/" + query + "/pareto_figs/" + query + "_pareto_zoomed.png"
     else:
-        path = "../figures_final/" + load_pattern + "/" + query + "/pareto_figs/" + query + "_pareto.png"
+        path = "../new_figures_final/" + load_pattern + "/" + query + "/pareto_figs/" + query + "_pareto.png"
     plt.savefig(path, format="png", bbox_inches=Bbox([[0, 0], [8.0, 5.0]]), dpi=600)
 
 

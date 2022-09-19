@@ -40,4 +40,4 @@ def scrape_data(prometheus_host_ip, query_being_run, autoscaler, cpu_percentage,
 
         metric_df = MetricRangeDataFrame(metric_data)
 
-        metric_df.to_csv("../experiment_data/" + query_being_run + "/" + load_pattern + "/" + autoscaler + "/" + cpu_percentage + "/" + metric + ".csv")
+        metric_df.to_csv("../new_experiment_data/" + query_being_run + "/" + load_pattern + "/" + autoscaler + "/" + cpu_percentage + "/" + metric + ".csv")

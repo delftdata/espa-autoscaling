@@ -8,7 +8,7 @@ query = "query-1"
 auto_scaler = "dhalion"
 percentage = "05"
 
-path_to_file = "../experiment_data_processed/full_data/cosine/" + query + "/" + query + "_" + auto_scaler + "_" + percentage + ".csv"
+path_to_file = "../new_experiment_data_processed/full_data/cosine/" + query + "/" + query + "_" + auto_scaler + "_" + percentage + ".csv"
 df = pd.read_csv(path_to_file)
 
 metrics = ["input_rate", "taskmanager", "latency", "throughput"]
@@ -34,5 +34,5 @@ axs[len(metrics) - 1].set_xlabel("Minutes")
 
 
 # plt.show()
-path = "../figures_final/cosine/" + query + "/detailed_figs/" + query + "_" + auto_scaler + "_" + percentage + ".png"
+path = "../new_figures_final/cosine/" + query + "/detailed_figs/" + query + "_" + auto_scaler + "_" + percentage + ".png"
 plt.savefig(path, format="png", bbox_inches=Bbox([[0, 0], [18.0, 10.0]]), dpi=600)

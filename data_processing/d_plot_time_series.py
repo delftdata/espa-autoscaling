@@ -5,7 +5,7 @@ from matplotlib.transforms import Bbox
 
 
 def plot_experiments(query, auto_scaler, percentage, load_pattern):
-    path_to_file = "../experiment_data_processed/full_data/" + load_pattern + "/" + query + "/" + query + "_" + auto_scaler + "_" + percentage + ".csv"
+    path_to_file = "../new_experiment_data_processed/full_data/" + load_pattern + "/" + query + "/" + query + "_" + auto_scaler + "_" + percentage + ".csv"
     df = pd.read_csv(path_to_file)
 
     metrics = ["input_rate", "taskmanager", "latency", "lag", "throughput" , "CPU_load", "backpressure", "busy_time", "idle_time"]
@@ -25,5 +25,5 @@ def plot_experiments(query, auto_scaler, percentage, load_pattern):
     axs[len(metrics) - 1].set_xlabel("Minutes")
 
     # plt.show()
-    path = "../figures_final/" + load_pattern + "/" + query + "/experiment_figs/" + query + "_" + load_pattern + "_" + auto_scaler + "_" + percentage + ".png"
+    path = "../new_figures_final/" + load_pattern + "/" + query + "/experiment_figs/" + query + "_" + load_pattern + "_" + auto_scaler + "_" + percentage + ".png"
     plt.savefig(path, format="png", bbox_inches=Bbox([[0, 0], [18.0, 10.0]]), dpi=600)
