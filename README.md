@@ -49,5 +49,9 @@ Experiments are originally deployed on Google Cloud.
 For the original experimental setup, together with corresponding deployment files, please refer to the ./google-cloud folder.
 For more information, please refer to the /google_cloud/README.md file.
 
+## Data processing
+After deployment, data can be retrieved using the scripts found in /data_processing/. 
+For more information, please refer to the /data_processing?README.md file.
+
 ## More information
 For more information regarding the original experiments, please refer to the following thesis: https://repository.tudelft.nl/islandora/object/uuid:0ae72b82-b3af-4afb-a8d8-8040a226f045?collection=education
