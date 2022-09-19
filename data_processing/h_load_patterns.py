@@ -4,11 +4,16 @@ import csv
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.transforms import Bbox
+import os
 
 random.seed(23)
 
 def save_time_series(data, query, load_pattern):
     file_name = query + "_" + load_pattern
+    path = '../new_load_patterns/'
+    if not os.path.exists(path):
+        os.makedirs(path)
+
     with open('../new_load_patterns/' + file_name +'.txt', "w") as text_file:
         row = ""
         for val in data:

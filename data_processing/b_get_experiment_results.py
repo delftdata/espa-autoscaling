@@ -1,14 +1,13 @@
 from prometheus_api_client import PrometheusConnect, MetricsList, Metric, MetricSnapshotDataFrame, MetricRangeDataFrame
 from prometheus_api_client.utils import parse_datetime
-from datetime import timedelta
+import os
 
 
-# prometheus_host_ip = ""
-# autoscaler = "vargav2"
-# query_being_run = "query-1"
-# cpu_percentage = "70"
+"""
+Fetch data of current experiment from prometheus server
+"""
 def scrape_data(prometheus_host_ip, query_being_run, autoscaler, cpu_percentage, load_pattern):
-    prom = PrometheusConnect(url = "http://" + prometheus_host_ip + ":9090", disable_ssl=True)
+    prom = PrometheusConnect(url="http://" + prometheus_host_ip + ":9090", disable_ssl=True)
 
     start_time = parse_datetime("4h")
     end_time = parse_datetime("now")
@@ -23,8 +22,7 @@ def scrape_data(prometheus_host_ip, query_being_run, autoscaler, cpu_percentage,
         "backpressure": "max(avg_over_time(flink_taskmanager_job_task_backPressuredTimeMsPerSecond[1m]))",
         "idle_time": "avg(avg_over_time(flink_taskmanager_job_task_idleTimeMsPerSecond[1m])) / 1000",
         "busy_time": "avg(avg_over_time(flink_taskmanager_job_task_busyTimeMsPerSecond[1m])) / 1000"
-        }
-
+    }
 
     for metric in metric_query_dict:
         print("Retrieving data for: ", metric)
@@ -39,5 +37,7 @@ def scrape_data(prometheus_host_ip, query_being_run, autoscaler, cpu_percentage,
         metric_data[0]['metric'] = {'__name__': metric}
 
         metric_df = MetricRangeDataFrame(metric_data)
-
-        metric_df.to_csv("../new_experiment_data/" + query_being_run + "/" + load_pattern + "/" + autoscaler + "/" + cpu_percentage + "/" + metric + ".csv")
+        path = "../new_experiment_data/" + query_being_run + "/" + load_pattern + "/" + autoscaler + "/" + cpu_percentage
+        if not os.path.exists(path):
+            os.makedirs(path)
+        metric_df.to_csv(path + "/" + metric + ".csv")

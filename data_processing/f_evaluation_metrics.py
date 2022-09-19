@@ -1,12 +1,13 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import csv
-
+import os
 query = "query-1"
-auto_scaler = "HPA"
-percentage = "80"
+auto_scaler = "dhalion"
+percentage = "05"
+load_pattern = "cosine"
 
-path_to_file = "../new_experiment_data_processed/full_data/" + query + "_" + auto_scaler + "_" + percentage + ".csv"
+path_to_file = "../new_experiment_data_processed/full_data/" + load_pattern + "/" + query + "/" + query + "_" + auto_scaler + "_" + percentage + ".csv"
 df = pd.read_csv(path_to_file)
 
 taskmanager = df['taskmanager'].tolist()
@@ -22,7 +23,10 @@ for val in taskmanager:
 average_latency = sum(latency) / len(latency)
 average_taskmanager = sum(taskmanager) / len(taskmanager)
 
-with open("../new_experiment_data_processed/evaluation_metrics/" + query + "_" + auto_scaler + "_" + percentage + ".csv", 'w') as f:
+path = "../new_experiment_data_processed/evaluation_metrics"
+if not os.path.exists(path):
+    os.makedirs(path)
+with open(path + "/" + query + "_" + auto_scaler + "_" + percentage + ".csv", 'w') as f:
     # create the csv writer
     writer = csv.writer(f)
     writer.writerow(["latency", average_latency])

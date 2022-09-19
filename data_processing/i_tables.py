@@ -15,13 +15,13 @@ def number_of_rescales(taskmanager):
         previous_number_taskmanagers = val
     return scaling_events
 
-query = "query-11"
+query = "query-1"
 load_pattern = "cosine"
 path = "../new_experiment_data_processed/full_data/" + load_pattern + "/" + query
 files = os.listdir(path)
 
 
-pd.set_option('precision', 2)
+# pd.set_option('precision', 2)
 
 rename = {"HPA": "HPA", "vargav1": "Vargav1", "vargav2": "Vargav2", "dhalion": "Dhalion-adapted",
           "ds2-original-reactive": "DS2-modern", "ds2-adapted-reactive": "DS2-modern-adapted"}

@@ -58,22 +58,26 @@ def pareto_plot(query, zoomed, latency_limit, zoomed_latency_limit):
     plt.xlabel("Average number of taskmanagers")
     plt.ylabel("Average latency (s)")
 
+    path = "../new_figures_final/" + load_pattern + "/" + query + "/pareto_figs"
+    if not os.path.exists(path):
+        os.makedirs(path)
+
     if zoomed:
-        path = "../new_figures_final/" + load_pattern + "/" + query + "/pareto_figs/" + query + "_pareto_zoomed.png"
+        filepath = path + "/" + query + "_pareto_zoomed.png"
     else:
-        path = "../new_figures_final/" + load_pattern + "/" + query + "/pareto_figs/" + query + "_pareto.png"
-    plt.savefig(path, format="png", bbox_inches=Bbox([[0, 0], [8.0, 5.0]]), dpi=600)
+        filepath = path + "/" + query + "_pareto.png"
+    plt.savefig(filepath, format="png", bbox_inches=Bbox([[0, 0], [8.0, 5.0]]), dpi=600)
 
 
-# pareto_plot("query-1", False, 50, 20)
+pareto_plot("query-1", False, 50, 20)
 #
-# pareto_plot("query-1", True, 50, 20)
+pareto_plot("query-1", True, 50, 20)
 
 # pareto_plot("query-3", False, 200, 50)
 #
 # pareto_plot("query-3", True, 200, 50)
 
-pareto_plot("query-11", False, 100, 20)
+# pareto_plot("query-11", False, 100, 20)
 
-pareto_plot("query-11", True, 100, 20)
+# pareto_plot("query-11", True, 100, 20)
 
