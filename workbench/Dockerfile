@@ -1,4 +1,4 @@
-FROM ubuntu:21.04
+FROM ubuntu
 
 RUN apt update
 RUN apt install -y maven git htop iputils-ping wget net-tools
