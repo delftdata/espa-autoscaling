@@ -1,4 +1,4 @@
-#!/bin/bash
+cd m#!/bin/bash
 
 cd ..
 cd common-files
