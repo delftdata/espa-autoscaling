@@ -39,7 +39,7 @@ gcloud container clusters resize $CLUSTER --num-nodes 7
 
 
 ##############################
-## Custom commands
+## Custom commands.md
 ##############################
 
 # load gcloud
