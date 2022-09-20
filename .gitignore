@@ -7,4 +7,5 @@
 *.sha256
 kubectl
 /target/**
+target/
 /.secrets/**
