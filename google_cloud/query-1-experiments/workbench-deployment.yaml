@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: workbench-container
-        image: jobkanis/workbench
+        image: jobkanis/workbench:2
         imagePullPolicy: Always
         resources:
           requests:
@@ -24,7 +24,7 @@ spec:
             cpu: 2500m
             memory: 2500Mi
         env:
-        args: [ "mvn", "exec:java", "-Dexec.mainClass=ch.ethz.systems.strymon.ds2.flink.nexmark.sources.BidPersonGeneratorKafka", "-Dexec.args=--mode 0 --amplitude 100000 --y-shift 150000 --period 20 --bids-only 0" ]
+        args: [ "mvn", "exec:java", "-Dexec.mainClass=ch.ethz.systems.strymon.ds2.flink.nexmark.sources.BidPersonGeneratorKafka", "-Dexec.args=--mode 0 --amplitude 100000 --y-shift 150000 --period 30 --bids-only 0" ]
 
         #args: ["mvn", "exec:java", "-Dexec.mainClass=ch.ethz.systems.strymon.ds2.flink.nexmark.sources.BidPersonGeneratorKafka", "-Dexec.args=--mode 1 --bids-only 0"]
         #args: ["mvn", "exec:java", "-Dexec.mainClass=ch.ethz.systems.strymon.ds2.flink.nexmark.sources.BidPersonGeneratorKafka", "-Dexec.args=--mode 0 --amplitude 100000 --y-shift 150000 --period 60 --bids-only 0"]
