@@ -8,4 +8,6 @@
 kubectl
 /target/**
 target/
+/__pycache__/**
+__pycache__/
 /.secrets/**
