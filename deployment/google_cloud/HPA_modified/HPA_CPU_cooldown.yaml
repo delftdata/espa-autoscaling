@@ -1,0 +1,26 @@
+apiVersion: autoscaling/v2beta2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: taskmanager-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: flink-taskmanager
+  minReplicas: 1
+  maxReplicas: 8
+  metrics:
+  - type: Pods
+    pods:
+      metric:
+        name: cpuCooldown
+      target:
+        type: AverageValue
+        averageValue: 0.6
+  - type: Pods
+    pods:
+      metric:
+        name: constant
+      target:
+        type: AverageValue
+        averageValue: 1

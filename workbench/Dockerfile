@@ -5,7 +5,6 @@ FROM ubuntu as intermediate
 RUN apt-get update
 RUN apt-get install -y git
 
-
 # Set ssh key for access to private repository
 ARG SSH_PRIVATE_KEY
 RUN mkdir /root/.ssh

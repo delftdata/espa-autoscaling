@@ -4,11 +4,11 @@ from d_plot_time_series import plot_experiments
 
 
 # Set configurations heere
-prometheus_ip = "34.91.123.186"
-query = "load-patterns"
-load_pattern = "cosine-period"
-autoscaler = "none"
-metric = "20"
+prometheus_ip = "35.204.161.5"
+query = "query-1"
+load_pattern = "cosine-50"
+autoscaler = "dhalion"
+metric = "05"
 
 scrape_data(prometheus_ip, query, autoscaler, metric, load_pattern)
 

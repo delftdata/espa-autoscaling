@@ -5,9 +5,9 @@ import os
 query = "query-1"
 auto_scaler = "dhalion"
 percentage = "05"
-load_pattern = "cosine"
+load_pattern = "cosine-50"
 
-path_to_file = "../new_experiment_data_processed/full_data/" + load_pattern + "/" + query + "/" + query + "_" + auto_scaler + "_" + percentage + ".csv"
+path_to_file = f"../new_experiment_data_processed/full_data/{load_pattern}/{query}/{query}_{auto_scaler}_{percentage}.csv"
 df = pd.read_csv(path_to_file)
 
 taskmanager = df['taskmanager'].tolist()
@@ -23,10 +23,10 @@ for val in taskmanager:
 average_latency = sum(latency) / len(latency)
 average_taskmanager = sum(taskmanager) / len(taskmanager)
 
-path = "../new_experiment_data_processed/evaluation_metrics"
+path = f"../new_experiment_data_processed/evaluation_metrics/{load_pattern}"
 if not os.path.exists(path):
     os.makedirs(path)
-with open(path + "/" + query + "_" + auto_scaler + "_" + percentage + ".csv", 'w') as f:
+with open(path + f"/{query}_{auto_scaler}_{percentage}.csv", 'w') as f:
     # create the csv writer
     writer = csv.writer(f)
     writer.writerow(["latency", average_latency])

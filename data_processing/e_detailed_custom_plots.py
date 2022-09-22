@@ -8,9 +8,10 @@ query = "query-1"
 auto_scaler = "dhalion"
 percentage = "05"
 metrics = ["input_rate", "taskmanager", "latency", "throughput"]
+load_pattern = "cosine-50"
 # metrics = ["input_rate", "taskmanager", "latency", "lag", "throughput" , "CPU_load", "backpressure", "busy_time", "idle_time"]
 
-path_to_file = "../new_experiment_data_processed/full_data/cosine/" + query + "/" + query + "_" + auto_scaler + "_" + percentage + ".csv"
+path_to_file = f"../new_experiment_data_processed/full_data/{load_pattern}/{query}/{query}_{auto_scaler}_{percentage}.csv"
 df = pd.read_csv(path_to_file)
 
 
@@ -33,7 +34,7 @@ axs[len(metrics) - 1].set_xlabel("Minutes")
 
 
 # plt.show()
-path = "../new_figures_final/cosine/" + query + "/detailed_figs"
+path = f"../new_figures_final/{load_pattern}/{query}/detailed_figs"
 if not os.path.exists(path):
     os.makedirs(path)
 filepath = path + "/" + query + "_" + auto_scaler + "_" + percentage + ".png"
