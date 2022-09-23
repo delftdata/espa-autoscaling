@@ -12,7 +12,7 @@ WAIT=true
 while [ $WAIT ] ; do
   read -t 3 -n 1
   if [ $? = 0 ] ; then
-    WAIT=false ;
+    exit ;
   else
     echo "waiting for the keypress"
   fi
