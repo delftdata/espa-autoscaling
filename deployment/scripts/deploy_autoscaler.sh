@@ -11,7 +11,7 @@ case $AUTOSCALER in
     kubectl apply -f dhalion_rbac_rules.yaml
     kubectl apply -f dhalion-deployment_v2.yaml
     ;;
-  "ds-original")
+  "ds2-original")
     kubectl apply -f rules_ds2.yaml
     kubectl apply -f ds2-original-reactive.yaml
     ;;
