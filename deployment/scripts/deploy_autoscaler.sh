@@ -24,7 +24,7 @@
   kubectl delete deployment/my-release-prometheus-adapter
   kubectl apply -f prometheus-adapter-config.yaml
   kubectl apply -f adapter-deployment.yaml
-  kubectl wait --timeout=4m --for=condition=ready statefulset --all
+#  kubectl wait --timeout=4m --for=condition=ready statefulset --all
   kubectl apply -f varga_HPA.yaml
 
 # Varge_v2
@@ -34,7 +34,7 @@
   kubectl delete deployment/my-release-prometheus-adapter
   kubectl apply -f prometheus-adapter-config_varga_v2.yaml
   kubectl apply -f adapter-deployment.yaml
-  kubectl wait --timeout=4m --for=condition=ready statefulset --all
+#  kubectl wait --timeout=4m --for=condition=ready statefulset --all
   kubectl apply -f varga_HPA.yaml
 
 
