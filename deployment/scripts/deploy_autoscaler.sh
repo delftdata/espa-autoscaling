@@ -10,18 +10,18 @@ export METRIC=$METRIC
 case $AUTOSCALER in
   "dhalion")
     kubectl apply -f dhalion_rbac_rules.yaml
-    envsubst < dhalion-deployment_v2.yaml | kubectl apply -f -
+    envsubst < dhalion-deployment_v2.yaml | cat - && kubectl apply -f -
     ;;
   "ds2-original")
     kubectl apply -f rules_ds2.yaml
-    envsubst < ds2-original-reactive.yaml | kubectl apply -f -
+    envsubst < ds2-original-reactive.yaml | cat - && kubectl apply -f -
     ;;
   "ds2-updated")
     kubectl apply -f rules_ds2.yaml
-    envsubst < ds2-updated-reactive.yaml | kubectl apply -f -
+    envsubst < ds2-updated-reactive.yaml | cat - && kubectl apply -f -
     ;;
   "HPA")
-    envsubst < cpu-hpa-stabelized.yaml | kubectl apply -f -
+    envsubst < cpu-hpa-stabelized.yaml | cat - && kubectl apply -f -
     ;;
   "varga1")
     helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
@@ -31,7 +31,7 @@ case $AUTOSCALER in
     kubectl apply -f prometheus-adapter-config.yaml
     kubectl apply -f adapter-deployment.yaml
     #  kubectl wait --timeout=4m --for=condition=ready statefulset --all
-    envsubst < varga_HPA.yaml | kubectl apply -f -
+    envsubst < varga_HPA.yaml | cat - && kubectl apply -f -
     ;;
   "varga2")
     helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
@@ -41,7 +41,7 @@ case $AUTOSCALER in
     kubectl apply -f prometheus-adapter-config_varga_v2.yaml
     kubectl apply -f adapter-deployment.yaml
     #  kubectl wait --timeout=4m --for=condition=ready statefulset --all
-    envsubst < varga_HPA.yaml | kubectl apply -f -
+    envsubst < varga_HPA.yaml | cat - && kubectl apply -f -
     ;;
   *)
 esac
