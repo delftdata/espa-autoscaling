@@ -23,15 +23,15 @@ case $AUTOSCALER in
     kubectl delete --wait=true -f cpu-hpa-stabelized.yaml
   ;;
   "varga1")
-    helm repo remove prometheus-community https://prometheus-community.github.io/helm-charts
-    helm uninstall my-release prometheus-community/prometheus-adapter
+    helm repo remove prometheus-community
+    helm uninstall my-release
     kubectl delete --wait=true -f prometheus-adapter-config.yaml
     kubectl delete --wait=true -f adapter-deployment.yaml
     kubectl delete --wait=true -f varga_HPA.yaml
   ;;
   "varga2")
-    helm repo remove prometheus-community https://prometheus-community.github.io/helm-charts
-    helm uninstall my-release prometheus-community/prometheus-adapter
+    helm repo remove prometheus-community
+    helm uninstall my-release
     kubectl delete --wait=true -f prometheus-adapter-config_varga_v2.yaml
     kubectl delete --wait=true -f adapter-deployment.yaml
     kubectl delete --wait=true -f varga_HPA.yaml
