@@ -43,7 +43,7 @@ spec:
         - name: QUERY
           value: "query-3"
         - name: OVERPROVISIONING_FACTOR
-          value: "1.0"
+          value: "${METRIC}"
         - name: LAG_PROCESSING_TIME
           value: "120"
         - name: DELETE_TIME_JOB

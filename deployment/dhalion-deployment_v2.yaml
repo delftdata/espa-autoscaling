@@ -54,5 +54,5 @@ spec:
         - name: OVERPROVISIONING_FACTOR
           value: "1.2"
         - name: LATENCY_THRESHOLD
-          value: "5"
+          value: "${METRIC}"
   
