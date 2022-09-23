@@ -10,8 +10,8 @@ kubectl delete --wait=true -f zookeeper-service.yaml
 kubectl delete --wait=true -f zookeeper-deployment.yaml
 kubectl delete --wait=true -f kafka-multi-broker.yaml
 
-helm uninstall prometheus prometheus --repo https://prometheus-community.github.io/helm-charts --values values-prometheus.yaml
-helm uninstall grafana grafana --repo https://grafana.github.io/helm-charts --values values-grafana.yaml --set-file dashboards.default.flink-dashboard.json=grafana-dashboard.json --set-file dashboards.default.scaling-dashboard.json=grafana-dashboard-auto.json
+helm uninstall prometheus prometheus
+helm uninstall grafana grafana
 kubectl delete service my-external-prometheus
 kubectl delete service my-external-grafana
 
