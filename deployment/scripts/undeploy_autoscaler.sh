@@ -11,7 +11,7 @@ case $AUTOSCALER in
     kubectl delete --wait=true -f dhalion_rbac_rules.yaml
     kubectl delete --wait=true -f dhalion-deployment_v2.yaml
   ;;
-  "ds-original")
+  "ds2-original")
     kubectl delete --wait=true -f rules_ds2.yaml
     kubectl delete --wait=true -f ds2-original-reactive.yaml
   ;;
