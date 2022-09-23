@@ -6,11 +6,11 @@ from d_plot_time_series import plot_experiments
 # Set configurations heere
 prometheus_ip = "35.204.161.5"
 query = "query-1"
-load_pattern = "cosine-50"
-autoscaler = "dhalion"
-metric = "05"
+load_pattern = "cosine"
+autoscaler = "ds2-original-non-reactive"
+metric = "66"
 
-scrape_data(prometheus_ip, query, autoscaler, metric, load_pattern)
+# scrape_data(prometheus_ip, query, autoscaler, metric, load_pattern)
 
 combine_all_metrics(query, autoscaler, metric, load_pattern)
 

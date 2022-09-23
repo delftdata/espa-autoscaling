@@ -1,14 +1,17 @@
 #!/bin/bash
 
 echo "Deploying"
-bash ./scripts/deploy_nfs.sh
-bash ./scripts/deploy_query_1.sh
+source ./scripts/deploy_nfs.sh
+source ./scripts/deploy_query_1.sh
+source ./scripts/deploy_autoscaler.sh
 
 echo "Finished deploying"
-bash sleep 5
+
+bash sleep 300
 
 echo "Undeploying"
-bash ./scripts/undeploy_query_1.sh
-bash ./scripts/undeploy_nfs.sh
+source ./scripts/undeploy_autoscaler.sh
+source ./scripts/undeploy_query_1.sh
+source ./scripts/undeploy_nfs.sh
 
 echo "Finished undeploying"

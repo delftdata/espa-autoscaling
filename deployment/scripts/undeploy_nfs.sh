@@ -7,7 +7,5 @@ export NFS_SERVICE_IP=$(kubectl get svc nfs-server -o yaml | grep clusterIP | aw
 kubectl delete --wait=true -f nfs-first-claim.yaml
 kubectl delete --wait=true -f nfs-service.yaml
 envsubst < nfs-claim.yaml | kubectl delete --wait=true -f -
-
-kubectl delete --wait=true -f jobmanager-service.yaml
 kubectl delete --wait=true -f nfs.yaml
 echo "Finished undeploying deploying nfs server"
