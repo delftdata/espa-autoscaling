@@ -1,8 +1,7 @@
 #!/bin/bash
 
 AUTOSCALER=$1 #{dhalion, ds2-original, ds2-updated, HPA, varga1, varga2}
-METRIC=$2
-echo "Undeploying autoscaler: $AUTOSCALER with metric $METRIC"
+echo "Undeploying autoscaler: $AUTOSCALER"
 
 #kubectl wait --timeout=4m --for=condition=ready statefulset --all
 
