@@ -8,15 +8,8 @@ source ./scripts/deploy_autoscaler.sh
 echo "Finished deploying"
 
 echo "Press any key to continue"
-WAIT=true
-while [ $WAIT ] ; do
-  read -t 3 -n 1
-  if [ $? = 0 ] ; then
-    exit ;
-  else
-    echo "waiting for the keypress"
-  fi
-done
+
+read -p "Press any key..."
 
 echo "Undeploying"
 source ./scripts/undeploy_autoscaler.sh
