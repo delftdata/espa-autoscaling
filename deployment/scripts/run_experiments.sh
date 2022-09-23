@@ -2,7 +2,7 @@
 
 echo "Deploying"
 source ./scripts/deploy_nfs.sh
-source ./scripts/deploy_query.sh
+source ./scripts/deploy_queries.sh
 source ./scripts/deploy_autoscaler.sh
 
 echo "Finished deploying"
@@ -20,7 +20,7 @@ done
 
 echo "Undeploying"
 source ./scripts/undeploy_autoscaler.sh
-source ./scripts/undeploy_query.sh
+source ./scripts/undeploy_queries.sh
 source ./scripts/undeploy_nfs.sh
 
 echo "Finished undeploying"
