@@ -12,10 +12,10 @@ do
 
   echo "Deploying experiment with: Query=$query autoscaler=$autoscaler metric=$metric"
   source ./scripts/deploy_nfs.sh
-  source ./scripts/deploy_queries.sh query
-  source ./scripts/deploy_autoscaler.sh $dhalion $metric
+  source ./scripts/deploy_queries.sh $query
+  source ./scripts/deploy_autoscaler.sh $autoscaler $metric
 
-  wait 180
+  wait 120
 
   echo "Undeploying..."
   source ./scripts/undeploy_autoscaler.sh $autoscaler
