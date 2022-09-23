@@ -16,7 +16,7 @@ kubectl expose deployment prometheus-server --type=LoadBalancer --name=my-extern
 kubectl expose deployment grafana --type=LoadBalancer --name=my-external-grafana
 
 kubectl wait --timeout=3m --for=condition=ready pods --all
-kubectl wait --timeout=2m --for=condition=ready statefulset --all
+#kubectl wait --timeout=2m --for=condition=ready statefulset --all
 
 # Query 1
 kubectl exec kafka-2 -- /opt/kafka/bin/kafka-topics.sh --create -zookeeper zoo1:2181  --replication-factor 1 --partitions 24 --topic bids_topic
