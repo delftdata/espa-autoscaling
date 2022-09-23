@@ -37,36 +37,3 @@ case $AUTOSCALER in
   ;;
   *)
 esac
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# dhalion
-
-
-# ds2-original-reactive
-
-
-# ds2-updated-reactive
-
-# HPA
-
-
-# varga
-
-
-# Varge_v2
-
-
-
-
