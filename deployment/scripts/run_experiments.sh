@@ -15,7 +15,7 @@ do
   source ./scripts/deploy_queries.sh $query
   source ./scripts/deploy_autoscaler.sh $autoscaler $metric
 
-  wait 2m
+  sleep 2m
 
   echo "Undeploying..."
   source ./scripts/undeploy_autoscaler.sh $autoscaler
