@@ -10,8 +10,8 @@ kubectl delete --wait=true -f zookeeper-service.yaml
 kubectl delete --wait=true -f zookeeper-deployment.yaml
 kubectl delete --wait=true -f kafka-multi-broker.yaml
 
-helm uninstall prometheus prometheus
-helm uninstall grafana grafana
+helm uninstall prometheus
+helm uninstall grafana
 kubectl delete service my-external-prometheus
 kubectl delete service my-external-grafana
 
