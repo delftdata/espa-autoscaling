@@ -1,5 +1,8 @@
 #!/bin/bash
 
+QUERY=$1 #{1, 3, 11}
+echo "Deploying query $QUERY"
+
 # common
 kubectl apply -f flink-configuration-configmap.yaml
 kubectl apply -f jobmanager-rest-service.yaml
@@ -18,20 +21,24 @@ kubectl expose deployment grafana --type=LoadBalancer --name=my-external-grafana
 kubectl wait --timeout=3m --for=condition=ready pods --all
 #kubectl wait --timeout=2m --for=condition=ready statefulset --all
 
-# Query 1
-kubectl exec kafka-2 -- /opt/kafka/bin/kafka-topics.sh --create -zookeeper zoo1:2181  --replication-factor 1 --partitions 24 --topic bids_topic
+case $QUERY in
+  1)
+    kubectl exec kafka-2 -- /opt/kafka/bin/kafka-topics.sh --create -zookeeper zoo1:2181  --replication-factor 1 --partitions 24 --topic bids_topic
+    kubectl apply -f query1-experiments-jobmanager.yaml
+    kubectl apply -f query1-workbench-deployment.yaml
+  ;;
+  3)
+    kubectl exec kafka-2 -- /opt/kafka/bin/kafka-topics.sh --create -zookeeper zoo1:2181  --replication-factor 1 --partitions 24 --topic auction_topic
+    kubectl exec kafka-2 -- /opt/kafka/bin/kafka-topics.sh --create -zookeeper zoo1:2181  --replication-factor 1 --partitions 24 --topic person_topic
 
-kubectl apply -f query1-experiments-jobmanager.yaml
-kubectl apply -f query1-workbench-deployment.yaml
+    kubectl apply -f query3-experiments-jobmanager.yaml
+    kubectl apply -f query3-workbench-deployment.yaml
+  ;;
 
-# Query 3
-kubectl exec kafka-2 -- /opt/kafka/bin/kafka-topics.sh --create -zookeeper zoo1:2181  --replication-factor 1 --partitions 24 --topic auction_topic
-kubectl exec kafka-2 -- /opt/kafka/bin/kafka-topics.sh --create -zookeeper zoo1:2181  --replication-factor 1 --partitions 24 --topic person_topic
-
-kubectl apply -f query3-experiments-jobmanager.yaml
-kubectl apply -f query3-workbench-deployment.yaml
-
-# Query 11
-kubectl exec kafka-2 -- /opt/kafka/bin/kafka-topics.sh --create -zookeeper zoo1:2181  --replication-factor 1 --partitions 24 --topic bids_topic
-kubectl apply -f query11-experiments-jobmanager.yaml
-kubectl apply -f query11-workbench-deployment.yaml
+  11)
+    kubectl exec kafka-2 -- /opt/kafka/bin/kafka-topics.sh --create -zookeeper zoo1:2181  --replication-factor 1 --partitions 24 --topic bids_topic
+    kubectl apply -f query11-experiments-jobmanager.yaml
+    kubectl apply -f query11-workbench-deployment.yaml
+  ;;
+  *)
+esac
