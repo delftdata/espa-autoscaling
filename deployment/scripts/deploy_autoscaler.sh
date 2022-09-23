@@ -1,5 +1,10 @@
 #!/bin/bash
 
+AUTOSCALER=$1 #{dhalion, ds-original, ds-updated, HPA, varga, varga_v2}
+METRIC=$2
+echo "autoscaler: $AUTOSCALER"
+echo "Metric $METRIC"
+
 #kubectl wait --timeout=4m --for=condition=ready statefulset --all
 
 # dhalion
@@ -27,7 +32,7 @@
 #  kubectl wait --timeout=4m --for=condition=ready statefulset --all
   kubectl apply -f varga_HPA.yaml
 
-# Varge_v2
+# Varga_v2
   helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
   helm repo update
   helm install my-release prometheus-community/prometheus-adapter
