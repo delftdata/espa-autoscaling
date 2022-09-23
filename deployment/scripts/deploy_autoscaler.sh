@@ -1,6 +1,6 @@
 #!/bin/bash
 
-kubectl wait --timeout=4m --for=condition=ready statefulset --all
+#kubectl wait --timeout=4m --for=condition=ready statefulset --all
 
 # dhalion
   kubectl apply -f dhalion_rbac_rules.yaml
