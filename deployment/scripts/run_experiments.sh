@@ -16,12 +16,13 @@ do
   source ./scripts/deploy_autoscaler.sh $autoscaler $metric
 
   echo "Finished deployment"
-  sleep 2m
+
+  sleep 5m
 
   prometheus_IP=$(kubectl get svc my-external-prometheus -o yaml | grep ip: | awk '{print $3}')
   python3 ./data_processing $prometheus_IP "query-$query" $autoscaler $metric "cosine-60"
 
-  sleep 5m
+  sleep 30s
 
   echo "Processed data. Starting undeploying cluster..."
   source ./scripts/undeploy_autoscaler.sh $autoscaler
