@@ -16,9 +16,9 @@ do
   source ./scripts/deploy_autoscaler.sh $autoscaler $metric
 
   echo "Finished deployment"
-  sleep 2m
+  sleep 5m
 
-  prometheus_IP=1.0.0.0
+  prometheus_IP=$(kubectl get svc my-external-prometheus -o yaml | grep ip: | awk '{print $3}')
   python3 ./data_processing $prometheus_IP $query $autoscaler $metric "cosine-60"
 
   sleep 10
