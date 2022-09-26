@@ -2,5 +2,5 @@
 
 echo "Starting minikube"
 # memory was 8092 earlier
-minikube start --memory 3800 --cpus 4
+minikube start --memory 8092 --cpus 16
 minikube addons enable metrics-server

@@ -17,7 +17,7 @@ do
 
   echo "Finished deployment"
 
-  sleep 5m
+  sleep 140m
 
   prometheus_IP=$(kubectl get svc my-external-prometheus -o yaml | grep ip: | awk '{print $3}')
   python3 ./data_processing $prometheus_IP "query-$query" $autoscaler $metric "cosine-60"
