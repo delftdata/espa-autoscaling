@@ -19,13 +19,13 @@ do
   sleep 2m
 
   prometheus_IP=$(kubectl get svc my-external-prometheus -o yaml | grep ip: | awk '{print $3}')
-  python3 ./data_processing $prometheus_IP $query $autoscaler $metric "cosine-60"
+  python3 ./data_processing $prometheus_IP "query-$query" $autoscaler $metric "cosine-60"
 
   sleep 10
 
   echo "Processed data. Starting undeploying cluster..."
   source ./scripts/undeploy_autoscaler.sh $autoscaler
-  source ./scripts/undeploy_queries.sh $query
+  source ./scripts/undeploy_queries.sh query
   source ./scripts/undeploy_nfs.sh
   echo "Finished undeployment"
 
