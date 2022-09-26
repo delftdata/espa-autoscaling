@@ -9,7 +9,7 @@ Plot timeseries of metrics fetched from Prometheus
 
 
 def plot_experiments(query, auto_scaler, percentage, load_pattern):
-    path_to_file = "./experiment_data/full_data/" + load_pattern + "/" + query + "/" + query + "_" + auto_scaler + "_" + percentage + ".csv"
+    path_to_file = "/experiment_data/full_data/" + load_pattern + "/" + query + "/" + query + "_" + auto_scaler + "_" + percentage + ".csv"
     df = pd.read_csv(path_to_file)
 
     metrics = ["input_rate", "taskmanager", "latency", "lag", "throughput", "CPU_load", "backpressure", "busy_time",
@@ -30,7 +30,7 @@ def plot_experiments(query, auto_scaler, percentage, load_pattern):
 
     # plt.show()
 
-    path = "./experiment_data/full_figures/" + load_pattern + "/" + query + "/experiment_figs"
+    path = "/experiment_data/full_figures/" + load_pattern + "/" + query + "/experiment_figs"
     if not os.path.exists(path):
         os.makedirs(path)
 
