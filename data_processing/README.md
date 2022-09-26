@@ -74,8 +74,8 @@ Create a pareto plot of all autoscalers given a specified load_pattern and query
 The result is stored at ../{new_}figures_final/{load_pattern}/{query}/pareto_figs/
 
 ##h_load_patterns.py
-Calculate load_patterns of the current data
-1. set experiment_time and queries to investigate
+Generate load_patterns of a specific load pattern
+1. set experiment_time, load_pattern and query type for the load pattern to generate
 2. Run the script
 The result is stored at ../{new_}load_patterns/
 

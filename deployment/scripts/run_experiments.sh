@@ -14,6 +14,7 @@ do
   source ./scripts/deploy_nfs.sh
   source ./scripts/deploy_queries.sh $query
   source ./scripts/deploy_autoscaler.sh $autoscaler $metric
+
   echo "Finished deployment"
   sleep 2m
 
