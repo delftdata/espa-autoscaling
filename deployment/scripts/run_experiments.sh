@@ -26,7 +26,7 @@ do
 
   echo "Processed data. Starting undeploying cluster..."
   source ./scripts/undeploy_autoscaler.sh $autoscaler
-  source ./scripts/undeploy_queries.sh query
+  source ./scripts/undeploy_queries.sh $query
   source ./scripts/undeploy_nfs.sh
   echo "Finished undeployment"
 
