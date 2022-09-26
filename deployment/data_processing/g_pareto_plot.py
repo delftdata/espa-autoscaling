@@ -34,7 +34,7 @@ def pareto_plot(query, zoomed, latency_limit, zoomed_latency_limit):
         metric = file_info[2].replace(".csv", "")
         if "i" in metric:
             continue
-        df = pd.read_csv("../new_experiment_data_processed/full_data/" + load_pattern + "/" + query + "/" + file)
+        df = pd.read_csv("experiment_data/full_data/" + load_pattern + "/" + query + "/" + file)
         latency_list = df['latency'].tolist()
         taskmanager_list = df['taskmanager'].tolist()
         average_latency = sum(latency_list) / len(latency_list)
@@ -65,7 +65,7 @@ def pareto_plot(query, zoomed, latency_limit, zoomed_latency_limit):
     plt.xlabel("Average number of taskmanagers")
     plt.ylabel("Average latency (s)")
 
-    path = "../new_figures_final/" + load_pattern + "/" + query + "/pareto_figs"
+    path = "experiment_data/pareto_plots/" + load_pattern + "/" + query + "/pareto_figs"
     if not os.path.exists(path):
         os.makedirs(path)
 

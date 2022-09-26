@@ -5,7 +5,7 @@ import os
 
 
 def calulate_evaluation_metrics(query, auto_scaler, percentage, load_pattern="cosine-60"):
-    path_to_file = f"../new_experiment_data_processed/full_data/{load_pattern}/{query}/{query}_{auto_scaler}_{percentage}.csv"
+    path_to_file = f"/experiment_data/full_data/{load_pattern}/{query}/{query}_{auto_scaler}_{percentage}.csv"
     df = pd.read_csv(path_to_file)
 
     taskmanager = df['taskmanager'].tolist()
@@ -21,7 +21,7 @@ def calulate_evaluation_metrics(query, auto_scaler, percentage, load_pattern="co
     average_latency = sum(latency) / len(latency)
     average_taskmanager = sum(taskmanager) / len(taskmanager)
 
-    path = f"../new_experiment_data_processed/evaluation_metrics/{load_pattern}"
+    path = f"/experiment_data/evaluation_metrics/{load_pattern}"
     if not os.path.exists(path):
         os.makedirs(path)
     with open(path + f"/{query}_{auto_scaler}_{percentage}.csv", 'w') as f:

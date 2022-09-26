@@ -1,2 +1,4 @@
 prometheus_api_client
 adjustText
+matplotlib
+pandas
