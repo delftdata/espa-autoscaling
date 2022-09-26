@@ -7,7 +7,6 @@ from f_calculate_evaluation_metrics import calulate_evaluation_metrics
 # Set configurations heere
 DETAILED_METRICS = ["input_rate", "taskmanager", "latency", "throughput"]
 
-
 def process_data(prometheus_ip, query, autoscaler, load_pattern, metric):
     # Get data from prometheus
     scrape_data(prometheus_ip, query, autoscaler, metric, load_pattern)

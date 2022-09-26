@@ -10,6 +10,6 @@ if __name__ == "__main__":
         metric = arguments[3]
         load_pattern = arguments[4] if len(arguments) >= 5 else "cosine-60"
         print(f"Processing data from {prometheus_ip} of {query} with {autoscaler}-{metric} on {load_pattern} ")
-        process_data(prometheus_ip, query, autoscaler, metric, load_pattern)
+        process_data(prometheus_ip, query, autoscaler, load_pattern, metric)
     else:
         print(f"Unsufficient parameters. Expected: [prometheus_ip, query, autoscaler, metric, [load_pattern]]. Received: {arguments}")
