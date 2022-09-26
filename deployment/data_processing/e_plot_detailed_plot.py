@@ -35,7 +35,7 @@ def plot_detailed_plot(query, auto_scaler, percentage, load_pattern="cosine-60",
     axs[len(metrics) - 1].set_xlabel("Minutes")
 
     # plt.show()
-    path = f"/experiment_data/detailed_figures/{load_pattern}/{query}/detailed_figs"
+    path = f"./experiment_data/detailed_figures/{load_pattern}/{query}/detailed_figs"
     if not os.path.exists(path):
         os.makedirs(path)
     filepath = path + "/" + query + "_" + auto_scaler + "_" + percentage + ".png"

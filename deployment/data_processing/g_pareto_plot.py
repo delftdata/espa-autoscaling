@@ -65,7 +65,7 @@ def pareto_plot(query, zoomed, latency_limit, zoomed_latency_limit):
     plt.xlabel("Average number of taskmanagers")
     plt.ylabel("Average latency (s)")
 
-    path = "/experiment_data/pareto_plots/" + load_pattern + "/" + query + "/pareto_figs"
+    path = "./experiment_data/pareto_plots/" + load_pattern + "/" + query + "/pareto_figs"
     if not os.path.exists(path):
         os.makedirs(path)
 

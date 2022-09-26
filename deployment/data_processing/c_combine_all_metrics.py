@@ -48,7 +48,7 @@ def combine_all_metrics(query, auto_scaler, percentage, load_pattern):
 
     input_data = input_data.fillna(0)
 
-    path = "/experiment_data/full_data/" + load_pattern + "/" + query
+    path = "./experiment_data/full_data/" + load_pattern + "/" + query
     if not os.path.exists(path):
         os.makedirs(path)
     input_data.to_csv(path + "/" + query + "_" + auto_scaler + "_" + percentage + ".csv")

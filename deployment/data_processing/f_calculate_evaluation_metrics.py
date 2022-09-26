@@ -21,7 +21,7 @@ def calulate_evaluation_metrics(query, auto_scaler, percentage, load_pattern="co
     average_latency = sum(latency) / len(latency)
     average_taskmanager = sum(taskmanager) / len(taskmanager)
 
-    path = f"/experiment_data/evaluation_metrics/{load_pattern}"
+    path = f"./experiment_data/evaluation_metrics/{load_pattern}"
     if not os.path.exists(path):
         os.makedirs(path)
     with open(path + f"/{query}_{auto_scaler}_{percentage}.csv", 'w') as f:

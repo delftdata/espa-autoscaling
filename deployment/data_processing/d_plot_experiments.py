@@ -30,7 +30,7 @@ def plot_experiments(query, auto_scaler, percentage, load_pattern):
 
     # plt.show()
 
-    path = "/experiment_data/full_figures/" + load_pattern + "/" + query + "/experiment_figs"
+    path = "./experiment_data/full_figures/" + load_pattern + "/" + query + "/experiment_figs"
     if not os.path.exists(path):
         os.makedirs(path)
 
