@@ -18,7 +18,12 @@ do
   echo "Finished deployment"
   sleep 2m
 
-  echo "Undeploying..."
+  prometheus_IP=1.0.0.0
+  python3 ./data_processing $IP $query $autoscaler $metric "cosine-60"
+
+  sleep 10
+
+  echo "Processed data. Starting undeploying cluster..."
   source ./scripts/undeploy_autoscaler.sh $autoscaler
   source ./scripts/undeploy_queries.sh $query
   source ./scripts/undeploy_nfs.sh
