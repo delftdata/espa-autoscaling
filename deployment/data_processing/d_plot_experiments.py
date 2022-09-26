@@ -11,8 +11,7 @@ Plot timeseries of metrics fetched from Prometheus
 def plot_experiments(query, auto_scaler, percentage, load_pattern):
     path_to_file = "./experiment_data/full_data/" + load_pattern + "/" + query + "/" + query + "_" + auto_scaler + "_" + percentage + ".csv"
     df = pd.read_csv(path_to_file)
-    print("Read file for experiments")
-    
+
     metrics = ["input_rate", "taskmanager", "latency", "lag", "throughput", "CPU_load", "backpressure", "busy_time",
                "idle_time"]
 
