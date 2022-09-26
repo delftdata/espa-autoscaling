@@ -11,7 +11,7 @@ Put together all data fetched from prometheus server
 def combine_all_metrics(query, auto_scaler, percentage, load_pattern):
     metrics = ["backpressure", "busy_time", "CPU_load", "idle_time", "lag", "latency", "taskmanager", "throughput"]
 
-    path_to_files = "experiment_data/individual_data/" + query + "/" + load_pattern + "/" + auto_scaler + "/" + percentage + "/"
+    path_to_files = "./experiment_data/individual_data/" + query + "/" + load_pattern + "/" + auto_scaler + "/" + percentage + "/"
     input_data = pd.read_csv(path_to_files + "input_rate.csv")
 
     # convert timestamps to seconds
@@ -48,7 +48,7 @@ def combine_all_metrics(query, auto_scaler, percentage, load_pattern):
 
     input_data = input_data.fillna(0)
 
-    path = "experiment_data/full_data/" + load_pattern + "/" + query
+    path = "./experiment_data/full_data/" + load_pattern + "/" + query
     if not os.path.exists(path):
         os.makedirs(path)
     input_data.to_csv(path + "/" + query + "_" + auto_scaler + "_" + percentage + ".csv")
