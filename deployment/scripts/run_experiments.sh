@@ -19,7 +19,7 @@ do
   sleep 2m
 
   prometheus_IP=1.0.0.0
-  python3 ./data_processing $IP $query $autoscaler $metric "cosine-60"
+  python3 ./data_processing $prometheus_IP $query $autoscaler $metric "cosine-60"
 
   sleep 10
 
