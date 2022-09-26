@@ -43,7 +43,7 @@ for file in files:
     metric = file_info[2].replace(".csv", "")
     if "i" in metric:
         continue
-    df = pd.read_csv("/experiment_data/full_data/" + load_pattern + "/" + query + "/" + file)
+    df = pd.read_csv("./experiment_data/full_data/" + load_pattern + "/" + query + "/" + file)
     latency_list = df['latency'].tolist()
     taskmanager_list = df['taskmanager'].tolist()
     average_latency = sum(latency_list) / len(latency_list)

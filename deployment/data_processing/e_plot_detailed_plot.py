@@ -10,7 +10,7 @@ detailed_metrics = ["input_rate", "taskmanager", "latency", "throughput"]
 
 
 def plot_detailed_plot(query, auto_scaler, percentage, load_pattern="cosine-60", metrics=detailed_metrics):
-    path_to_file = f"/experiment_data/full_data/{load_pattern}/{query}/{query}_{auto_scaler}_{percentage}.csv"
+    path_to_file = f"./experiment_data/full_data/{load_pattern}/{query}/{query}_{auto_scaler}_{percentage}.csv"
     df = pd.read_csv(path_to_file)
 
     meric_names = {"input_rate": "Kafka input rate (records per second)", "taskmanager": "Taskmanagers",

@@ -5,7 +5,7 @@ import os
 
 
 def calulate_evaluation_metrics(query, auto_scaler, percentage, load_pattern="cosine-60"):
-    path_to_file = f"/experiment_data/full_data/{load_pattern}/{query}/{query}_{auto_scaler}_{percentage}.csv"
+    path_to_file = f"./experiment_data/full_data/{load_pattern}/{query}/{query}_{auto_scaler}_{percentage}.csv"
     df = pd.read_csv(path_to_file)
 
     taskmanager = df['taskmanager'].tolist()
