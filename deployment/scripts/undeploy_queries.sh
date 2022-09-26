@@ -23,9 +23,7 @@ case $QUERY in
     kubectl delete --wait=true -f  query1-experiments-jobmanager.yaml
     kubectl delete --wait=true -f  query1-workbench-deployment.yaml
     # Ensure it does not mess up its entanglement with nfs
-    echo "Waiting for jobmanager to finish deleting"
     kubectl wait --for=delete -f query1-experiments-jobmanager.yaml --timeout=60s
-    echo "Jobmanager is deleted!"
   ;;
   3)
     kubectl delete --wait=true -f  query3-experiments-jobmanager.yaml
@@ -44,7 +42,5 @@ case $QUERY in
 esac
 
 # Ensure it does not mess up its entanglement with nfs
-echo "Waiting for Taskmanager to finish deleting"
 kubectl wait --for=delete -f experiments-taskmanager.yaml --timeout=60s
-echo "Taskmanager is deleted!"
 
