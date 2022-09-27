@@ -16,3 +16,12 @@
 1;varga2;0.3
 1;varga2;0.5
 1;varga2;0.7
+11;dhalion;1
+11;dhalion;5
+11;dhalion;10
+11;ds2-original;0
+11;ds2-original;0.33
+11;ds2-original;0.66
+11;ds2-updated;0
+11;ds2-updated;0.33
+11;ds2-updated;0.66
