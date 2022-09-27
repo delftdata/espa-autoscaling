@@ -1,7 +1,19 @@
 #!/bin/bash
 
-input="experiments/experiments.txt"
-echo "Starting experiments from $input"
+
+input="./experiments.experiments.txt"
+
+if [$# -eq ]
+
+input=$1
+run_local=$2
+
+if [ "$run_local" = true ]
+then
+  echo "Starting experiments from $input with a local prometheus server"
+else
+  echo "Starting experiments from $input with an externally exposed prometheus server"
+fi
 
 while IFS= read -r line
 do
@@ -19,8 +31,17 @@ do
 
   sleep 140m
 
-  prometheus_IP=$(kubectl get svc my-external-prometheus -o yaml | grep ip: | awk '{print $3}')
-  python3 ./data_processing $prometheus_IP "query-$query" $autoscaler $metric "cosine-60"
+  if [ "$run_local" = true ]
+  then
+      echo "Forwarding prometheus port"
+      JOB_MANAGER_NAME=$(kubectl get pods --no-headers -o custom-columns=":metadata.name" --selector=app=prometheus)
+      kubectl port-forward $JOB_MANAGER_NAME 9090
+      sleep 20s
+      python3 ./data_processing "localhost" "query-$query" $autoscaler $metric "cosine-60"
+  else
+    prometheus_IP=$(kubectl get svc my-external-prometheus -o yaml | grep ip: | awk '{print $3}')
+    python3 ./data_processing $prometheus_IP "query-$query" $autoscaler $metric "cosine-60"
+  fi
 
   sleep 30s
 
