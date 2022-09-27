@@ -1,12 +1,17 @@
 #!/bin/bash
 
 
-input="./experiments.experiments.txt"
+input="./experiments/experiments.txt"
+run_local=false
 
-if [$# -eq ]
-
-input=$1
-run_local=$2
+if [ $# -ge 1 ]
+  then
+    input=$1
+fi
+if [ $# -ge 2 ]
+  then
+    run_local=$2
+fi
 
 if [ "$run_local" = true ]
 then
