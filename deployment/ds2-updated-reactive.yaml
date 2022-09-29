@@ -41,7 +41,7 @@ spec:
         - name: BIDSQUERY
           value: "yes"
         - name: QUERY
-          value: "query-3"
+          value: "query-${QUERY}"
         - name: OVERPROVISIONING_FACTOR
           value: "1.${METRIC}"
         - name: LAG_PROCESSING_TIME

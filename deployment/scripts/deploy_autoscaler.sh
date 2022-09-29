@@ -2,8 +2,10 @@
 
 AUTOSCALER=$1 #{dhalion, ds2-original, ds2-updated, HPA, varga1, varga2}
 METRIC=$2
-echo "Deploying autoscaler: $AUTOSCALER with metric $METRIC"
+QUERY=$3
+echo "Deploying autoscaler: $AUTOSCALER with metric $METRIC and query $QUERY"
 export METRIC=$METRIC
+export QUERY=$QUERY
 
 #kubectl wait --timeout=4m --for=condition=ready statefulset --all
 
