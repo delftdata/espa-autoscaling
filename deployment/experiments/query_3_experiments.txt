@@ -2,11 +2,11 @@
 3;dhalion;5
 3;dhalion;10
 3;ds2-original;0
-3;ds2-original;0.33
-3;ds2-original;0.66
+3;ds2-original;33
+3;ds2-original;66
 3;ds2-updated;0
-3;ds2-updated;0.33
-3;ds2-updated;0.66
+3;ds2-updated;33
+3;ds2-updated;66
 3;HPA;50
 3;HPA;70
 3;HPA;90

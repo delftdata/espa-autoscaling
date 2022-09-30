@@ -6,8 +6,8 @@ ns0="autoscaling-q1"
 ns1="autoscaling-q2"
 #ns2="autoscaling-q3"
 
-file0=./experiments/query_1_experiments.txt
-file1=./experiments/query_3_experiments.txt
+file0=./experiments/experiments_p1.txt
+file1=./experiments/experiments_p2.txt
 #file2=./experiments/query_11_experiments.txt
 
 # input
@@ -79,7 +79,7 @@ do
 
   echo "Finished deploying all containers"
 
-  sleep 5m
+  sleep 140m
 
   echo "Starting to collect all data"
   namespace="$ns0"
