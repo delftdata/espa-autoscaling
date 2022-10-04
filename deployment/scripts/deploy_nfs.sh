@@ -13,5 +13,6 @@ envsubst < nfs-claim.yaml | kubectl apply -f -
 # Deploy nfs-server
 kubectl apply -f nfs.yaml
 kubectl wait --timeout=3m --for=condition=ready pods --all
-
+echo "Setting persistentVolumeReclaimPolicy to Delete"
+kubectl patch pv nfs -p '{"spec":{"persistentVolumeReclaimPolicy":"Delete"}}'
 echo "Finished deploying NFS server"
