@@ -10,14 +10,14 @@ Query 1
 
 Query 3
 - | Dhalion      | 1 - 6a-parallel | 5 - 3-n1n4-success | 10 - 6a-parallel |
-- | ds2-original | 0 - 6a-parallel | 33 - 6a-parallel | 66 |
-- | ds2-updated  | 0 | 33 | 66 |
+- | ds2-original | 0 - 6a-parallel | 33 - 6a-parallel | 66 - 6c-parallel |
+- | ds2-updated  | 0 - 6c-parallel | 33 -6c-parallel | 66 - 6c-parallel |
 - | HPA          | 50 | 70 | 90 - 6a-parallel |
 - | varga1       | 0.3 - 6a-parallel | 0.5 - 6b-parallel | 0.7 - 6b-parallel|
-- | varga2       | 0.3 - 6b-parallel | 0.5 - 6b-parallel | 0.7 |
+- | varga2       | 0.3 - 6b-parallel | 0.5 - 6b-parallel | 0.7 - 6c-parallel |
 
 Query 11 
-- | Dhalion      | 1 | 5 - 3-n1n4-success | 10 |
+- | Dhalion      | 1 - 6c-parallel | 5 - 3-n1n4-success | 10 - 6c-parallel |
 - | ds2-original | 0 | 33 | 66 |
 - | ds2-updated  | 0 | 33 | 66 |
 - | HPA          | 50 | 70 | 90 |
