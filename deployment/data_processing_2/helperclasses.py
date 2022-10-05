@@ -122,16 +122,31 @@ class Experiment:
     query: str
     autoscaler: str
     variable: str
+    label: str
 
-    def __init__(self, query: str, autoscaler: str, variable: str):
+    def __init__(self, query: str, autoscaler: str, variable: str, label=""):
+        """
+        Constructor of an experiment class.
+        This class represents an experiment and requires the following parameters:
+        :param query: query to process (must be part of Query class)
+        :param autoscaler: autoscaler used in expeirment (must be part of Autoscaler class)
+        :param variable: variable used as configuration setting for the autoscaler (must also a valid variable as found
+        in the Autoscaler class)
+        :param label: Optional free-form label can be used to describe additional experiment configurations.
+        """
         self.query = query
         self.autoscaler = autoscaler
         self.variable = variable
+        self.label = label
         if not self.isValidExperiment():
             print(f"Error constructing experiment: {self} is not a valid experiment!")
 
     def __str__(self):
-        return f"Experiment[{self.query}, {self.autoscaler}-{self.variable}]"
+        if (self.label == ""):
+            return f"Experiment[{self.query}, {self.autoscaler}-{self.variable}]"
+        else:
+            return f"Experiment[({self.label}) {self.query}, {self.autoscaler}-{self.variable}]"
+
     __repr__ = __str__
 
     def isValidExperiment(self) -> bool:
@@ -141,13 +156,28 @@ class Experiment:
                 Autoscalers.getVariablesOfAutoscaler(self.autoscaler).__contains__(self.variable)
         )
 
+    def isSimilarExperiment(self, other, ignoreLabel=False):
+        if type(other) == Experiment:
+            isSimilar = True
+            isSimilar = isSimilar and self.query == other.query
+            isSimilar = isSimilar and self.autoscaler == other.autoscaler
+            isSimilar = isSimilar and self.variable == other.variable
+            isSimilar = isSimilar and (ignoreLabel or self.label == other.label)
+            return isSimilar
+        return False
+
+    def getExperimentName(self):
+        name = f"q{self.query}_{self.autoscaler}_{self.variable}"
+        if self.label != "":
+            name = f"{self.label}_{name}"
+        return name
 
     @staticmethod
-    def getExperiment(query: str, autoscaler: str, variable: str):
-        return Experiment(query, autoscaler, variable)
+    def getExperiment(query: str, autoscaler: str, variable: str, label=""):
+        return Experiment(query, autoscaler, variable, label=label)
 
     @staticmethod
-    def getAllExperiments(queries=None, autoscalers=None):
+    def getAllExperiments(queries=None, autoscalers=None, label=""):
         if queries is None:
             queries = Queries.getAllQueries()
         elif type(queries) == str:
@@ -162,7 +192,7 @@ class Experiment:
         for query in queries:
             for autoscaler in autoscalers:
                 for var in Autoscalers.getVariablesOfAutoscaler(autoscaler):
-                    experiments.append(Experiment.getExperiment(query, autoscaler, var))
+                    experiments.append(Experiment.getExperiment(query, autoscaler, var, label=label))
         return experiments
 
 
@@ -172,12 +202,25 @@ class ExperimentFile:
     datafile = "FILE NOT FOUND"
     print: str
 
+    def getFilePath(self, directory, query, autoscaler, variable, label):
+        filename = f"q{query}_{autoscaler}_{variable}.csv"
+        if label != "":
+            filename = f"{label}_{filename}"
+        return f"{directory}/{filename}"
+
     def __init__(self, directory: str, experiment: Experiment, printingEnabled=True):
         self.printingEnabled=printingEnabled
         self.experiment = experiment
         if os.path.isdir(directory):
             self.directory = directory
-            filepath = f"{directory}/q{experiment.query}_{experiment.autoscaler}_{experiment.variable}.csv"
+            filepath = self.getFilePath(
+                self.directory,
+                self.experiment.query,
+                self.experiment.autoscaler,
+                self.experiment.variable,
+                self.experiment.label
+            )
+
             if os.path.isfile(filepath):
                 self.datafile = filepath
             elif self.printingEnabled:
@@ -186,7 +229,8 @@ class ExperimentFile:
                 print(f"Error: {self.directory} does not exist. Could not initialize ExperimentFile of {experiment}")
 
     def __str__(self):
-        return f"ExperimentFile[{self.datafile}, {self.experiment}]"
+        return f"DF<{self.datafile}>"
+        #return f"ExperimentFile[{self.datafile}, {self.experiment}]"
     __repr__ = __str__
 
     def fileExists(self) -> bool:
@@ -194,12 +238,13 @@ class ExperimentFile:
 
     @staticmethod
     def _getExperimentFileFromExperiment(directory: str, experiment: Experiment, printingEnabled=True):
-        return ExperimentFile(directory, experiment, printingEnabled)
+        return ExperimentFile(directory, experiment, printingEnabled=printingEnabled)
 
     @staticmethod
-    def _getExperimentFileFromInfo(directory: str, query: str, autoscaler: str, variable: str, printingEnabled=True):
-        experiment = Experiment.getExperiment(query, autoscaler, variable)
-        return ExperimentFile._getExperimentFileFromExperiment(directory, experiment, printingEnabled)
+    def _getExperimentFileFromInfo(directory: str, query: str, autoscaler: str, variable: str, label="",
+                                   printingEnabled=True):
+        experiment = Experiment.getExperiment(query, autoscaler, variable, label=label)
+        return ExperimentFile._getExperimentFileFromExperiment(directory, experiment, printingEnabled=printingEnabled)
 
     @staticmethod
     def getAvailableExperimentFiles(directory: str, experiments: [Experiment], printingEnabled=True):
@@ -213,13 +258,14 @@ class ExperimentFile:
         """
         experimentFiles = []
         for experiment in experiments:
-            experimentFile = ExperimentFile._getExperimentFileFromExperiment(directory, experiment, printingEnabled)
+            experimentFile = ExperimentFile._getExperimentFileFromExperiment(directory, experiment,
+                                                                             printingEnabled=printingEnabled)
             if experimentFile.fileExists():
                 experimentFiles.append(experimentFile)
         return experimentFiles
 
     @staticmethod
-    def getAllAvailableExperimentFiles(directory: str, printingEnabled=True):
+    def getAllAvailableExperimentFiles(directory: str, label="", printingEnabled=True):
         """
         Get All available ExperimentFiles from the provided directory.
         Experiment configurations to look for are generated from information provided by the Autoscaler and Query class
@@ -227,7 +273,7 @@ class ExperimentFile:
         :param printingEnabled: Print error messages.
         :return:
         """
-        experiments = Experiment.getAllExperiments()
-        return ExperimentFile.getAvailableExperimentFiles(directory, experiments, printingEnabled)
+        experiments = Experiment.getAllExperiments(label=label)
+        return ExperimentFile.getAvailableExperimentFiles(directory, experiments, printingEnabled=printingEnabled)
 
 

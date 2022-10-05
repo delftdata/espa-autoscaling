@@ -1,28 +1,35 @@
-Results
+# Results of setup
+Goal of experiment: investigate difference between setup with 1 node and 4 nodes
+
+
+
+
+# Reults of redone
+Goal of experiments: redo the experiments performed in original thesis
 
 Query 1
-- | Dhalion      | 1 - 6a-parallel | 5 - 3-n1n4-success | 10 - 6a-parallel |
-- | ds2-original | 0 - 6a-parallel | 33 - 6a-parallel | 66 - 6a-parallel |
-- | ds2-updated  | 0 - 6a-parallel | 33 - 6a-parallel | 66 - 6a-parallel |
-- | HPA          | 50 | 70 | 90 |
-- | varga1       | 0.3 - 6a-parallel | 0.5 - 3-n1n4-success | 0.7 - 6a-parallel|
-- | varga2       | 0.3 - 6a-parallel | 0.5 - 6a-parallel | 0.7 - 6a-parallel |
+- | Dhalion      | 1   - 6a-parallel | 5   - 3-n1n4-success | 10  - 6a-parallel |
+- | ds2-original | 0   - 6a-parallel | 33  - 6a-parallel    | 66  - 6a-parallel |
+- | ds2-updated  | 0   - 6a-parallel | 33  - 6a-parallel    | 66  - 6a-parallel |
+- | HPA          | 50 				 | 70 				    | 90 				|
+- | varga1       | 0.3 - 6a-parallel | 0.5 - 3-n1n4-success | 0.7 - 6a-parallel |
+- | varga2       | 0.3 - 6a-parallel | 0.5 - 6a-parallel    | 0.7 - 6a-parallel |
 
 Query 3
-- | Dhalion      | 1 - 6a-parallel | 5 - 3-n1n4-success | 10 - 6a-parallel |
-- | ds2-original | 0 - 6a-parallel | 33 - 6a-parallel | 66 - 6c-parallel |
-- | ds2-updated  | 0 - 6c-parallel | 33 -6c-parallel | 66 - 6c-parallel |
-- | HPA          | 50 | 70 | 90 - 6a-parallel |
-- | varga1       | 0.3 - 6a-parallel | 0.5 - 6b-parallel | 0.7 - 6b-parallel|
-- | varga2       | 0.3 - 6b-parallel | 0.5 - 6b-parallel | 0.7 - 6c-parallel |
+- | Dhalion      | 1   - 6a-parallel | 5   - 3-n1n4-success | 10  - 6a-parallel |
+- | ds2-original | 0   - 6a-parallel | 33  - 6a-parallel    | 66  - 6c-parallel |
+- | ds2-updated  | 0   - 6c-parallel | 33  - 6c-parallel    | 66  - 6c-parallel |
+- | HPA          | 50 				 | 70 					| 90  - 6a-parallel |
+- | varga1       | 0.3 - 6a-parallel | 0.5 - 6b-parallel    | 0.7 - 6b-parallel |
+- | varga2       | 0.3 - 6b-parallel | 0.5 - 6b-parallel    | 0.7 - 6c-parallel |
 
 Query 11 
-- | Dhalion      | 1 - 6c-parallel | 5 - 3-n1n4-success | 10 - 6c-parallel |
-- | ds2-original | 0 | 33 | 66 |
-- | ds2-updated  | 0 | 33 | 66 |
-- | HPA          | 50 | 70 | 90 |
-- | varga1       | 0.3 | 0.5 | 0.7|
-- | varga2       | 0.3 | 0.5 | 0.7 |
+- | Dhalion      | 1   - 6c-parallel | 5   - 3-n1n4-success | 10  - 6c-parallel |
+- | ds2-original | 0   - 6c-parallel | 33  - 6c-parallel    | 66  - 6c-parallel |
+- | ds2-updated  | 0   - 6c-parallel | 33  - 6c-parallel    | 66  - 6c-parallel |
+- | HPA          | 50 				 | 70 					| 90 				|
+- | varga1       | 0.3 - 6c-parallel | 0.5 - 6c-parallel    | 0.7 - 6c-parallel |
+- | varga2       | 0.3 - 6c-parallel | 0.5 - 6c-parallel    | 0.7 - 6c-parallel |
 
 
 #Runs
@@ -60,3 +67,12 @@ Experiment was stopped due to some problems in disk useage. The execution was re
 Continued execution of run-6a-parallel only with explicit disk assignment of 20gb to each node.
 The experiment performed 4 correct runs after failing to clean up a persitent volume due to an improperly closing pod.
 hooping this was just a temporary failure, after clean-up, execution was resumed in run-6c-parallel.
+
+### run-6c-parallel
+After cleaning up the persistent problem resulting in improper experiment execution in run-6b-parallel, run-6c-parallel was started.
+Run-6c-parallel was eventually ended due to a repeating problem of the Kafka brokers taking up too much disk space.
+After investigation, the problem was solved and run-6d-parallel was started to resume exeuction.
+
+### run-6d-parallel
+Run-6d-parallel finished executing on 05/10/2022 and therby finished the remaining experiments excluding HPA. 
+Just as run-6a-parallel, run-6b-parallel and run-6c-parallel this run was performed with a parallelsim of 1 experiment a time.
