@@ -180,8 +180,8 @@ class Experiment:
     def getAllExperiments(queries=None, autoscalers=None, label=""):
         if queries is None:
             queries = Queries.getAllQueries()
-        elif type(queries) == str:
-            query = [queries]
+        elif not isinstance(queries, list):
+            queries = [str(queries)]
 
         if autoscalers is None:
             autoscalers = Autoscalers.getAllAutoscalers()
@@ -224,17 +224,29 @@ class ExperimentFile:
             if os.path.isfile(filepath):
                 self.datafile = filepath
             elif self.printingEnabled:
-                    print(f"Error: {filepath} does not exist. Could not initialize ExperimentFile of {experiment}")
+                print(f"Error: {filepath} does not exist. Could not initialize ExperimentFile of {experiment}")
         elif self.printingEnabled:
-                print(f"Error: {self.directory} does not exist. Could not initialize ExperimentFile of {experiment}")
+            print(f"Error: {directory} does not exist. Could not initialize ExperimentFile of {experiment}")
 
     def __str__(self):
-        return f"DF<{self.datafile}>"
-        #return f"ExperimentFile[{self.datafile}, {self.experiment}]"
+        return f"ExperimentFile[{self.datafile}, {self.experiment}]"
+
     __repr__ = __str__
 
     def fileExists(self) -> bool:
         return os.path.isfile(self.datafile)
+
+    def getExperiment(self):
+        return self.experiment
+
+    def getAutoscaler(self):
+        return self.getExperiment().autoscaler
+
+    def getQuery(self):
+        return self.getExperiment().query
+
+    def getVariable(self):
+        return self.getExperiment().variable
 
     @staticmethod
     def _getExperimentFileFromExperiment(directory: str, experiment: Experiment, printingEnabled=True):
