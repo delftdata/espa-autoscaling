@@ -1,64 +1,113 @@
-#!/bin/bash
 
-input="./experiments/experiments.txt"
-run_local=false
+file0=./experiments/experiments_p1.txt
+file1=./experiments/experiments_p2.txt
+file2=./experiments/experiments_p3.txt
 
-if [ $# -ge 1 ]
-  then
-    input=$1
-fi
-if [ $# -ge 2 ]
-  then
-    run_local=$2
-fi
+# input
+namespace=""
+line=""
+# generates
+query=""
+autoscaler=""
+metric=""
+function parseLine() {
+  # default values
+  query=""
+  autoscaler=""
+  metric=""
+  i=0
+  for w in $(echo "$line" | tr ";" "\n"); do
+    if [ "$i" -eq 0 ]
+    then
+      query="$w"
+    elif [ "$i" -eq 1 ]
+    then
+      autoscaler="$w"
+    elif [ "$i" -eq 2 ]
+    then
+      metric="$w"
+    fi
+    i=$((i+1))
+  done
+}
 
-if [ "$run_local" = true ]
-then
-  echo "Starting experiments from $input with a local prometheus server"
-else
-  echo "Starting experiments from $input with an externally exposed prometheus server"
-fi
+function deployExperiment() {
+    parseLine
+    echo "Deploying experiment with namespace=$namespace query=$query autoscaler=$autoscaler metric=$metric"
 
-while IFS= read -r line
+    minikube profile "$namespace"
+    sleep 5s
+    source ./scripts/deploy_experiment.sh "$query" "$autoscaler" "$metric"
+}
+
+function fetchExperiments() {
+    parseLine
+    echo "Fetching data from namespace=$namespace query=$query autoscaler=$autoscaler metric=$metric"
+
+    minikube profile "$namespace"
+    sleep 5s
+    source ./scripts/fetch_prometheus_results.sh "$query" "$autoscaler" "$metric" "$run_local"
+}
+
+function undeployExperiments() {
+    parseLine
+    echo "Undeploying experiment with namespace=$namespace query=$query autoscaler=$autoscaler"
+
+    minikube profile "$namespace"
+    sleep 5s
+    source ./scripts/undeploy_experiment.sh "$query" "$autoscaler"
+}
+
+paste -d@ $file0 $file1 $file2  | while IFS="@" read -r e0 e1 e2
+#paste -d@ $file0 $file1  | while IFS="@" read -r e0 e1
+#paste -d@ $file0  | while IFS="@" read -r e0
 do
-  IFS=';' read -ra ss <<< "$line"
-  query="${ss[0]}"
-  autoscaler="${ss[1]}"
-  metric="${ss[2]}"
+  echo "Starting deploying all containers"
+  namespace="$ns0"
+  line="$e0"
+  deployExperiment
 
-  echo "Deploying experiment with: Query=$query autoscaler=$autoscaler metric=$metric"
-  source ./scripts/deploy_nfs.sh
-  source ./scripts/deploy_queries.sh $query
-  source ./scripts/deploy_autoscaler.sh $autoscaler $metric $query
+  namespace="$ns1"
+  line="$e1"
+  deployExperiment
 
-  echo "Finished deployment"
+  namespace="$ns2"
+  line="$e2"
+  deployExperiment
+
+  echo "Finished deploying all containers"
 
   sleep 140m
 
-  if [ "$run_local" = true ]
-  then
-      echo "Fetching data form local prometheus pod"
-      JOB_MANAGER_NAME=$(kubectl get pods --no-headers -o custom-columns=":metadata.name" --selector=app=prometheus)
-      kubectl port-forward $JOB_MANAGER_NAME 9090 &
-      sleep 20s
-      python3 ./data_processing localhost "query-$query" $autoscaler $metric "cosine-60"
-      sleep 5s
-      ps -aux | grep "kubectl port-forward $JOB_MANAGER_NAME" | grep -v grep | awk {'print $2'} | xargs kill
-  else
-      echo "Fetching data from external prometheus pod"
-      prometheus_IP=$(kubectl get svc my-external-prometheus -o yaml | grep ip: | awk '{print $3}')
-      python3 ./data_processing $prometheus_IP "query-$query" $autoscaler $metric "cosine-60"
-  fi
+  echo "Starting to collect all data"
+  namespace="$ns0"
+  line="$e0"
+  fetchExperiments
+
+  namespace="$ns1"
+  line="$e1"
+  fetchExperiments
+
+  namespace="$ns2"
+  line="$e2"
+  fetchExperiments
+  echo "Finished collecting all data"
 
   sleep 30s
 
-  echo "Processed data. Starting undeploying cluster..."
-  source ./scripts/undeploy_autoscaler.sh $autoscaler
-  source ./scripts/undeploy_queries.sh $query
-  source ./scripts/undeploy_nfs.sh
-  echo "Finished undeployment"
+  echo "Starting undeploying all containers"
+  namespace="$ns0"
+  line="$e0"
+  undeployExperiments
+
+  namespace="$ns1"
+  line="$e1"
+  undeployExperiments
+
+  namespace="$ns2"
+  line="$e2"
+  undeployExperiments
+  echo "Finished undeploying all containers"
 
   sleep 1m
-done < "$input"
-
-echo "Finished experiments"
+done
