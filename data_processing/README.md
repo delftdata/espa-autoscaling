@@ -90,7 +90,7 @@ The funtion plots the ExperimentFile and saves the plot on SaveLocation or simpl
 ### overlapAndPlotMultipleDataFiles
 Input:
 * [ExperimentFiles]: List of ExperimentFiles to plot in a single graph
-* (optional) Savelocation locaiton to save the final plot. Plot is only shown when not set.
+* (optional) Savelocation location to save the final plot. Plot is only shown when not set.
 * (optional) SaveName: name to save the final plot. Plot is only shown when not set.
 * (optional) Metrics: metrics to plot, all are selected by default
 The function plots all provided experiments in the same graph and stores them (optionally) on the provided location
@@ -172,9 +172,10 @@ Plot: comparison
 Data is present on src_folder/full-data
 Plots are saved on src_folder/graphs/individual-plots
 ```
-QUERY=1
+QUERY=11
 python3 ./data_processing/run_experiments.py individual ./results/final_results/redone/query-$QUERY rd
 python3 ./data_processing/run_experiments.py individual ./results/final_results/original/query-$QUERY or
+python3 ./data_processing/run_experiments.py individual ./results/final_results/setup/query-$QUERY 4n
 ```
 
 ## Individual - generate autoscaler configuration experiment graphs

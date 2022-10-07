@@ -8,8 +8,8 @@ def getDataFolder(folder):
     return f"{folder}/full-data"
 
 
-def getGraphFolder(folder, graph_folder=True):
-    if graph_folder:
+def getGraphFolder(folder, create_graph_folder=True):
+    if create_graph_folder:
         return f"{folder}/graphs"
     else:
         return f"{folder}"
@@ -61,8 +61,8 @@ def plotAutoscalerConfigurations(folder, queries, autoscalers, metrics=None, lab
 
 
 def plotExperimentComparison(result_folder, result_label, minimumCombinations, folders_and_labels : [(str, str)],
-                             queries, autoscalers, metrics=None, graph_folder=True):
-    RESULT_FOLDER = f"{getGraphFolder(result_folder, graph_folder)}/experiment-comparisons"
+                             queries, autoscalers, metrics=None):
+    RESULT_FOLDER = f"{getGraphFolder(result_folder, create_graph_folder=False)}/"
     allExperimentFiles: [ExperimentFile] = []
     for (folder, label) in folders_and_labels:
         folder = getDataFolder(folder)
@@ -157,7 +157,7 @@ def plotRedoneExperiment():
             remaining_arguments = arguments[3:]
             comparison_folders_and_labels = list(zip(remaining_arguments[0::2], remaining_arguments[1::2]))
             plotExperimentComparison(destination_folder, result_label, min_combinations, comparison_folders_and_labels,
-                                     queries, autoscalers, metrics, graph_folder=False)
+                                     queries, autoscalers, metrics)
         else:
             print(f"Error: Experiment {experiment} requires the following arguments: "
                   f"dest_folder result_label min_combinations[INT] min_combinations src_folder1 label1 src_folder2 "
