@@ -248,6 +248,12 @@ class ExperimentFile:
     def getVariable(self):
         return self.getExperiment().variable
 
+    def getLabel(self):
+        return self.getExperiment().label
+
+    def getExperimentName(self):
+        return self.getExperiment().getExperimentName()
+
     @staticmethod
     def _getExperimentFileFromExperiment(directory: str, experiment: Experiment, printingEnabled=True):
         return ExperimentFile(directory, experiment, printingEnabled=printingEnabled)

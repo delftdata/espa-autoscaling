@@ -1,6 +1,6 @@
 from helperfunctions import fastCombineSimilarExperiments, deleteTooSmallLists
 from helperclasses import Experiment, ExperimentFile, Queries, Autoscalers, Metrics
-from plotting import plotDataFile, overlapAndPlotMultipleDataFiles
+from plotting import plotDataFile, overlapAndPlotMultipleDataFiles, pareto_plot
 import sys
 
 
@@ -92,6 +92,38 @@ def plotExperimentComparison(result_folder, result_label, minimumCombinations, f
                                         metrics=metrics)
 
 
+def plotParetoPlot(source_folder, source_label, src_query, xMetric, yMetric, xMetric_Limit, yMetric_Limit, autoscalers):
+    data_folder = getDataFolder(source_folder)
+    result_folder = f"{getGraphFolder(source_folder)}/pareto-plots"
+
+    labelName = f"{source_label}_" if source_label != "" else ""
+    xMetricName = f"{xMetric}_{xMetric_Limit}" if xMetric_Limit else f"{xMetric}"
+    yMetricName = f"{yMetric}_{yMetric_Limit}" if yMetric_Limit else f"{yMetric}"
+    fileName = f"{labelName}q{src_query}_{xMetricName}_{yMetricName}"
+
+    experiments: [Experiment] = Experiment.getAllExperiments([src_query], autoscalers, label=source_label)
+    experimentFiles: [ExperimentFile] = ExperimentFile.getAvailableExperimentFiles(data_folder, experiments)
+
+    pareto_plot(experimentFiles, xMetric=xMetric, xMetricLimit=xMetric_Limit, yMetric=yMetric,
+                yMetricLimit=yMetric_Limit, saveDirectory=result_folder, saveName=fileName)
+
+# Todo: plot different experiment runs in a pareto plot
+# def plotParetoPlotComparison(result_folder, result_file_name, folders_and_labels : [(str, str)], queries, autoscalers,
+#                    xMetric=Metrics.TASKMANAGER, yMetric=Metrics.LATENCY):
+#     result_folder = f"{getGraphFolder(result_folder, create_graph_folder=False)}/"
+#
+#     allExperimentFiles: [ExperimentFile] = []
+#     for (folder, label) in folders_and_labels:
+#         experiments: [Experiment] = Experiment.getAllExperiments(queries, autoscalers, label=label)
+#
+#         data_folder = getDataFolder(folder)
+#         experimentFiles: [ExperimentFile] = ExperimentFile.getAvailableExperimentFiles(data_folder, experiments)
+#
+#         allExperimentFiles += experimentFiles
+#
+#     pareto_plot(allExperimentFiles, xMetric, yMetric, result_folder, result_file_name)
+
+
 def plotRedoneExperiment():
     ###########################################################
     # Configurations:
@@ -163,11 +195,89 @@ def plotRedoneExperiment():
                   f"dest_folder result_label min_combinations[INT] min_combinations src_folder1 label1 src_folder2 "
                   f"label2 [src_foldern labeln]")
 
+    elif experiment == "pareto":
+        if len(arguments) >= 3:
+            src_folder = arguments[0]
+            src_label = arguments[1]
+
+            query = arguments[2]
+            if not Queries.isQuery(query):
+                default_query = Queries.QUERY_1
+                print(f"Error: query {query} is not a valid query, trying query {default_query} instead.")
+                query = default_query
+
+            xMetric = Metrics.TASKMANAGER
+            yMetric = Metrics.LATENCY
+            if len(arguments) >= 4:
+                xMetricArg = arguments[3]
+                if Metrics.isMetricClass(xMetricArg):
+                    xMetric = xMetricArg
+                else:
+                    print(f"Error: xMetric {xMetricArg} is not a valid Metric. Using {xMetric} instead.")
+            if len(arguments) >= 5:
+                yMetricArg = arguments[4]
+                if Metrics.isMetricClass(yMetricArg):
+                    yMetric = yMetricArg
+                else:
+                    print(f"Error: yMetric {yMetricArg} is not a valid Metric. Using {yMetric} instead.")
+
+            xMetric_Limit = None
+            if len(arguments) >= 6:
+                xMetricLimit_arg = arguments[5]
+                if str.isdigit(xMetricLimit_arg):
+                    xMetric_Limit = int(xMetricLimit_arg)
+                else:
+                    print(f"Error: {xMetricLimit_arg} is not a digit")
+
+            yMetric_Limit = None
+            if len(arguments) >= 7:
+                yMetricLimit_arg = arguments[6]
+                if str.isdigit(yMetricLimit_arg):
+                    yMetric_Limit = int(yMetricLimit_arg)
+                else:
+                    print(f"Error: {yMetricLimit_arg} is not a digit")
+
+            plotParetoPlot(src_folder, src_label, query, xMetric, yMetric, xMetric_Limit, yMetric_Limit, autoscalers)
+
+        else:
+            print(f"Error: Experiment {experiment} requires the following arguments:"
+                  f"src_folder src_label query result_label (xMetric) (ymetric)")
+
+    # Todo
+    # elif experiment == "pareto-comparison":
+    #     if len(arguments) >= 6 and len(arguments) % 2 == 0:
+    #         destination_folder = arguments[0]
+    #         result_file_name = arguments[1]
+    #
+    #         xMetric_default = Metrics.TASKMANAGER
+    #         xMetric = arguments[2]
+    #         if not Metrics.isMetricClass(xMetric):
+    #             print(f"Error: xMetric {xMetric} is not a valid Metric. Using {xMetric_default} instead.")
+    #             xMetric =xMetric_default
+    #
+    #         yMetric = arguments[3]
+    #         yMetric_default = Metrics.LATENCY
+    #         if not Metrics.isMetricClass(yMetric):
+    #             print(f"Error: yMetric {yMetric} is not a valid Metric. Using {yMetric_default} instead.")
+    #             yMetric = yMetric_default
+    #
+    #         remaining_arguments = arguments[4:]
+    #         folders_and_labels = list(zip(remaining_arguments[0::2], remaining_arguments[1::2]))
+    #
+    #         plotParetoPlot(destination_folder, result_file_name, folders_and_labels, queries, autoscalers,
+    #                        xMetric, yMetric)
+    #     else:
+    #         print(f"Error: Experiment { experiment} requires the following arguments:"
+    #               f"dest_folder result_name xMetric yMetric src_folder1 label1 src_folder2 "
+    #               f"label2 [src_foldern labeln]")
+
+
     elif experiment in ["help", "-h", "h"]:
         print("The following experiments are supported:")
         print("|- individual src_folder (label)")
         print("|- autoscaler src_folder (label)")
         print("|- comparison dest_folder result_label src_folder1 label1 src_folder2 label2 [src_foldern labeln]")
+        print("|- pareto src_folder src_prefix query (xMetric) (ymetric)")
     else:
         print(f"Experiment {experiment} was not recognized. Run -h to view the options.")
 

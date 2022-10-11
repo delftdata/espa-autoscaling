@@ -164,6 +164,25 @@ Plot: comparison
     python3 run_experiments.py  comparison      ./comparison rd-og          ./redo/query-1  rd       ./origin/query-1   or    
 ```
 
+#### query run autoscaler pareto plot
+Create a pareto plot of the results of a specific query.
+Providing the data_folder, the label and the query the to create a plot from, the function fetches all corresponding 
+datafiles from the folder and creates a pareto plot from it. The user can specify which metrics to plot on the x-axis and the y-axis.
+Metrics can be: [input_rate, taskmanager, latency, lag, throughput, CPU_load, backpressure, busy_time, idle_time]
+By default the variables are x-axes: "taskmanager" and y-axis: "latency".
+The file is then stored in {src_folder}/graphs/pareto-plots with the following name {prefix}_q{query}_{xMetric}_{yMetric}.
+The function fetches all data_files regarding the provided query 
+
+```
+python3 pareto src_folder src_label query xMetric yMetric xMetric_limit yMetric_limit 
+```
+Examples:
+```
+Plot: pareto
+    python3 run_experiments.py pareto ./query-1 rd 1 CPU_load backpressure 16 50
+    python3 run_experiments.py pareto ./query-1 rd 1 CPU_load backpressure
+    python3 run_experiments.py pareto ./query-1 rd 1 
+```
 
 
 # Plot generation commandline executions
@@ -200,9 +219,21 @@ python3 data_processing/run_experiments.py comparison ./results/final_results/an
 Data is present on src_folder/full-data
 Plots are saved on /analysis/query-$QUERY/setup_comparison with label 1n_4n_or
 ``` 
-QUERY=11
+QUERY=1
 python3 data_processing/run_experiments.py comparison ./results/final_results/analysis/query-$QUERY/setup_comparison 1n_4n_or 3 \
     ./results/final_results/redone/query-$QUERY rd  \
     ./results/final_results/setup/query-$QUERY 4n \
     ./results/final_results/original/query-$QUERY or 
+```
+
+### Experiment comparison - Create Pareto plot of an experiment run
+Data is present on src_folder/full-data
+Plots are saved on src_folder/graphs/pareto-plots
+``` 
+QUERY=1
+python3 data_processing/run_experiments.py pareto ./results/final_results/redone/query-$QUERY rd $QUERY taskmanager latency
+python3 data_processing/run_experiments.py pareto ./results/final_results/original/query-$QUERY or $QUERY taskmanager latency
+
+python3 data_processing/run_experiments.py pareto ./results/final_results/redone/query-$QUERY rd $QUERY taskmanager latency 16 50
+python3 data_processing/run_experiments.py pareto ./results/final_results/original/query-$QUERY or $QUERY taskmanager latency 16 50
 ```

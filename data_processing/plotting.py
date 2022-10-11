@@ -1,5 +1,9 @@
+import matplotlib.pyplot
 import pandas as pd
 import matplotlib.pyplot as plt
+from adjustText import adjust_text
+from matplotlib.transforms import Bbox
+
 from helperclasses import Experiment, ExperimentFile, Queries, Autoscalers, Metrics
 import os.path
 
@@ -8,16 +12,16 @@ def stylePlots():
 
 
 
-def savePlot(plt, saveDirectory, saveName):
+def savePlot(plt, saveDirectory, saveName, bbox_inches=None, dpi=None):
     if not os.path.exists(saveDirectory):
         print(f"Creating save-directory {saveDirectory}")
         os.makedirs(saveDirectory)
     fileLocation = f"{saveDirectory}/{saveName}.png"
-    plt.savefig(fileLocation)
+    plt.savefig(fileLocation, bbox_inches=bbox_inches, dpi=dpi)
     print(f"Saved graph at: {fileLocation}")
 
 
-def plotDataFile(file: ExperimentFile, saveDirectory=None, metrics=None, ):
+def plotDataFile(file: ExperimentFile, saveDirectory=None, metrics=None):
     """
     Create a plot of a datafile with the provided metrics
     :param saveDirectory: directory to save the plot in. If left None, the plot is only shown.
@@ -123,3 +127,74 @@ def overlapAndPlotMultipleDataFiles(files: [ExperimentFile], metrics=None, saveD
         plt.close()
     else:
         plt.show()
+
+
+def getAverageMetric(experimentFile: ExperimentFile, metricName: str):
+    data = pd.read_csv(experimentFile.datafile)
+    metric_column = data[metricName]
+    return sum(metric_column) / len(metric_column)
+
+
+
+def pareto_plot(experimentFiles: [ExperimentFile], xMetric=Metrics.TASKMANAGER, xMetricLimit=None,
+                yMetric=Metrics.LATENCY, yMetricLimit=None, saveDirectory=None, saveName=None):
+    autoscaler_layout = {
+        Autoscalers.HPA: ("red", "o"), # (color, marker)
+        Autoscalers.VARGA1: ("purple", "*"),
+        Autoscalers.VARGA2: ("orange", "P"),
+        Autoscalers.DHALION: ("green", "X"),
+        Autoscalers.DS2_ORIGINAL: ("pink", "D"),
+        Autoscalers.DS2_UPDATED: ("brown", "s"),
+    }
+
+    xMetric_values = []
+    yMetric_values = []
+    seen_autoscalers = []
+    texts = []
+    fig, ax = plt.subplots()
+    for experimentFile in experimentFiles:
+        xMetric_avg = getAverageMetric(experimentFile, xMetric)
+        xMetric_values.append(xMetric_avg)
+
+        yMetric_avg = getAverageMetric(experimentFile, yMetric)
+        yMetric_values.append(yMetric_avg)
+
+        if xMetricLimit and xMetric_avg > xMetricLimit:
+           continue
+        if yMetricLimit and yMetric_avg > yMetricLimit:
+           continue
+
+        autoscaler = experimentFile.getAutoscaler()
+        color, marker = autoscaler_layout[experimentFile.getAutoscaler()]
+
+        legend_label = f"{autoscaler}" if autoscaler not in seen_autoscalers else ""
+        ax.scatter(xMetric_avg, yMetric_avg, s=50, color=color, marker=marker, label=legend_label)
+        seen_autoscalers.append(autoscaler)
+        texts.append(ax.text(xMetric_avg, yMetric_avg, experimentFile.getVariable(), ha='right', va='top', size=10))
+
+    if xMetricLimit:
+        plt.xlim((0, xMetricLimit))
+    if yMetricLimit:
+        plt.ylim((0, yMetricLimit))
+
+    # if zoomed:
+    #     plt.ylim([0,zoomed_latency_limit])
+    #     plt.xlim([0,16])
+    # else:
+    #     plt.ylim([0,latency_limit])
+    #     plt.xlim([0,16])
+
+    plt.legend(loc=(1.02,0.5), labelspacing=1)
+    plt.grid()
+    # todo: create better axis titles
+    plt.xlabel(f"Average {xMetric}")
+    plt.ylabel(f"Average {yMetric}")
+
+    adjust_text(texts, only_move={'points':'y', 'texts':'y'}, arrowprops=dict(arrowstyle="->", color='r', lw=0))
+
+    if saveDirectory and saveName:
+        savePlot(plt, saveDirectory, saveName, bbox_inches=Bbox([[0, 0], [8.0, 5.0]]), dpi=600)
+        plt.close()
+    else:
+        plt.show()
+
