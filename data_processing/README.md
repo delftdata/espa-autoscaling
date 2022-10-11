@@ -230,10 +230,18 @@ python3 data_processing/run_experiments.py comparison ./results/final_results/an
 Data is present on src_folder/full-data
 Plots are saved on src_folder/graphs/pareto-plots
 ``` 
-QUERY=1
+QUERY=3
 python3 data_processing/run_experiments.py pareto ./results/final_results/redone/query-$QUERY rd $QUERY taskmanager latency
 python3 data_processing/run_experiments.py pareto ./results/final_results/original/query-$QUERY or $QUERY taskmanager latency
 
-python3 data_processing/run_experiments.py pareto ./results/final_results/redone/query-$QUERY rd $QUERY taskmanager latency 16 50
-python3 data_processing/run_experiments.py pareto ./results/final_results/original/query-$QUERY or $QUERY taskmanager latency 16 50
+python3 data_processing/run_experiments.py pareto ./results/final_results/redone/query-$QUERY rd $QUERY taskmanager latency 6 6
+python3 data_processing/run_experiments.py pareto ./results/final_results/original/query-$QUERY or $QUERY taskmanager latency 9 50
+```
+
+### Get average metrics
+```
+QUERY=1
+python3 ./data_processing/run_experiments.py averages ./results/final_results/redone/query-$QUERY rd True
+python3 ./data_processing/run_experiments.py averages ./results/final_results/original/query-$QUERY or True
+python3 ./data_processing/run_experiments.py averages ./results/final_results/setup/query-$QUERY 4n True
 ```

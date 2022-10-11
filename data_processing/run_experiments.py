@@ -1,7 +1,9 @@
 from helperfunctions import fastCombineSimilarExperiments, deleteTooSmallLists
 from helperclasses import Experiment, ExperimentFile, Queries, Autoscalers, Metrics
-from plotting import plotDataFile, overlapAndPlotMultipleDataFiles, pareto_plot
+from plotting import plotDataFile, overlapAndPlotMultipleDataFiles, pareto_plot, getAverageMetrics, \
+    getTotalRescalingActions
 import sys
+from tabulate import tabulate
 
 
 def getDataFolder(folder):
@@ -92,13 +94,39 @@ def plotExperimentComparison(result_folder, result_label, minimumCombinations, f
                                         metrics=metrics)
 
 
+def printAverageData(source_folder, source_label, add_scaling_events, autoscalers, queries, metrics):
+    data_folder = getDataFolder(source_folder)
+
+    experiments: [Experiment] = Experiment.getAllExperiments(queries, autoscalers, label=source_label)
+    experimentFiles: [ExperimentFile] = ExperimentFile.getAvailableExperimentFiles(data_folder, experiments,
+                                                                                   printingEnabled=False)
+
+    table = []
+    header_row = ["Experiment"] + metrics
+    if add_scaling_events:
+        header_row.append("Scaling_events")
+
+    table.append(header_row)
+    for experimentFile in experimentFiles:
+        results = getAverageMetrics(experimentFile, metrics)
+        results = list(map(lambda v: round(v, 3) if v < 1 else round(v, 1), results))
+        if add_scaling_events:
+            scalingEvents = getTotalRescalingActions(experimentFile)
+            results.append(scalingEvents)
+        row = [experimentFile.getExperimentName()] + results
+        table.append(row)
+    print(tabulate(table))
+
+
+
 def plotParetoPlot(source_folder, source_label, src_query, xMetric, yMetric, xMetric_Limit, yMetric_Limit, autoscalers):
     data_folder = getDataFolder(source_folder)
     result_folder = f"{getGraphFolder(source_folder)}/pareto-plots"
 
     labelName = f"{source_label}_" if source_label != "" else ""
-    xMetricName = f"{xMetric}_{xMetric_Limit}" if xMetric_Limit else f"{xMetric}"
-    yMetricName = f"{yMetric}_{yMetric_Limit}" if yMetric_Limit else f"{yMetric}"
+    xMetricName = f"{xMetric}[{xMetric_Limit}]" if xMetric_Limit else f"{xMetric}"
+    yMetricName = f"{yMetric}[{yMetric_Limit}]" if yMetric_Limit else f"{yMetric}"
+
     fileName = f"{labelName}q{src_query}_{xMetricName}_{yMetricName}"
 
     experiments: [Experiment] = Experiment.getAllExperiments([src_query], autoscalers, label=source_label)
@@ -124,6 +152,7 @@ def plotParetoPlot(source_folder, source_label, src_query, xMetric, yMetric, xMe
 #     pareto_plot(allExperimentFiles, xMetric, yMetric, result_folder, result_file_name)
 
 
+
 def plotRedoneExperiment():
     ###########################################################
     # Configurations:
@@ -145,15 +174,15 @@ def plotRedoneExperiment():
     ]
     # List of metrics to display in plots
     metrics = [
-        Metrics.INPUT_RATE,
+        # Metrics.INPUT_RATE,
         Metrics.TASKMANAGER,
         Metrics.LATENCY,
-        Metrics.LAG,
-        Metrics.THROUGHPUT,
-        Metrics.CPU_LOAD,
-        Metrics.BACKPRESSURE,
-        Metrics.BUSY_TIME,
-        Metrics.IDLE_TIME,
+        # Metrics.LAG,
+        # Metrics.THROUGHPUT,
+        # Metrics.CPU_LOAD,
+        # Metrics.BACKPRESSURE,
+        # Metrics.BUSY_TIME,
+        # Metrics.IDLE_TIME,
     ]
 
     experiment = sys.argv[1]
@@ -241,7 +270,19 @@ def plotRedoneExperiment():
 
         else:
             print(f"Error: Experiment {experiment} requires the following arguments:"
-                  f"src_folder src_label query result_label (xMetric) (ymetric)")
+                  f"src_folder src_label query result_label (xMetric) (ymetric) (XMetricLimit) (yMetricLimit)")
+
+    elif experiment == "averages":
+        if len(arguments) >= 2:
+            src_folder = arguments[0]
+            src_label = arguments[1]
+            add_scaling_events = False
+            if len(arguments) >= 3:
+                add_scaling_events = True if arguments[2].lower() == "true" else False
+            printAverageData(src_folder, src_label, add_scaling_events, autoscalers, queries, metrics)
+        else:
+            print(f"Error: Experiment {experiment} requires the following arguments:"
+                  f"src_folder src_label (add_scaling_events[boolean])")
 
     # Todo
     # elif experiment == "pareto-comparison":
@@ -278,6 +319,7 @@ def plotRedoneExperiment():
         print("|- autoscaler src_folder (label)")
         print("|- comparison dest_folder result_label src_folder1 label1 src_folder2 label2 [src_foldern labeln]")
         print("|- pareto src_folder src_prefix query (xMetric) (ymetric)")
+        print("|- averages src_folder src_label")
     else:
         print(f"Experiment {experiment} was not recognized. Run -h to view the options.")
 

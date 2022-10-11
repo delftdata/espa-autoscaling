@@ -128,11 +128,34 @@ def overlapAndPlotMultipleDataFiles(files: [ExperimentFile], metrics=None, saveD
     else:
         plt.show()
 
+def getAverageMetricFromData(data, metricName):
+    metric_column = data[metricName]
+    return sum(metric_column) / len(metric_column)
+
 
 def getAverageMetric(experimentFile: ExperimentFile, metricName: str):
     data = pd.read_csv(experimentFile.datafile)
-    metric_column = data[metricName]
-    return sum(metric_column) / len(metric_column)
+    return getAverageMetricFromData(data, metricName)
+
+
+def getAverageMetrics(experimentFile: ExperimentFile, metrics):
+    data = pd.read_csv(experimentFile.datafile)
+    results = []
+    for metric in metrics:
+        results.append(getAverageMetricFromData(data, metric))
+    return results
+
+
+def getTotalRescalingActions(experimentFile: ExperimentFile):
+    data = pd.read_csv(experimentFile.datafile)
+    taskmanagers = data['taskmanager'].tolist()
+    previous_number_taskmanagers = taskmanagers[0]
+    scaling_events = 0
+    for val in taskmanagers:
+        if val != previous_number_taskmanagers:
+            scaling_events += 1
+        previous_number_taskmanagers = val
+    return scaling_events
 
 
 
