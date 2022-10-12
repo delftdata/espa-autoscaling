@@ -9,7 +9,18 @@ from src.plotting import getAverageMetrics, getTotalRescalingActions
 
 
 
-def printAverageData(source_folder, source_label, add_scaling_events, queries, autoscalers, metrics):
+def printAverageData(source_folder: str, source_label: str, add_scaling_events: bool, queries: [str],
+                     autoscalers: [str], metrics: [str]):
+    """
+    Print average data of all experiments found in a folder with a specific source_label
+    :param source_folder: Source folder to search for experiments
+    :param source_label: Prefix of the experiment files
+    :param add_scaling_events: Also include total scaling events in metrics
+    :param queries: List of queries that the experiments is allowed to have evaluated
+    :param autoscalers: List of autoscalers that the experiments are allowed to have used
+    :param metrics: List of metrics to print their average value from
+    :return: None
+    """
     data_folder = getDataFolder(source_folder)
 
     experiments: [Experiment] = Experiment.getAllExperiments(queries, autoscalers, label=source_label)
@@ -38,7 +49,7 @@ def parseArguments():
     parser.add_argument('source_directory', type=str,
                         help="Directory in which datafiles can be found at src_dir/full-data")
     parser.add_argument('source_label', default="", type=str, nargs="?")
-    parser.add_argument('--scalingevents', action='store_true')
+    parser.add_argument('--addscalingevents', action='store_true')
     includeAutoscalers(parser)
     includeMetrics(parser)
     includeQueries(parser)
@@ -46,7 +57,7 @@ def parseArguments():
     args = parser.parse_args()
     src_directory = args.source_directory
     src_label = args.source_label
-    add_scaling_events = args.scalingevents
+    add_scaling_events = args.addscalingevents
     autoscalers = getAutoscalers(args)
     metrics = getMetrics(args)
     queries = getQueries(args)
