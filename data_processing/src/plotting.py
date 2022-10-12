@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from adjustText import adjust_text
 from matplotlib.transforms import Bbox
 
-from helperclasses import Experiment, ExperimentFile, Queries, Autoscalers, Metrics
+from src.helperclasses import Experiment, ExperimentFile, Queries, Autoscalers, Metrics
 import os.path
 
 def stylePlots():
