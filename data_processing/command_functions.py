@@ -1,14 +1,15 @@
 from src.helperclasses import Metrics, Autoscalers, Queries
 
-def getDataFolder(folder):
-    return f"{folder}/full-data"
+
+def getDataFolder(main_folder):
+    return f"{main_folder}/full-data"
 
 
-def getGraphFolder(folder, create_graph_folder=True):
+def getGraphFolder(main_folder, create_graph_folder=True):
     if create_graph_folder:
-        return f"{folder}/graphs"
+        return f"{main_folder}/graphs"
     else:
-        return f"{folder}"
+        return f"{main_folder}"
 
 def includeMetrics(parser):
     parser.add_argument('--metrics', nargs='*', type=str)

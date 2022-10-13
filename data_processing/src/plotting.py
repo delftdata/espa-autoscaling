@@ -21,7 +21,29 @@ def savePlot(plt, saveDirectory, saveName, bbox_inches=None, dpi=None):
     print(f"Saved graph at: {fileLocation}")
 
 
-def plotDataFile(file: ExperimentFile, saveDirectory=None, metrics=None):
+def addThresholdLine(ax, experimentFile: ExperimentFile, metric: str):
+    if experimentFile.getAutoscaler() == Autoscalers.DHALION:
+        # Overprovisioning
+        color = "green"
+        if metric == Metrics.CPU_LOAD:
+            # CPU_Load < 0.6
+            ax.axhline(0.6, color=color)
+        elif metric == Metrics.BACKPRESSURE:
+            # Backpressure < 100
+            ax.axhline(100, color=color)
+
+        # Underprovisioning
+        color = "red"
+        if metric == Metrics.LATENCY:
+            # Average event time lag < flink_taskmanager_job_task_operator_currentEmitEventTimeLag
+            # latench = variable
+            val = experimentFile.getVariable()
+            ax.axhline(val, color=color)
+
+
+
+
+def plotDataFile(file: ExperimentFile, saveDirectory=None, saveName=None, metrics=None, plotThresholds=False):
     """
     Create a plot of a datafile with the provided metrics
     :param saveDirectory: directory to save the plot in. If left None, the plot is only shown.
@@ -55,12 +77,15 @@ def plotDataFile(file: ExperimentFile, saveDirectory=None, metrics=None):
         axis.set_ylim([0, metric_column.max() * 1.2])
         axis.grid()
 
+        if plotThresholds:
+            addThresholdLine(axis, file, metricName)
+
         # Set xlabel on final subplot
         if i == len(metrics) - 1:
             axis.set_xlabel("Minutes")
 
-    if saveDirectory:
-        savePlot(plt, saveDirectory, file.experiment.getExperimentName())
+    if saveDirectory and saveName:
+        savePlot(plt, saveDirectory, saveName)
         plt.close()
     else:
         plt.show()
