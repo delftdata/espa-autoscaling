@@ -1,4 +1,4 @@
-from src.helperclasses import Metrics, Autoscalers, Queries
+from DataClasses import Metrics, Autoscalers, Queries
 
 
 def getDataFolder(main_folder):

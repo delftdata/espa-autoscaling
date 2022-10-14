@@ -3,9 +3,9 @@ import argparse
 
 from command_functions import includeAutoscalers, includeMetrics, includeQueries, getAutoscalers, getMetrics, \
     getQueries, getDataFolder, getGraphFolder
-from src.helperclasses import ExperimentFile, Experiment, Queries, Autoscalers, Metrics
+from DataClasses import ExperimentFile, Experiment
 from src.helperfunctions import fastCombineSimilarExperiments, deleteTooSmallLists
-from src.plotting import overlapAndPlotMultipleDataFiles
+from Plotting import overlapAndPlotMultipleDataFiles
 
 
 def plotExperimentComparison(result_folder, result_label, minimumCombinations, folders_and_labels : [(str, str)],

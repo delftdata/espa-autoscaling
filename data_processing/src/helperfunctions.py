@@ -1,5 +1,4 @@
-from src.helperclasses import ExperimentFile
-
+from DataClasses import ExperimentFile
 
 def fastCombineSimilarExperiments(experimentFiles: [ExperimentFile], ignoreLabel=True):
     """

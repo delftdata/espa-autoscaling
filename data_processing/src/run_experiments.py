@@ -1,6 +1,6 @@
 from src.helperfunctions import fastCombineSimilarExperiments, deleteTooSmallLists
-from src.helperclasses import Experiment, ExperimentFile, Queries, Autoscalers, Metrics
-from src.plotting import plotDataFile, overlapAndPlotMultipleDataFiles, pareto_plot, getAverageMetrics, \
+from DataClasses import Experiment, ExperimentFile, Queries, Autoscalers, Metrics
+from Plotting import plotDataFile, overlapAndPlotMultipleDataFiles, pareto_plot, getAverageMetrics, \
     getTotalRescalingActions
 import sys
 from tabulate import tabulate

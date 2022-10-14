@@ -1,8 +1,8 @@
 import argparse
 
 from command_functions import includeAutoscalers, getAutoscalers, getDataFolder, getGraphFolder
-from src.helperclasses import Metrics, ExperimentFile, Experiment, Queries
-from src.plotting import pareto_plot
+from DataClasses import Metrics, ExperimentFile, Experiment, Queries
+from Plotting import pareto_plot
 
 
 def plotParetoPlot(source_folder, source_label, src_query, xMetric, yMetric, xMetric_Limit, yMetric_Limit, autoscalers):

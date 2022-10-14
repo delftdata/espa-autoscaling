@@ -4,8 +4,8 @@ from tabulate import tabulate
 
 from command_functions import includeAutoscalers, includeMetrics, includeQueries, getAutoscalers, getMetrics, \
     getQueries, getDataFolder
-from src.helperclasses import ExperimentFile, Experiment
-from src.plotting import getAverageMetrics, getTotalRescalingActions
+from DataClasses import ExperimentFile, Experiment
+from Plotting import getAverageMetrics, getTotalRescalingActions
 
 
 
