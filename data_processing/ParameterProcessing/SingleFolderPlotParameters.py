@@ -13,7 +13,7 @@ class SingleFolderPlotParameters(PlotParameters):
 
 
     def __init__(self, default_result_folder_name: str):
-        self.__result_folder = default_result_folder_name
+        self.__result_folder_name = default_result_folder_name
 
     def setMainFolder(self, main_folder: str):
         if main_folder:

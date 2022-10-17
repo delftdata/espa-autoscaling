@@ -24,7 +24,8 @@ def plotIndividualExperiments(parameters: SingleFolderPlotParameters):
             saveDirectory=parameters.getResultFolder(),
             saveName=getSaveName(),
             metrics=parameters.getMetrics(),
-            plotThresholds=parameters.getPlotThresholds()
+            metric_ranges=parameters.getMetricRanges(),
+            plotThresholds=parameters.getPlotThresholds(),
         )
 
 
@@ -34,15 +35,13 @@ def parseArguments():
     # Parse arguments
     parser = argparse.ArgumentParser(description='Plot individual experiments')
     parameters.includeArgumentsInParser(parser)
-    parser.add_argument('--metric_limit', nargs=3, action='append')
 
     # Fetch results from arguments
     namespace = parser.parse_args()
     parameters.fetchArgumentsFromNamespace(namespace)
-    print(namespace.metric_limit)
 
     # Call plot function
-    # plotIndividualExperiments(parameters)
+    plotIndividualExperiments(parameters)
 
 
 if __name__ == "__main__":

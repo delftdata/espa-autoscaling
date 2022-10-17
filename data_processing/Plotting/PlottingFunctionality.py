@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import pandas as pd
 import matplotlib.pyplot as plt
 from adjustText import adjust_text
@@ -38,12 +40,24 @@ def addThresholdLine(ax, experimentFile: ExperimentFile, metric: str):
             # Average event time lag < flink_taskmanager_job_task_operator_currentEmitEventTimeLag
             # latench = variable
             val = experimentFile.getVariable()
-            ax.axhline(val, color=color)
+            ax.axhline(float(val), color=color)
 
 
+def getYrange(metricName: str, metric_column, metric_ranges) -> Tuple[float, float]:
+    for metric_range in metric_ranges:
+        if metric_range[0] == metricName:
+            return metric_range[1], metric_range[2]
+    return 0, max(metric_column) * 1.2
 
 
-def plotDataFile(file: ExperimentFile, saveDirectory=None, saveName=None, metrics=None, plotThresholds=False):
+def plotDataFile(
+        file: ExperimentFile,
+        saveDirectory=None,
+        saveName=None,
+        metrics=None,
+        metric_ranges: [ Tuple[str, float, float]] = [],
+        plotThresholds=False
+):
     """
     Create a plot of a datafile with the provided metrics
     :param saveDirectory: directory to save the plot in. If left None, the plot is only shown.
@@ -71,10 +85,12 @@ def plotDataFile(file: ExperimentFile, saveDirectory=None, saveName=None, metric
         metric_column = data[metricName]
         axis = axs[i] if len(metrics) > 1 else axs
 
+        yLim_min, yLim_max = getYrange(metricName, metric_column, metric_ranges)
+
         # Set axis
         axis.plot(time_column, metric_column)
         axis.title.set_text(metricName)
-        axis.set_ylim([0, metric_column.max() * 1.2])
+        axis.set_ylim([yLim_min, yLim_max])
         axis.grid()
 
         if plotThresholds:

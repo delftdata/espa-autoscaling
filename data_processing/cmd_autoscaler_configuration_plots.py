@@ -23,6 +23,7 @@ def plotAutoscalerConfigurations(parameters: SingleFolderPlotParameters):
                     files=experimentFiles,
                     saveDirectory=parameters.getResultFolder(),
                     saveName=getSaveName(),
+                    metric_ranges=parameters.getMetricRanges(),
                     metrics=parameters.getMetrics()
                 )
 
