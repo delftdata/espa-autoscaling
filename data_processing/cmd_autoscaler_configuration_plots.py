@@ -22,9 +22,10 @@ def plotAutoscalerConfigurations(parameters: SingleFolderPlotParameters):
                 overlapAndPlotMultipleDataFiles(
                     files=experimentFiles,
                     saveDirectory=parameters.getResultFolder(),
-                    saveName=getSaveName(),
+                    saveName=getSaveName(query, autoscaler),
                     metric_ranges=parameters.getMetricRanges(),
-                    metrics=parameters.getMetrics()
+                    plotThresholds=parameters.getPlotThresholds(),
+                    metrics=parameters.getMetrics(),
                 )
 
 

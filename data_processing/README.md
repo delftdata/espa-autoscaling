@@ -245,3 +245,15 @@ python3 ./data_processing/run_experiments.py averages ./results/final_results/re
 python3 ./data_processing/run_experiments.py averages ./results/final_results/original/query-$QUERY or True
 python3 ./data_processing/run_experiments.py averages ./results/final_results/setup/query-$QUERY 4n True
 ```
+
+
+
+# Plot generation playground
+## Q1
+
+### Dhalion
+Dhalion 1
+```
+python3 ./data_processing/cmd_indivual_experiment_plots.py ./results/final_results/redone/query-$QUERY rd --queries $QUERY --plot_thresholds --autoscaler dhalion -result_label config-dhalion-1 --metric_range lag 0 500000 --metric_range
+latency 0 4
+```

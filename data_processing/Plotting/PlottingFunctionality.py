@@ -5,13 +5,12 @@ import matplotlib.pyplot as plt
 from adjustText import adjust_text
 from matplotlib.transforms import Bbox
 
-from DataClasses import ExperimentFile, Autoscalers, Metrics
+from DataClasses import ExperimentFile, Autoscalers, Metrics, Experiment
 import os.path
 
 
 def stylePlots():
     plt.style.use('seaborn-dark-palette')
-
 
 
 def savePlot(plt, saveDirectory, saveName, bbox_inches=None, dpi=None):
@@ -23,31 +22,36 @@ def savePlot(plt, saveDirectory, saveName, bbox_inches=None, dpi=None):
     print(f"Saved graph at: {fileLocation}")
 
 
-def addThresholdLine(ax, experimentFile: ExperimentFile, metric: str):
-    if experimentFile.getAutoscaler() == Autoscalers.DHALION:
+def addThresholdLine(ax, experiment: Experiment, metric: str, time_column, dataFrame):
+    if experiment.autoscaler == Autoscalers.DHALION:
         # Overprovisioning
         color = "green"
         if metric == Metrics.CPU_LOAD:
             # CPU_Load < 0.6
-            ax.axhline(0.6, color=color)
+            ax.axhline(0.6, color=color, linewidth=2.5)
         elif metric == Metrics.BACKPRESSURE:
             # Backpressure < 100
-            ax.axhline(100, color=color)
+            ax.axhline(100, color=color, linewidth=2.5)
+        elif metric == Metrics.LAG:
+            throughput_dataframe = dataFrame[Metrics.INPUT_RATE]
+            taskmanager_dataframe = dataFrame[Metrics.TASKMANAGER]
+            threshold_data = 0.2 * taskmanager_dataframe * throughput_dataframe
+            ax.plot(time_column, threshold_data, color=color)
 
         # Underprovisioning
         color = "red"
         if metric == Metrics.LATENCY:
             # Average event time lag < flink_taskmanager_job_task_operator_currentEmitEventTimeLag
             # latench = variable
-            val = experimentFile.getVariable()
-            ax.axhline(float(val), color=color)
+            val = experiment.variable
+            ax.axhline(float(val), color=color, linewidth=2.5)
 
 
-def getYrange(metricName: str, metric_column, metric_ranges) -> Tuple[float, float]:
+def getYrange(metricName: str, max_val, metric_ranges) -> Tuple[float, float]:
     for metric_range in metric_ranges:
         if metric_range[0] == metricName:
             return metric_range[1], metric_range[2]
-    return 0, max(metric_column) * 1.2
+    return 0, max_val
 
 
 def plotDataFile(
@@ -55,16 +59,20 @@ def plotDataFile(
         saveDirectory=None,
         saveName=None,
         metrics=None,
-        metric_ranges: [ Tuple[str, float, float]] = [],
+        metric_ranges: Tuple[str, float, float]=None,
         plotThresholds=False
 ):
     """
     Create a plot of a datafile with the provided metrics
+    :param metric_ranges:
     :param saveDirectory: directory to save the plot in. If left None, the plot is only shown.
     :param file: Datafile to create a plot from
     :param metrics: Metrics to visualise in the plot. if left None, all available metrics will be used.
     :return: None
     """
+    if metric_ranges is None:
+        metric_ranges = []
+
     if not file:
         print(f"Error: no datafile found.")
 
@@ -85,7 +93,7 @@ def plotDataFile(
         metric_column = data[metricName]
         axis = axs[i] if len(metrics) > 1 else axs
 
-        yLim_min, yLim_max = getYrange(metricName, metric_column, metric_ranges)
+        yLim_min, yLim_max = getYrange(metricName, 1.2 * max(metric_column), metric_ranges)
 
         # Set axis
         axis.plot(time_column, metric_column)
@@ -94,7 +102,7 @@ def plotDataFile(
         axis.grid()
 
         if plotThresholds:
-            addThresholdLine(axis, file, metricName)
+            addThresholdLine(axis, file.getExperiment(), metricName, time_column, data)
 
         # Set xlabel on final subplot
         if i == len(metrics) - 1:
@@ -107,15 +115,26 @@ def plotDataFile(
         plt.show()
 
 
-def overlapAndPlotMultipleDataFiles(files: [ExperimentFile], metrics=None, saveDirectory=None, saveName=None):
+def overlapAndPlotMultipleDataFiles(
+        files: [ExperimentFile],
+        metrics=None,
+        metric_ranges: Tuple[str, float, float] = None,
+        plotThresholds=False,
+        saveDirectory=None,
+        saveName=None,
+):
     """
     Combine the results of the provided metrics of multiple experiments in a single plot
+    :param plotThresholds:
     :param saveName: Name of the plot. This should only be the name and no extensions. if left None, the plot is only shown.
     :param saveDirectory: Directory to save the plot in. If left None, the plot is only shown.
     :param files: List of datafiles af datafiles to create a plot from
+    :param metric_ranges
     :param metrics: Metrics to visualise in the plot. if left None, all available metrics will be used.
     :return: None
     """
+    if metric_ranges is None:
+        metric_ranges = []
     if not files:
         print(f"Error: no datafiles found.")
 
@@ -149,9 +168,15 @@ def overlapAndPlotMultipleDataFiles(files: [ExperimentFile], metrics=None, saveD
             line.set_label(experimentLabel)
 
             maxMetric = max(maxMetric, metric_column.max())
+
+            if plotThresholds:
+                addThresholdLine(axis, experiment, metricName, time_column, data)
+
         # Style graph and set title of the graph
         axis.title.set_text(metricName)
-        axis.set_ylim([0, maxMetric * 1.2])
+
+        yLim_min, yLim_max = getYrange(metricName, maxMetric, metric_ranges)
+        axis.set_ylim([yLim_min, yLim_max])
         axis.grid()
 
         # Finalise plot style when handling the last metric
@@ -168,6 +193,7 @@ def overlapAndPlotMultipleDataFiles(files: [ExperimentFile], metrics=None, saveD
         plt.close()
     else:
         plt.show()
+
 
 def getAverageMetricFromData(data, metricName):
     metric_column = data[metricName]
@@ -199,11 +225,10 @@ def getTotalRescalingActions(experimentFile: ExperimentFile):
     return scaling_events
 
 
-
 def pareto_plot(experimentFiles: [ExperimentFile], xMetric=Metrics.TASKMANAGER, xMetricLimit=None,
                 yMetric=Metrics.LATENCY, yMetricLimit=None, saveDirectory=None, saveName=None):
     autoscaler_layout = {
-        Autoscalers.HPA: ("red", "o"), # (color, marker)
+        Autoscalers.HPA: ("red", "o"),  # (color, marker)
         Autoscalers.VARGA1: ("purple", "*"),
         Autoscalers.VARGA2: ("orange", "P"),
         Autoscalers.DHALION: ("green", "X"),
@@ -224,9 +249,9 @@ def pareto_plot(experimentFiles: [ExperimentFile], xMetric=Metrics.TASKMANAGER, 
         yMetric_values.append(yMetric_avg)
 
         if xMetricLimit and xMetric_avg > xMetricLimit:
-           continue
+            continue
         if yMetricLimit and yMetric_avg > yMetricLimit:
-           continue
+            continue
 
         autoscaler = experimentFile.getAutoscaler()
         color, marker = autoscaler_layout[experimentFile.getAutoscaler()]
@@ -248,17 +273,16 @@ def pareto_plot(experimentFiles: [ExperimentFile], xMetric=Metrics.TASKMANAGER, 
     #     plt.ylim([0,latency_limit])
     #     plt.xlim([0,16])
 
-    plt.legend(loc=(1.02,0.5), labelspacing=1)
+    plt.legend(loc=(1.02, 0.5), labelspacing=1)
     plt.grid()
     # todo: create better axis titles
     plt.xlabel(f"Average {xMetric}")
     plt.ylabel(f"Average {yMetric}")
 
-    adjust_text(texts, only_move={'points':'y', 'texts':'y'}, arrowprops=dict(arrowstyle="->", color='r', lw=0))
+    adjust_text(texts, only_move={'points': 'y', 'texts': 'y'}, arrowprops=dict(arrowstyle="->", color='r', lw=0))
 
     if saveDirectory and saveName:
         savePlot(plt, saveDirectory, saveName, bbox_inches=Bbox([[0, 0], [8.0, 5.0]]), dpi=600)
         plt.close()
     else:
         plt.show()
-
