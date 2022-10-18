@@ -257,3 +257,7 @@ Dhalion 1
 python3 ./data_processing/cmd_indivual_experiment_plots.py ./results/final_results/redone/query-$QUERY rd --queries $QUERY --plot_thresholds --autoscaler dhalion -result_label config-dhalion-1 --metric_range lag 0 500000 --metric_range
 latency 0 4
 ```
+HPA
+```
+python3 ./data_processing/cmd_indivual_experiment_plots.py ./results/final_results/redone/query-$QUERY rd --queries $QUERY --autoscalers HPA --plot_thresholds --metric_range CPU_load 0 1
+```
