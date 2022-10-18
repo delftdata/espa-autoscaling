@@ -46,6 +46,10 @@ def addThresholdLine(ax, experiment: Experiment, metric: str, time_column, dataF
             val = experiment.variable
             ax.axhline(float(val), color=color, linewidth=2.5)
 
+    if experiment.autoscaler == Autoscalers.HPA:
+        # No thresholds, only an 'desired_autoscalers' calculation
+        return
+
 
 def getYrange(metricName: str, max_val, metric_ranges) -> Tuple[float, float]:
     for metric_range in metric_ranges:
