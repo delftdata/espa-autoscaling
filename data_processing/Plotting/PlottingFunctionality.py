@@ -1,10 +1,10 @@
 from typing import Tuple
 
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from adjustText import adjust_text
 from matplotlib.transforms import Bbox
-
 from DataClasses import ExperimentFile, Autoscalers, Metrics, Experiment
 import os.path
 
@@ -20,6 +20,34 @@ def savePlot(plt, saveDirectory, saveName, bbox_inches=None, dpi=None):
     fileLocation = f"{saveDirectory}/{saveName}.png"
     plt.savefig(fileLocation, bbox_inches=bbox_inches, dpi=dpi)
     print(f"Saved graph at: {fileLocation}")
+
+
+def getMetricColumn(metric, data):
+    if metric in Metrics.getDefaultMetricClasses():
+        return data[metric]
+    else:
+        if metric == Metrics.VARGA_RELATIVE_LAG_CHANGE_RATE:
+            # todo: Varga uses the derivative of the lag using a prometheus function. We cannot recreate this function,
+            # so only the .diff() is implemented here
+            input_rate_column = data[Metrics.INPUT_RATE]
+            lag_column = data[Metrics.LAG]
+
+            lag_derivative_column = lag_column.diff()
+            prefix = ((lag_column - 50000).divide(abs(lag_column - 50000))) / 60
+            newColumn = (lag_derivative_column.divide(input_rate_column)) * prefix
+            newColumn = newColumn.replace(np.inf, 0).replace(np.NaN, 0) + 1
+            print(newColumn)
+            return newColumn
+        if metric == Metrics.DS2_OPTIMAL_PARALLELISM:
+            # todo: DS2 calculates the optimal pararallelsim by using the individaul input rate per operator
+            # here we take the average of all operators, which gives some different results.
+            busyTime_column = data[Metrics.BUSY_TIME]
+            inputRate_column = data[Metrics.INPUT_RATE]
+            trueProcessingRate_column = inputRate_column * busyTime_column
+            return trueProcessingRate_column / inputRate_column
+        else:
+            print(f"Error: could not get metric column for {metric}.")
+
 
 
 def addThresholdLine(ax, experiment: Experiment, metric: str, time_column, dataFrame):
@@ -52,12 +80,33 @@ def addThresholdLine(ax, experiment: Experiment, metric: str, time_column, dataF
             val = float(f"0.{experiment.variable}")
             ax.axhline(val, color=color, linestyle='dotted', linewidth=2.5)
 
+    if experiment.autoscaler in [Autoscalers.VARGA1, Autoscalers.VARGA2]:
+        color = "red"
+        if metric == Metrics.IDLE_TIME:
+            value = 1 - float(experiment.variable)
+            ax.axhline(value, color=color, linestyle='dotted', linewidth=2.5)
+        if metric == Metrics.LAG:
+            ax.axhline(50000, color=color, linewidth=2.5)
+        if metric == Metrics.VARGA_RELATIVE_LAG_CHANGE_RATE:
+            ax.axhline(1.0, color=color, linestyle='dotted', linewidth=2.5)
 
-def getYrange(metricName: str, max_val, metric_ranges) -> Tuple[float, float]:
+
+
+def getYrange(metricName: str, min_val, max_val, metric_ranges) -> Tuple[float, float]:
+    # If specific range is specified
     for metric_range in metric_ranges:
         if metric_range[0] == metricName:
             return metric_range[1], metric_range[2]
-    return 0, max_val
+
+    # Else we fetch the default ranges
+    min_range, max_range = Metrics.getDefaultRange(metricName)
+    if min_range is None:
+        min_range = min_val
+    if max_range is None:
+        max_range = max_val
+    return min_range, max_range
+
+
 
 
 def plotDataFile(
@@ -96,10 +145,13 @@ def plotDataFile(
 
         # Get metricName, Column and Axis (use axs instead of axs[i] if only one metric)
         metricName = metrics[i]
-        metric_column = data[metricName]
+        metric_column = getMetricColumn(metricName, data)
+
         axis = axs[i] if len(metrics) > 1 else axs
 
-        yLim_min, yLim_max = getYrange(metricName, 1.2 * max(metric_column), metric_ranges)
+        max_range = 1.2 * max(metric_column)
+        min_range = 1.2 * min(metric_column)
+        yLim_min, yLim_max = getYrange(metricName, min_range, max_range, metric_ranges)
 
         # Set axis
         axis.plot(time_column, metric_column)
@@ -162,26 +214,27 @@ def overlapAndPlotMultipleDataFiles(
         axis = axs[i] if len(metrics) > 1 else axs
 
         # Calculate maximum value to set Y-axis
-        maxMetric = -1
+        maxMetric = float('-inf')
+        minMetric = float('inf')
 
         # Plot every datafile in the graph
         for (experiment, data) in datalist:
             time_column = data["minutes"]
-            metric_column = data[metricName]
+            metric_column = getMetricColumn(metricName, data)
             line, = axis.plot(time_column, metric_column)
 
             experimentLabel = experiment.getExperimentName()
             line.set_label(experimentLabel)
 
             maxMetric = max(maxMetric, metric_column.max())
-
+            minMetric = min(minMetric, metric_column.min())
             if plotThresholds:
                 addThresholdLine(axis, experiment, metricName, time_column, data)
 
         # Style graph and set title of the graph
         axis.title.set_text(metricName)
 
-        yLim_min, yLim_max = getYrange(metricName, maxMetric, metric_ranges)
+        yLim_min, yLim_max = getYrange(metricName, minMetric, maxMetric, metric_ranges)
         axis.set_ylim([yLim_min, yLim_max])
         axis.grid()
 

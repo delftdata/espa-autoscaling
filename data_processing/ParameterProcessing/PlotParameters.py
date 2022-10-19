@@ -9,7 +9,7 @@ class PlotParameters(StaticPlotFunctions):
     # Overall queries, autoscalers, metrics
     __queries = Queries.getAllQueries()
     __autoscalers = Autoscalers.getAllAutoscalers()
-    __metrics = Metrics.getAllMetricClasses()
+    __metrics = Metrics.getDefaultMetricClasses()
 
     # Metric limits
     __metric_ranges: [Tuple[str, float, float]] = []

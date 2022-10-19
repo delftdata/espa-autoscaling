@@ -1,6 +1,6 @@
 import argparse
-from typing import Tuple
 
+from DataClasses import Autoscalers, Metrics
 from Plotting import plotDataFile
 from ParameterProcessing import SingleFolderPlotParameters, StaticPlotFunctions
 
@@ -18,6 +18,8 @@ def plotIndividualExperiments(parameters: SingleFolderPlotParameters):
     experimentFiles = parameters.getExperimentFiles()
     for experimentFile in experimentFiles:
 
+        if parameters.getMetrics() == Metrics.getDefaultMetricClasses():
+            parameters.setMetrics(Metrics.getAllMetricClassesForAutoscaler(experimentFile.getAutoscaler()))
 
         plotDataFile(
             file=experimentFile,

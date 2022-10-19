@@ -261,3 +261,15 @@ HPA
 ```
 python3 ./data_processing/cmd_indivual_experiment_plots.py ./results/final_results/redone/query-$QUERY rd --queries $QUERY --autoscalers HPA --plot_thresholds --metric_range CPU_load 0 1
 ```
+Varga 1 and 2
+```
+python3 ./data_processing/cmd_indivual_experiment_plots.py ./results/final_results/redone/query-$QUERY rd --queries $QUERY --autoscalers varga1 --plot_thresholds --metric_range lag 0 250000
+python3 ./data_processing/cmd_indivual_experiment_plots.py ./results/final_results/redone/query-$QUERY rd --queries $QUERY --autoscalers varga2 --plot_thresholds --metric_range lag 0 250000
+```
+
+DS2 original and updated
+```
+python3 ./data_processing/cmd_indivual_experiment_plots.py ./results/final_results/redone/query-$QUERY rd --queries $QUERY --autoscalers ds2-original --plot_thresholds
+python3 ./data_processing/cmd_indivual_experiment_plots.py ./results/final_results/redone/query-$QUERY rd --queries $QUERY --autoscalers ds2-updated --plot_thresholds
+
+```
