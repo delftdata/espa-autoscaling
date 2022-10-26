@@ -11,9 +11,13 @@ class SingleFolderPlotParameters(PlotParameters):
     __result_label = ""
     __plot_thresholds = False
 
+    __option_plot_thresholds = True
 
-    def __init__(self, default_result_folder_name: str):
+    def __init__(self, default_result_folder_name: str, option_plot_thresholds=True, option_metric_ranges=True):
+        super().__init__(option_metric_ranges=option_metric_ranges)
+        # If default_result_folder_name == "", both result_folder and result_label will not be added to parser
         self.__result_folder_name = default_result_folder_name
+        self.__option_plot_thresholds = option_plot_thresholds
 
     def setMainFolder(self, main_folder: str):
         if main_folder:
@@ -85,9 +89,13 @@ class SingleFolderPlotParameters(PlotParameters):
 
         includeMainFolderInParser(argumentParser)
         includeSourceLabelInParser(argumentParser)
-        includeResultFolderInParser(argumentParser)
-        includeResultLabelInParser(argumentParser)
-        includePlotThresholds(argumentParser)
+
+        if self.__result_folder_name:
+            includeResultFolderInParser(argumentParser)
+            includeResultLabelInParser(argumentParser)
+
+        if self.__option_plot_thresholds:
+            includePlotThresholds(argumentParser)
 
     def fetchArgumentsFromNamespace(self, namespace: argparse.Namespace):
         super().fetchArgumentsFromNamespace(namespace)
@@ -115,7 +123,11 @@ class SingleFolderPlotParameters(PlotParameters):
 
         fetchMainFolderFromNamespace(namespace)
         fetchSourceLabelFromNamespace(namespace)
-        fetchResultFolderFromNamespace(namespace)
-        fetchResultLabelFromNamespace(namespace)
-        fetchPlotThresholds(namespace)
+
+        if self.__result_folder_name:
+            fetchResultFolderFromNamespace(namespace)
+            fetchResultLabelFromNamespace(namespace)
+
+        if self.__option_plot_thresholds:
+            fetchPlotThresholds(namespace)
 

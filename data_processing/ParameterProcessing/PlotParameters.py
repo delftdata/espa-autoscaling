@@ -13,6 +13,10 @@ class PlotParameters(StaticPlotFunctions):
 
     # Metric limits
     __metric_ranges: [Tuple[str, float, float]] = []
+    __option_metric_ranges = True
+
+    def __init__(self, option_metric_ranges=True):
+        self.__option_metric_ranges = option_metric_ranges
 
     def setQueries(self, queries: [str]):
         if queries:
@@ -63,7 +67,9 @@ class PlotParameters(StaticPlotFunctions):
         includeMetricsInParser(argumentParser)
         includeQueriesInParser(argumentParser)
         includeAutoscalersInParser(argumentParser)
-        includeMetricRangesInParser(argumentParser)
+
+        if self.__option_metric_ranges:
+            includeMetricRangesInParser(argumentParser)
 
     def fetchArgumentsFromNamespace(self, namespace: argparse.Namespace):
         def fetchMetricsFromNamespace(args: argparse.Namespace):
@@ -136,5 +142,7 @@ class PlotParameters(StaticPlotFunctions):
         fetchMetricsFromNamespace(namespace)
         fetchQueriesFromNamespace(namespace)
         fetchAutoscalersFromNamespace(namespace)
-        fetchMetricRanges(namespace)
+
+        if self.__option_metric_ranges:
+            fetchMetricRanges(namespace)
 

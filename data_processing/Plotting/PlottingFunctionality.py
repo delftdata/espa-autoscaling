@@ -3,7 +3,6 @@ from typing import Tuple
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from adjustText import adjust_text
 from matplotlib.transforms import Bbox
 from DataClasses import ExperimentFile, Autoscalers, Metrics, Experiment
 import os.path
@@ -90,6 +89,16 @@ def addThresholdLine(ax, experiment: Experiment, metric: str, time_column, dataF
         if metric == Metrics.VARGA_RELATIVE_LAG_CHANGE_RATE:
             ax.axhline(1.0, color=color, linestyle='dotted', linewidth=2.5)
 
+    if experiment.autoscaler == Autoscalers.DS2_UPDATED:
+        # Underprovisioning
+        color = "red"
+        if metric == Metrics.LATENCY:
+            ax.axhline(5, color=color, linewidth=1.5)
+
+        # Overprovisioning
+        color = "green"
+        if metric == Metrics.LATENCY:
+            ax.axhline(1, color=color, linewidth=1.5)
 
 
 def getYrange(metricName: str, min_val, max_val, metric_ranges) -> Tuple[float, float]:

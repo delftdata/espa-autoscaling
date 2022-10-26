@@ -254,17 +254,24 @@ python3 ./data_processing/run_experiments.py averages ./results/final_results/se
 ### Dhalion
 Dhalion 1
 ```
-python3 ./data_processing/cmd_indivual_experiment_plots.py ./results/final_results/redone/query-$QUERY rd --queries $QUERY --plot_thresholds --autoscaler dhalion -result_label config-dhalion-1 --metric_range lag 0 500000 --metric_range
-latency 0 4
+python3 ./data_processing/cmd_indivual_experiment_plots.py ./results/final_results/redone/query-$QUERY rd --queries $QUERY --plot_thresholds --autoscaler dhalion -result_label config-dhalion-1 --metric_range lag 0 300000 --metric_range latency 0 12
+python3 ./data_processing/cmd_autoscaler_configuration_plots.py ./results/final_results/redone/query-$QUERY rd --queries $QUERY --plot_thresholds --autoscaler dhalion -result_label config-dhalion-1 --metric_range lag 0 300000 --metric_range latency 0 20
+python3 ./data_processing/cmd_print_average_metrics.py ./results/final_results/redone/query-$QUERY rd --queries $QUERY --autoscalers dhalion --metrics latency taskmanager --addscalingevents
 ```
 HPA
 ```
 python3 ./data_processing/cmd_indivual_experiment_plots.py ./results/final_results/redone/query-$QUERY rd --queries $QUERY --autoscalers HPA --plot_thresholds --metric_range CPU_load 0 1
+
+python3 ./data_processing/cmd_print_average_metrics.py ./results/final_results/redone/query-$QUERY rd --queries $QUERY --autoscalers HPA --metrics latency taskmanager --addscalingevents
+
 ```
 Varga 1 and 2
 ```
 python3 ./data_processing/cmd_indivual_experiment_plots.py ./results/final_results/redone/query-$QUERY rd --queries $QUERY --autoscalers varga1 --plot_thresholds --metric_range lag 0 250000
 python3 ./data_processing/cmd_indivual_experiment_plots.py ./results/final_results/redone/query-$QUERY rd --queries $QUERY --autoscalers varga2 --plot_thresholds --metric_range lag 0 250000
+
+python3 ./data_processing/cmd_print_average_metrics.py ./results/final_results/redone/query-$QUERY rd --queries $QUERY --autoscalers varga2 --metrics latency taskmanager --addscalingevents
+
 ```
 
 DS2 original and updated
@@ -272,4 +279,8 @@ DS2 original and updated
 python3 ./data_processing/cmd_indivual_experiment_plots.py ./results/final_results/redone/query-$QUERY rd --queries $QUERY --autoscalers ds2-original --plot_thresholds
 python3 ./data_processing/cmd_indivual_experiment_plots.py ./results/final_results/redone/query-$QUERY rd --queries $QUERY --autoscalers ds2-updated --plot_thresholds
 
+python ./data_processing\cmd_indivual_experiment_plots.py ./results\final_results\redone\query-%QUERY% rd --autoscalers ds2-updated --queries %QUERY% --plot_thresholds
+
+python3 ./data_processing/cmd_print_average_metrics.py ./results/final_results/redone/query-$QUERY rd --queries $QUERY --autoscalers ds2-original --metrics latency taskmanager --addscalingevents
+python3 ./data_processing/cmd_print_average_metrics.py ./results/final_results/redone/query-$QUERY rd --queries $QUERY --autoscalers ds2-updated --metrics latency taskmanager --addscalingevents
 ```

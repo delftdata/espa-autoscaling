@@ -9,7 +9,8 @@ import traceback
 from kubernetes import client, config, utils
 
 # extract metrics from prometheus query
-def extract_per_operator_metrics(metrics_json, include_subtask=False):
+def \
+        extract_per_operator_metrics(metrics_json, include_subtask=False):
     metrics = metrics_json.json()["data"]["result"]
     metrics_per_operator = {}
     for operator in metrics:
