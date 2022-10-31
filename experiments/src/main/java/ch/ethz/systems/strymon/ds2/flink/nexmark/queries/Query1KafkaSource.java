@@ -73,21 +73,21 @@ public class Query1KafkaSource {
                 env.fromSource(source, WatermarkStrategy.noWatermarks(), "BidsSource")
                         .setParallelism(params.getInt("p-source", 1))
                         .setMaxParallelism(max_parallelism_source)
-                        .uid("BidsSource");
-
-
+                        .uid("BidsSource").slotSharingGroup("Source");
+                        
         DataStream<Tuple4<Long, Long, Long, Long>> mapped  = bids.map(new MapFunction<Bid, Tuple4<Long, Long, Long, Long>>() {
             @Override
             public Tuple4<Long, Long, Long, Long> map(Bid bid) throws Exception {
                 return new Tuple4<>(bid.auction, dollarToEuro(bid.price, exchangeRate), bid.bidder, bid.dateTime);
             }
-        }).setParallelism(params.getInt("p-map", 1))
+        }).slotSharingGroup("Map").setParallelism(params.getInt("p-map", 1))
                 .name("Mapper")
                 .uid("Mapper");
 
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         mapped.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
+                .slotSharingGroup("Sink")
                 .setParallelism(params.getInt("p-sink", 1))
         .name("LatencySink")
         .uid("LatencySink");

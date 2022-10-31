@@ -34,8 +34,6 @@ import org.apache.flink.api.java.typeutils.GenericTypeInfo;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
-import org.apache.flink.runtime.state.storage.JobManagerCheckpointStorage;
-import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.AssignerWithPeriodicWatermarks;
@@ -63,7 +61,6 @@ public class Query11KafkaSource {
         // set up the execution environment
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-        env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
 //        env.getCheckpointConfig().setCheckpointStorage(new JobManagerCheckpointStorage(120242880));
         env.getConfig().setAutoWatermarkInterval(1000);
 //        env.disableOperatorChaining();
@@ -72,7 +69,6 @@ public class Query11KafkaSource {
         // enable latency tracking
         env.getConfig().setLatencyTrackingInterval(5000);
 
-        final int srcRate = params.getInt("srcRate", 100000);
         final int max_parallelism_source = params.getInt("source-max-parallelism", 20);
 
         KafkaSource<Bid> source =
@@ -87,9 +83,11 @@ public class Query11KafkaSource {
 
         DataStream<Bid> bids =
                 env.fromSource(source, WatermarkStrategy.noWatermarks(), "BidsSource")
+                        .slotSharingGroup("BidsSource")
                         .setParallelism(params.getInt("p-source", 1))
                         .setMaxParallelism(max_parallelism_source)
                         .assignTimestampsAndWatermarks(new Query11KafkaSource.BidTimestampAssigner())
+                        .slotSharingGroup("BidsSource")
                         .uid("BidsSource");
 
         DataStream<Tuple2<Long, Long>> windowed = bids.keyBy(new KeySelector<Bid, Long>() {
@@ -101,11 +99,11 @@ public class Query11KafkaSource {
                 .window(EventTimeSessionWindows.withGap(Time.seconds(10)))
                 .trigger(new MaxLogEventsTrigger())
                 .aggregate(new CountBidsPerSession()).setParallelism(params.getInt("p-window", 1))
-                .name("SessionWindow");
+                .name("SessionWindow").slotSharingGroup("Windowing");
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         windowed.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
-                .setParallelism(params.getInt("p-window", 1));
+                .setParallelism(params.getInt("p-window", 1)).slotSharingGroup("Sink");
 
 
         // execute program

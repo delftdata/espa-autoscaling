@@ -18,15 +18,11 @@
 
 package ch.ethz.systems.strymon.ds2.flink.nexmark.queries;
 
-import ch.ethz.systems.strymon.ds2.common.BidDeserializationSchema;
 import ch.ethz.systems.strymon.ds2.common.PersonDeserializationSchema;
 import ch.ethz.systems.strymon.ds2.common.AuctionDeserializationSchema;
 
 import ch.ethz.systems.strymon.ds2.flink.nexmark.sinks.DummyLatencyCountingSink;
-import ch.ethz.systems.strymon.ds2.flink.nexmark.sources.AuctionSourceFunction;
-import ch.ethz.systems.strymon.ds2.flink.nexmark.sources.PersonSourceFunction;
 import org.apache.beam.sdk.nexmark.model.Auction;
-import org.apache.beam.sdk.nexmark.model.Bid;
 import org.apache.beam.sdk.nexmark.model.Person;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.FilterFunction;
@@ -66,11 +62,7 @@ public class Query3KafkaSource {
 
         env.disableOperatorChaining();
 
-        final int auctionSrcRate = params.getInt("auction-srcRate", 20000);
-
-        final int personSrcRate = params.getInt("person-srcRate", 10000);
         final int max_parallelism_source = params.getInt("source-max-parallelism", 20);
-
 
 //        DataStream<Auction> auctions = env.addSource(new AuctionSourceFunction(auctionSrcRate))
 //                .name("Custom Source: Auctions")
@@ -90,7 +82,8 @@ public class Query3KafkaSource {
                 env.fromSource(auction_source, WatermarkStrategy.noWatermarks(), "auctionsSource")
                         .setParallelism(params.getInt("p-auction-source", 1))
                         .setMaxParallelism(max_parallelism_source)
-                        .uid("auctionsSource");
+                        .uid("auctionsSource")
+                        .slotSharingGroup("AuctionSource");
 
         KafkaSource<Person> person_source =
                 KafkaSource.<Person>builder()
@@ -102,13 +95,15 @@ public class Query3KafkaSource {
                         .setValueOnlyDeserializer(new PersonDeserializationSchema())
                         .build();
 
-        DataStream<Person> persons = env.fromSource(person_source, WatermarkStrategy.noWatermarks(), "personSource").setParallelism(params.getInt("p-person-source", 1)).setMaxParallelism(max_parallelism_source).filter(new FilterFunction<Person>() {
+        DataStream<Person> persons = env.fromSource(person_source, WatermarkStrategy.noWatermarks(), "personSource").setParallelism(params.getInt("p-person-source", 1)).setMaxParallelism(max_parallelism_source)
+                .slotSharingGroup("PersonSource")
+                .filter(new FilterFunction<Person>() {
                     @Override
                     public boolean filter(Person person) throws Exception {
                         return (person.state.equals("OR") || person.state.equals("ID") || person.state.equals("CA"));
                     }
                 })
-                .setParallelism(params.getInt("p-person-source", 1));
+                .setParallelism(params.getInt("p-person-source", 1)).slotSharingGroup("Filter");
 
         // SELECT Istream(P.name, P.city, P.state, A.id)
         // FROM Auction A [ROWS UNBOUNDED], Person P [ROWS UNBOUNDED]
@@ -131,11 +126,11 @@ public class Query3KafkaSource {
                 });
 
         DataStream<Tuple4<String, String, String, Long>> joined = keyedAuctions.connect(keyedPersons)
-                .flatMap(new JoinPersonsWithAuctions()).name("Incrementaljoin").setParallelism(params.getInt("p-join", 1));
+                .flatMap(new JoinPersonsWithAuctions()).name("Incrementaljoin").setParallelism(params.getInt("p-join", 1)).slotSharingGroup("CoFlatMap");
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         joined.transform("Sink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
-                .setParallelism(params.getInt("p-join", 1));
+                .setParallelism(params.getInt("p-join", 1)).slotSharingGroup("Sink");
 
         // execute program
         env.execute("Nexmark Query3");

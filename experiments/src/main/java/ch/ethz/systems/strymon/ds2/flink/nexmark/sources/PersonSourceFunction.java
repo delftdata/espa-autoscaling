@@ -18,7 +18,7 @@
 
 package ch.ethz.systems.strymon.ds2.flink.nexmark.sources;
 
-import org.apache.beam.sdk.nexmark.NexmarkConfiguration;;
+import org.apache.beam.sdk.nexmark.NexmarkConfiguration;
 import org.apache.beam.sdk.nexmark.model.Person;
 import org.apache.beam.sdk.nexmark.sources.generator.GeneratorConfig;
 import org.apache.beam.sdk.nexmark.sources.generator.model.PersonGenerator;
