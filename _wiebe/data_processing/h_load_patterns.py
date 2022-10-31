@@ -22,30 +22,30 @@ def save_time_series(data, query, load_pattern):
         text_file.write(row)
 
 def cosine_plot(time, query):
-    cosine_period = 60
-    if query == "query-1":
-        amplitude = 100000
-        yshift = 150000
+cosine_period = 60
+if query == "query-1":
+    amplitude = 100000
+    yshift = 150000
 
-    elif query == "query-3":
-        amplitude = 25000
-        yshift = 50000
+elif query == "query-3":
+    amplitude = 25000
+    yshift = 50000
 
-    elif query == "query-11":
-        amplitude = 15000
-        yshift = 30000
+elif query == "query-11":
+    amplitude = 15000
+    yshift = 30000
 
-    values = []
-    indices = []
-    for i in range(0, time):
-        period = (2 * math.pi / cosine_period)
-        val = yshift + amplitude * math.cos(period * i)
-        val += random.randrange(-10000, 10000)
-        values.append(val)
-        indices.append(i)
-    values = [int(val) for val in values]
-    values = [-1*val if val < 0 else val for val in values]
-    return indices, values
+values = []
+indices = []
+for i in range(0, time):
+    period = (2 * math.pi / cosine_period)
+    val = yshift + amplitude * math.cos(period * i)
+    val += random.randrange(-10000, 10000)
+    values.append(val)
+    indices.append(i)
+values = [int(val) for val in values]
+values = [-1*val if val < 0 else val for val in values]
+return indices, values
 
 def random_walk(time, query):
     if query == "query-1":

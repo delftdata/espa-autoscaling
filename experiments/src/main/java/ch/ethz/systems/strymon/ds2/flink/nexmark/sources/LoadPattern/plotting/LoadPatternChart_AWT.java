@@ -1,4 +1,4 @@
-package ch.ethz.systems.strymon.ds2.flink.nexmark.sources.plotting;
+package ch.ethz.systems.strymon.ds2.flink.nexmark.sources.LoadPattern.plotting;
 
 import java.awt.*;
 
@@ -7,7 +7,6 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.CategoryAxis;
 import org.jfree.chart.plot.CategoryPlot;
-import org.jfree.chart.renderer.category.CategoryItemRenderer;
 import org.jfree.chart.renderer.category.LineAndShapeRenderer;
 import org.jfree.chart.ui.ApplicationFrame;
 import org.jfree.chart.plot.PlotOrientation;
