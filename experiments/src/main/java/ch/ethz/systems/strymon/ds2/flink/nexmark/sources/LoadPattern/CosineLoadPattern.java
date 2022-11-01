@@ -36,6 +36,14 @@ public class CosineLoadPattern extends LoadPattern {
     int maximumDivergence;
     int cosinePeriod;
 
+    double spikeChance;
+
+    int maxSpikeLength;
+
+    int spikeMin;
+
+    int spikeMax;
+
     /**
      * Generate Cosinus Load pattern using default values dependign on query.
      * @param query query to generate default values from.
@@ -102,10 +110,20 @@ public class CosineLoadPattern extends LoadPattern {
         Random random = this.getRandomClass();
         List<Integer> values = new ArrayList<>();
         List<Integer> indices = new ArrayList<>();
+
+
+        int spiking = 0;
+
+
         for (int i = 0; i < this.getLoadPatternPeriod(); i++) {
             double period = (2 * Math.PI / this.cosinePeriod);
             double value = this.meanInputRate + this.maximumDivergence * Math.cos(period * i);
             value += random.nextDouble() * 20000 - 10000;
+
+            if (spiking > 0) {
+
+            }
+
             value = Math.abs(value);
             values.add((int) value);
             indices.add(i);

@@ -43,11 +43,13 @@ import java.util.Set;
  * Required parameters
  *   Load pattern selection
  *     Required parameters:
- *            load-pattern: STRING {"cosine", "random", "decrease", "increase"}
- *            Load pattern to use during experiment. Possible configurations:  {"cosine", "random", "decrease", "increase"}
- *          query: INT {1, 3, 11}
- *              Query to perform the experiments on. Possible configurations: {1, 3, 11}
+ *          load-pattern: STRING {"cosine", "random", "decrease", "increase"}
+ *              Load pattern to use during experiment. Possible configurations:  {"cosine", "random", "decrease",
+ *              "increase", "testrun", "testrun-scaleup", "testrun-scaledown"}
+ *              
  *     Optional parameters
+ *          query (1) : INT {1, 3, 11}
+ *              Query to perform the experiments on (default = 1). Possible configurations: {1, 3, 11}
  *          use-default-configuration (true): BOOLEAN
  *              Use default configurations of load patterns (default = true)
  *          experiment-length (140): INT
@@ -69,6 +71,10 @@ import java.util.Set;
  *                  Minimum increase (decrease if negative) per minute
  *              max-divergence: INT
  *                  Maximum increase (decrease if negative) per minute
+ *          load-pattern = "testrun" && use-default-configuration = false
+ *              inputrate0: INT
+ *              inputrate1: INT
+ *              inputrate2: INT
  *
  *   Kafka setup
  *     Required paramters:
@@ -84,7 +90,7 @@ import java.util.Set;
  *
  *    Other
  *      Optional parameters
- *          debugging-enabled: BOOLEAN (false)
+ *          debugging: BOOLEAN (false)
  *                Enable debugging mode. Default value: false
  */
 
@@ -273,6 +279,32 @@ public class BidPersonGeneratorKafka {
         }
     }
 
+    public LoadPattern getTestRun_ScaleUp() {
+        return new TestrunLoadPattern(true);
+    }
+    public LoadPattern getTestRun_ScaleDown() {
+        return new TestrunLoadPattern(false);
+    }
+
+    public LoadPattern getTestRun(int query, int experimentLength, boolean useDefaultConfigurations, ParameterTool params)  {
+        /**
+         * Custom paramters:
+         * - inputrate0: int
+         * - inputrate1: int
+         * - inputrate2: int
+         */
+        if (useDefaultConfigurations) {
+            // TestRun has already a default experimentLength defined in its class.
+            // Changing its expeirmentLength can only be done via non-default configuration
+            return new TestrunLoadPattern(query, experimentLength);
+        } else {
+            int inputrate0 = params.getInt("inputrate0");
+            int inputrate1 = params.getInt("inputrate1");
+            int inputrate2 = params.getInt("inputrate2");
+            return new TestrunLoadPattern(query, experimentLength, inputrate0, inputrate1, inputrate2);
+        }
+    }
+
     /**
      * Get a loadpattern based on paramters provided by params
      * @param params parameters passed through args.
@@ -284,9 +316,8 @@ public class BidPersonGeneratorKafka {
         // REQUIRED
         String loadPatternName = params.getRequired("load-pattern");
         this.log("Set loadpatternName to " + loadPatternName);
-        int query = params.getInt("query");
+        int query = params.getInt("query", 1);
         this.log("Set query to " + query);
-
 
 
         // OPTIONAL
@@ -311,8 +342,20 @@ public class BidPersonGeneratorKafka {
                 loadPattern = this.getDecreaseLoadPattern(query, experimentLength, useDefaultConfiguration);
                 break;
             }
+            case "testrun-scaleup": {
+                loadPattern = this.getTestRun_ScaleUp();
+                break;
+            }
+            case "testrun-scaledown": {
+                loadPattern = this.getTestRun_ScaleDown();
+                break;
+            }
+            case "testrun": {
+                loadPattern = this.getTestRun(query, experimentLength, useDefaultConfiguration, params);
+                break;
+            }
             default: {
-                throw new ParseException("Loadpattern " + loadPattern + " is not recognized.", 0);
+                throw new ParseException("Loadpattern " + loadPatternName + " is not recognized.", 0);
             }
         }
         loadPattern.setSeed(seed);
@@ -324,7 +367,7 @@ public class BidPersonGeneratorKafka {
 
     public void run(String[] args) throws Exception {
         final ParameterTool params = ParameterTool.fromArgs(args);
-        this.debuggingEnabled = params.getBoolean("debugging-enabled", false);
+        this.debuggingEnabled = params.getBoolean("debugging", false);
         this.log("Set debuggingEnabled to " + this.debuggingEnabled + ".");
         /**
          * Load pattern generation
@@ -340,10 +383,9 @@ public class BidPersonGeneratorKafka {
         boolean auctionTopicEnabled = params.getBoolean("enable-auction-topic", false);
         int amountOfTopics = (bidsTopicEnabled ? 1 : 0) + (personTopicEnabled ? 1 : 0 + (auctionTopicEnabled ? 1 : 0));
         if (amountOfTopics < 1) {
-            throw new ConfigurationException("No topics are enabled. Please anable at least one topic.");
+            bidsTopicEnabled = true;
+            System.out.println("Warning: No topics are enabled. Bids topic is enabled by default.");
         }
-
-
 
         String kafka_server = params.get("kafka-server", "kafka-service:9092");
 
