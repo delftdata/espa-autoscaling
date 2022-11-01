@@ -20,7 +20,6 @@ package ch.ethz.systems.strymon.ds2.flink.nexmark.queries;
 
 import ch.ethz.systems.strymon.ds2.common.BidDeserializationSchema;
 import ch.ethz.systems.strymon.ds2.flink.nexmark.sinks.DummyLatencyCountingSink;
-import ch.ethz.systems.strymon.ds2.flink.nexmark.sources.BidSourceFunction;
 import org.apache.beam.sdk.nexmark.model.Bid;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.AggregateFunction;

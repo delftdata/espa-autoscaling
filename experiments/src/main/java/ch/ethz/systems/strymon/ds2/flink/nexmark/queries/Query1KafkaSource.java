@@ -20,12 +20,9 @@ package ch.ethz.systems.strymon.ds2.flink.nexmark.queries;
 
 import ch.ethz.systems.strymon.ds2.common.BidDeserializationSchema;
 import ch.ethz.systems.strymon.ds2.flink.nexmark.sinks.DummyLatencyCountingSink;
-import ch.ethz.systems.strymon.ds2.flink.nexmark.sources.BidSourceFunction;
-import ch.ethz.systems.strymon.ds2.flink.nexmark.sources.BidSourceFunctionGeneratorKafka;
 import org.apache.beam.sdk.nexmark.model.Bid;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.MapFunction;
-import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.api.java.typeutils.GenericTypeInfo;
 import org.apache.flink.api.java.utils.ParameterTool;
@@ -47,8 +44,6 @@ public class Query1KafkaSource {
         final ParameterTool params = ParameterTool.fromArgs(args);
 
         final float exchangeRate = params.getFloat("exchange-rate", 0.82F);
-
-        final int srcRate = params.getInt("srcRate", 100000);
 
         final int max_parallelism_source = params.getInt("source-max-parallelism", 20);
 
