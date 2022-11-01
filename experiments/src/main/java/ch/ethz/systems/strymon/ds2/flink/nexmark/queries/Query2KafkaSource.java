@@ -52,8 +52,6 @@ public class Query2KafkaSource {
         // enable latency tracking
         // env.getConfig().setLatencyTrackingInterval(5000);
 
-        final int srcRate = params.getInt("srcRate", 100000);
-
         final int max_parallelism_source = params.getInt("source-max-parallelism", 20);
 
         KafkaSource<Bid> source =
