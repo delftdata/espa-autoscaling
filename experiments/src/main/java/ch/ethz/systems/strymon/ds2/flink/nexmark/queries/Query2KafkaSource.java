@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
 
 public class Query2KafkaSource {
 
-    private static final Logger logger  = LoggerFactory.getLogger(Query2.class);
+    private static final Logger logger  = LoggerFactory.getLogger(Query2KafkaSource.class);
 
     public static void main(String[] args) throws Exception {
 
