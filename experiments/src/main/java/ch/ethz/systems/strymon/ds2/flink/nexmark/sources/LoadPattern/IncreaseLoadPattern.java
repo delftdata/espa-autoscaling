@@ -36,8 +36,8 @@ public class IncreaseLoadPattern extends LoadPattern {
      * Constructor for loadPattern. Configurations are based on the provided query.
      * @param query Query to generate the load pattern for.
      */
-    public IncreaseLoadPattern(int query) {
-        super(query, 140);
+    public IncreaseLoadPattern(int query, int loadPatternPeriod) {
+        super(query, loadPatternPeriod);
 
         this.setDefaultValues();
     }
@@ -65,7 +65,7 @@ public class IncreaseLoadPattern extends LoadPattern {
 
     @Override
     public String getLoadPatternTitle() {
-        return "Decrease pattern ("+ this.getSeed() + ")\n" +
+        return "Increase pattern ("+ this.getSeed() + ")\n" +
                 "Query " + this.getQuery() +
                 " - Start Value " + this.startValue;
     }
@@ -91,9 +91,6 @@ public class IncreaseLoadPattern extends LoadPattern {
             values.add(value);
             indices.add(i);
         }
-        System.out.println(Arrays.toString(values.toArray()));
-        System.out.println(values.size());
-        System.out.println(indices.size());
         return new Tuple2<>(indices, values);
     }
 }

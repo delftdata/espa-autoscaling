@@ -127,7 +127,7 @@ public abstract class LoadPattern {
     public static void main( String[ ] args ) throws Exception {
         int[] queries = new int[]{1, 3, 11};
         for (int query: queries) {
-            new IncreaseLoadPattern(query).plotLoadPattern();
+            new IncreaseLoadPattern(query, 140).plotLoadPattern();
         }
     }
 

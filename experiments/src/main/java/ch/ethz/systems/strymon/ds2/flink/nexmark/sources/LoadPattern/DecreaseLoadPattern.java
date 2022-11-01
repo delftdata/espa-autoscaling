@@ -35,8 +35,8 @@ public class DecreaseLoadPattern extends LoadPattern {
      * Constructor for DecreaseLoadPattern setting values of class based on provided query.
      * @param query Query to produce load pattern for.
      */
-    public DecreaseLoadPattern(int query) {
-        super(query, 140);
+    public DecreaseLoadPattern(int query, int loadPatternPeriod) {
+        super(query, loadPatternPeriod);
         this.setDefaultValues();
     }
 

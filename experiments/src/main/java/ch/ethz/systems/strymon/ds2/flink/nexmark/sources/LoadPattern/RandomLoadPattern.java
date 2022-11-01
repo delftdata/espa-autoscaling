@@ -34,8 +34,8 @@ public class RandomLoadPattern extends LoadPattern {
      * Constructor using default values based on query input
      * @param query Query to generate loadpattern for
      */
-    public RandomLoadPattern(int query){
-        super(query, 140);
+    public RandomLoadPattern(int query, int loadPatternPeriod){
+        super(query, loadPatternPeriod);
         this.setDefaultValues();
     }
 
@@ -102,7 +102,10 @@ public class RandomLoadPattern extends LoadPattern {
 
         int value = startValue;
         for (int i = 0; i < this.getLoadPatternPeriod(); i++) {
-            value += random.nextDouble() * (this.maxDivergence - this.minDivergence) + minDivergence;
+            // Ensure first value is the startValue
+            if (i > 0) {
+                value += random.nextDouble() * (this.maxDivergence - this.minDivergence) + minDivergence;
+            }
             value = Math.abs(value);
             values.add(value);
             indices.add(i);

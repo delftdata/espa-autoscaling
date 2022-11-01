@@ -40,8 +40,8 @@ public class CosineLoadPattern extends LoadPattern {
      * Generate Cosinus Load pattern using default values dependign on query.
      * @param query query to generate default values from.
      */
-    public CosineLoadPattern(int query) {
-        super(query, 140);
+    public CosineLoadPattern(int query, int loadPatternPeriod) {
+        super(query, loadPatternPeriod);
         this.setDefaultValues();
     }
 
