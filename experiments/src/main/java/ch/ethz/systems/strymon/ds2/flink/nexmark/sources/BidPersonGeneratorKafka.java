@@ -64,6 +64,35 @@ import java.util.Set;
  *                  Mean input-rate
  *              input-rate-maximum-divergence: INT
  *                  Amount of events the pattern diverges from the mean value
+ *              max-noise: INT
+ *                  Amount of noise introduced
+ *              Additional optional parameters
+ *                  upspike-chance: DOUBLE
+ *                          Chance to have an upsike-chance event. Default is defined by CosineLoadPattern.
+ *                              (Default = 0.0)
+ *                  upspike-maximum-period: INT
+ *                          Maximum period in which an upspike event can happen. Default is defined by CosineLoadpattern.
+ *                              (Default = 3)
+ *                  upspike-maximum-input-rate: INT
+ *                          Maximum increase in input rate during upspike event. Default is deifned by CosineLoadPattern.
+ *                              (Default = 2 * input-rate-maximum-divergence
+ *                  upspike-minimum-input-rate: INT
+ *                          Minimum increase in input rate during upspike event. Default is defined by CosineLoad Pattern.
+ *                              (Default = upspike-maximum-input-rate / 2)
+ *                  downspike-chance: DOUBLE
+ *                          Chance to have an downspike-chance event. Default is defined by CosineLoadPattern.
+ *                              (Default = 0.0)
+ *                  downspike-maximum-period: INT
+ *                          Maximum period that a downspike event takes. Default is defined by CosineLoadpattern.
+ *                              (Default = 3)
+ *                  downspike-minimum-input-rate: INT
+ *                          Minimum decrease  in input rate during a downspike event. Default is defined by CosineLoad Pattern.
+ *                              (Default = 2 * input-rate-maximum-divergence)
+ *                  downspike-maximum-input-rate: INT
+ *                          Maximum decrease in input rate during a downspike event. Default is defined by CosineLoadPattern.
+ *                              (Default = downspike-minimum-input-rate / 2
+
+ *
  *          load-pattern = "random" && & use-default-configuration = false
  *              initial-input-rate: INT
  *                  Input rate to start with
@@ -225,15 +254,62 @@ public class BidPersonGeneratorKafka {
          *      Mean input-rate
          *   input-rate-maximum-divergence: INT
          *      Amount of events the pattern diverges from the mean value
+         *   max-noise: INT
+         *      Amount of noise introduced
          */
+        CosineLoadPattern loadPattern;
         if (useDefaultConfigurations) {
-            return new CosineLoadPattern(query, experimentLength);
+            loadPattern =  new CosineLoadPattern(query, experimentLength);
+            int maxNoise = params.getInt("max-noise", -1);
+            if (maxNoise != -1){
+                loadPattern.setMaxNoise(maxNoise);
+            }
         } else {
             int cosinePeriod = params.getInt("cosine-period");
             int inputRateMaximumDivergence = params.getInt("input-rate-maximum-divergence");
             int inputRateMean = params.getInt("input-rate-mean");
-            return new CosineLoadPattern(query, experimentLength, cosinePeriod, inputRateMaximumDivergence, inputRateMean);
+            int maxNoise = params.getInt("max-noise");
+            loadPattern = new CosineLoadPattern(query, experimentLength, cosinePeriod, inputRateMaximumDivergence, inputRateMean, maxNoise);
         }
+
+        // optional spike paramters
+        double spikeUpChance = params.getDouble("upspike-chance", -1d);
+        if (spikeUpChance != -1){
+            loadPattern.setSpikeUpChance(spikeUpChance);
+        }
+        int spikeUpMaximumPeriod = params.getInt("upspike-maximum-period", -1);
+        if (spikeUpMaximumPeriod != -1) {
+            loadPattern.setSpikeUpMaximumPeriod(spikeUpMaximumPeriod);
+        }
+        int spikeUpMaximumInputRate = params.getInt("upspike-maximum-input-rate", -1);
+        int spikeUpMinimumInputRate = params.getInt("upspike-minimum-input-rate", -1);
+        if (spikeUpMaximumInputRate != -1) {
+            if (spikeUpMinimumInputRate != -1) {
+                loadPattern.setSpikeUpInputRateRange(spikeUpMinimumInputRate, spikeUpMaximumInputRate);
+            } else {
+                loadPattern.setSpikeUpInputRateRange(spikeUpMaximumInputRate);
+            }
+        }
+
+        double spikeDownChance = params.getDouble("downspike-chance", -1d);
+        if (spikeDownChance != -1){
+            loadPattern.setSpikeDownChance(spikeDownChance);
+        }
+        int spikeDownMaximumPeriod = params.getInt("downspike-maximum-period", -1);
+        if (spikeDownMaximumPeriod != -1) {
+            loadPattern.setSpikeDownMaximumPeriod(spikeDownMaximumPeriod);
+        }
+        int spikeDownMaximumInputRate = params.getInt("downspike-maximum-input-rate", -1);
+        int spikeDownMinimumInputRate = params.getInt("downspike-minimum-input-rate", -1);
+        if (spikeDownMaximumInputRate != -1) {
+            if (spikeDownMinimumInputRate != -1) {
+                loadPattern.setSpikeDownInputRateRange(spikeDownMinimumInputRate, spikeDownMaximumInputRate);
+            } else {
+                loadPattern.setSpikeDownInputRateRange(spikeDownMaximumInputRate);
+            }
+        }
+
+        return loadPattern;
     }
     public LoadPattern getRandomLoadPattern(int query, int experimentLength, boolean useDefaultConfigurations,
                                             ParameterTool params) {

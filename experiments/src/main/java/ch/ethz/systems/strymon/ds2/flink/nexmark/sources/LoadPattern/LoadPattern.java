@@ -126,8 +126,16 @@ public abstract class LoadPattern {
 
     public static void main( String[ ] args ) throws Exception {
         int[] queries = new int[]{1, 3, 11};
+
+//       {
         for (int query: queries) {
-            new CosineLoadPattern(query, 20).plotLoadPattern();
+            for (int i = 0; i < 10; i++) {
+                CosineLoadPattern pattern = new CosineLoadPattern(query, 140);
+                pattern.setSeed(i);
+                pattern.setSpikeUpChance(0.025);
+                pattern.setSpikeDownChance(0.025);
+                pattern.plotLoadPattern();
+            }
         }
     }
 
