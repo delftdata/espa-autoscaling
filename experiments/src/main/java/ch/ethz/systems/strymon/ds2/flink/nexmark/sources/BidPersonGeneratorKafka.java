@@ -46,7 +46,7 @@ import java.util.Set;
  *          load-pattern: STRING {"cosine", "random", "decrease", "increase"}
  *              Load pattern to use during experiment. Possible configurations:  {"cosine", "random", "decrease",
  *              "increase", "testrun", "testrun-scaleup", "testrun-scaledown"}
- *              
+ *
  *     Optional parameters
  *          query (1) : INT {1, 3, 11}
  *              Query to perform the experiments on (default = 1). Possible configurations: {1, 3, 11}
