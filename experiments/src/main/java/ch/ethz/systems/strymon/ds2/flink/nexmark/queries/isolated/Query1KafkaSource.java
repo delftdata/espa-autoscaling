@@ -88,7 +88,7 @@ public class Query1KafkaSource {
         .uid("LatencySink");
     
         // execute program
-        env.execute("Nexmark Query1");
+        env.execute("Nexmark Query1 with a Kafka Source");
     }
 
     private static long dollarToEuro(long dollarPrice, float rate) {

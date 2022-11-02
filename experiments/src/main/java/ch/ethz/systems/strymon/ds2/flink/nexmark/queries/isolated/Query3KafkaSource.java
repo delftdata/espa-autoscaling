@@ -139,7 +139,7 @@ public class Query3KafkaSource {
                 .setParallelism(params.getInt("p-join", 1)).slotSharingGroup("Sink");
 
         // execute program
-        env.execute("Nexmark Query3");
+        env.execute("Nexmark Query3 with a Kafka Source");
     }
 
     private static final class JoinPersonsWithAuctions extends RichCoFlatMapFunction<Auction, Person, Tuple4<String, String, String, Long>> {
