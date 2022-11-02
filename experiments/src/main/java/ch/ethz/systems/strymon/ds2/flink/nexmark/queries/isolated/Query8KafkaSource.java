@@ -16,19 +16,21 @@
  * limitations under the License.
  */
 
-package ch.ethz.systems.strymon.ds2.flink.nexmark.queries;
+package ch.ethz.systems.strymon.ds2.flink.nexmark.queries.isolated;
 
+import ch.ethz.systems.strymon.ds2.common.AuctionDeserializationSchema;
+import ch.ethz.systems.strymon.ds2.common.PersonDeserializationSchema;
 import ch.ethz.systems.strymon.ds2.flink.nexmark.sinks.DummyLatencyCountingSink;
-import ch.ethz.systems.strymon.ds2.flink.nexmark.sources.AuctionSourceFunction;
-import ch.ethz.systems.strymon.ds2.flink.nexmark.sources.PersonSourceFunction;
 import org.apache.beam.sdk.nexmark.model.Auction;
 import org.apache.beam.sdk.nexmark.model.Person;
+import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.FlatJoinFunction;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.typeutils.GenericTypeInfo;
 import org.apache.flink.api.java.utils.ParameterTool;
-import org.apache.flink.streaming.api.TimeCharacteristic;
+import org.apache.flink.connector.kafka.source.KafkaSource;
+import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.AssignerWithPeriodicWatermarks;
@@ -36,14 +38,15 @@ import org.apache.flink.streaming.api.watermark.Watermark;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.util.Collector;
+import org.apache.kafka.clients.consumer.OffsetResetStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 
-public class Query8 {
+public class Query8KafkaSource {
 
-    private static final Logger logger  = LoggerFactory.getLogger(Query8.class);
+    private static final Logger logger  = LoggerFactory.getLogger(Query8KafkaSource.class);
 
     public static void main(String[] args) throws Exception {
 
@@ -53,27 +56,53 @@ public class Query8 {
         // set up the execution environment
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-        env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
         env.getConfig().setAutoWatermarkInterval(1000);
 
         // enable latency tracking
         //env.getConfig().setLatencyTrackingInterval(5000);
 
-        final int auctionSrcRate = params.getInt("auction-srcRate", 50000);
+        final int max_parallelism_source = params.getInt("source-max-parallelism", 20);
 
-        final int personSrcRate = params.getInt("person-srcRate", 30000);
-
+        // Flink API doesn't allow to change parallelism or to set a SlotSharingGroup for the join window
+        // We set the global parallelism to the desired windowed join parallelism and set individually the parallelism
+        // for the other operators. For the SlotSharingGroup, we rely on the default group.
         env.setParallelism(params.getInt("p-window", 1));
 
-        DataStream<Person> persons = env.addSource(new PersonSourceFunction(personSrcRate))
-                .name("Custom Source: Persons")
-                .setParallelism(params.getInt("p-person-source", 1))
-                .assignTimestampsAndWatermarks(new PersonTimestampAssigner());
+        KafkaSource<Person> person_source =
+                KafkaSource.<Person>builder()
+                        .setBootstrapServers("kafka-service:9092")
+                        .setTopics("person_topic")
+                        .setGroupId("consumer_group2")
+                        .setProperty("fetch.min.bytes", "1000")
+                        .setStartingOffsets(OffsetsInitializer.committedOffsets(OffsetResetStrategy.EARLIEST))
+                        .setValueOnlyDeserializer(new PersonDeserializationSchema())
+                        .build();
 
-        DataStream<Auction> auctions = env.addSource(new AuctionSourceFunction(auctionSrcRate))
-                .name("Custom Source: Auctions")
+
+        DataStream<Person> persons = env.fromSource(person_source, WatermarkStrategy.noWatermarks(), "PersonSource")
+                .slotSharingGroup("PersonSource")
+                .setParallelism(params.getInt("p-person-source", 1))
+                .setMaxParallelism(max_parallelism_source)
+                .assignTimestampsAndWatermarks(new PersonTimestampAssigner())
+                .slotSharingGroup("PersonSource");
+
+
+        KafkaSource<Auction> auction_source =
+            KafkaSource.<Auction>builder()
+                .setBootstrapServers("kafka-service:9092")
+                .setTopics("auction_topic")
+                .setGroupId("consumer_group1")
+                .setProperty("fetch.min.bytes", "1000")
+                .setStartingOffsets(OffsetsInitializer.committedOffsets(OffsetResetStrategy.EARLIEST))
+                .setValueOnlyDeserializer(new AuctionDeserializationSchema())
+                .build();
+
+        DataStream<Auction> auctions = env.fromSource(auction_source, WatermarkStrategy.noWatermarks(), "AuctionSource")
+                .slotSharingGroup("AuctionSource")
                 .setParallelism(params.getInt("p-auction-source", 1))
-                .assignTimestampsAndWatermarks(new AuctionTimestampAssigner());
+                .setMaxParallelism(max_parallelism_source)
+                .assignTimestampsAndWatermarks(new AuctionTimestampAssigner())
+                .slotSharingGroup("AuctionSource");
 
         // SELECT Rstream(P.id, P.name, A.reserve)
         // FROM Person [RANGE 1 HOUR] P, Auction [RANGE 1 HOUR] A
@@ -102,10 +131,10 @@ public class Query8 {
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         joined.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
-                .setParallelism(params.getInt("p-window", 1));
+                .setParallelism(params.getInt("p-window", 1)).slotSharingGroup("Sink");
 
         // execute program
-        env.execute("Nexmark Query8");
+        env.execute("Nexmark Query8 with a Kafka Source");
     }
 
     private static final class PersonTimestampAssigner implements AssignerWithPeriodicWatermarks<Person> {

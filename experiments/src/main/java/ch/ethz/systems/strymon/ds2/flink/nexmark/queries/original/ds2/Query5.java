@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package ch.ethz.systems.strymon.ds2.flink.nexmark.queries;
+package ch.ethz.systems.strymon.ds2.flink.nexmark.queries.original.ds2;
 
 import ch.ethz.systems.strymon.ds2.flink.nexmark.sinks.DummyLatencyCountingSink;
 import ch.ethz.systems.strymon.ds2.flink.nexmark.sources.BidSourceFunction;

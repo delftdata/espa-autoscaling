@@ -16,23 +16,27 @@
  * limitations under the License.
  */
 
-package ch.ethz.systems.strymon.ds2.flink.nexmark.queries;
+package ch.ethz.systems.strymon.ds2.flink.nexmark.queries.isolated;
 
+import ch.ethz.systems.strymon.ds2.common.BidDeserializationSchema;
 import ch.ethz.systems.strymon.ds2.flink.nexmark.sinks.DummyLatencyCountingSink;
-import ch.ethz.systems.strymon.ds2.flink.nexmark.sources.BidSourceFunction;
 import org.apache.beam.sdk.nexmark.model.Bid;
+import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.api.java.typeutils.GenericTypeInfo;
 import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.connector.kafka.source.KafkaSource;
+import org.apache.kafka.clients.consumer.OffsetResetStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Query1 {
+public class Query1KafkaSource {
 
-    private static final Logger logger  = LoggerFactory.getLogger(Query1.class);
+    private static final Logger logger = LoggerFactory.getLogger(Query1KafkaSource.class);
 
     public static void main(String[] args) throws Exception {
 
@@ -41,7 +45,7 @@ public class Query1 {
 
         final float exchangeRate = params.getFloat("exchange-rate", 0.82F);
 
-        final int srcRate = params.getInt("srcRate", 100000);
+        final int max_parallelism_source = params.getInt("source-max-parallelism", 20);
 
         // set up the execution environment
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -51,37 +55,44 @@ public class Query1 {
         // enable latency tracking
         env.getConfig().setLatencyTrackingInterval(5000);
 
-        // Add source
-        DataStream<Bid> bids = env.addSource(new BidSourceFunction(srcRate))
-                .setParallelism(params.getInt("p-source", 1))
-                .name("Bids Source")
-                .uid("Bids-Source");
-
-        // Query 1: "What are the values of the bids in euros?
-        // SELECT auction, DOLTOEUR(price), bidder, datetime
+        KafkaSource<Bid> source =
+        KafkaSource.<Bid>builder()
+                .setBootstrapServers("kafka-service:9092")
+                .setTopics("bids_topic")
+                .setGroupId("consumer_group")
+                .setProperty("fetch.min.bytes", "1000")
+                .setStartingOffsets(OffsetsInitializer.committedOffsets(OffsetResetStrategy.EARLIEST))
+                .setValueOnlyDeserializer(new BidDeserializationSchema())
+                .build();
+        DataStream<Bid> bids =
+                env.fromSource(source, WatermarkStrategy.noWatermarks(), "BidsSource")
+                        .setParallelism(params.getInt("p-source", 1))
+                        .setMaxParallelism(max_parallelism_source)
+                        .uid("BidsSource").slotSharingGroup("Source");
+                        
         DataStream<Tuple4<Long, Long, Long, Long>> mapped  = bids.map(new MapFunction<Bid, Tuple4<Long, Long, Long, Long>>() {
             @Override
             public Tuple4<Long, Long, Long, Long> map(Bid bid) throws Exception {
                 return new Tuple4<>(bid.auction, dollarToEuro(bid.price, exchangeRate), bid.bidder, bid.dateTime);
             }
-        }).setParallelism(params.getInt("p-map", 1))
+        }).slotSharingGroup("Map").setParallelism(params.getInt("p-map", 1))
                 .name("Mapper")
                 .uid("Mapper");
 
 
-        // Set sink as "Latency Sink"
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         mapped.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
-                .setParallelism(params.getInt("p-map", 1))
-        .name("Latency Sink")
-        .uid("Latency-Sink");
-
+                .slotSharingGroup("Sink")
+                .setParallelism(params.getInt("p-sink", 1))
+        .name("LatencySink")
+        .uid("LatencySink");
+    
         // execute program
         env.execute("Nexmark Query1");
     }
 
     private static long dollarToEuro(long dollarPrice, float rate) {
-        return (long) (rate*dollarPrice);
+        return (long) (rate * dollarPrice);
     }
 
 }

@@ -16,17 +16,21 @@
  * limitations under the License.
  */
 
-package ch.ethz.systems.strymon.ds2.flink.nexmark.queries;
+package ch.ethz.systems.strymon.ds2.flink.nexmark.queries.isolated;
+
+import ch.ethz.systems.strymon.ds2.common.PersonDeserializationSchema;
+import ch.ethz.systems.strymon.ds2.common.AuctionDeserializationSchema;
 
 import ch.ethz.systems.strymon.ds2.flink.nexmark.sinks.DummyLatencyCountingSink;
-import ch.ethz.systems.strymon.ds2.flink.nexmark.sources.AuctionSourceFunction;
-import ch.ethz.systems.strymon.ds2.flink.nexmark.sources.PersonSourceFunction;
 import org.apache.beam.sdk.nexmark.model.Auction;
 import org.apache.beam.sdk.nexmark.model.Person;
+import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.state.MapState;
 import org.apache.flink.api.common.state.MapStateDescriptor;
 import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
+import org.apache.flink.api.common.typeinfo.TypeHint;
+import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.tuple.Tuple4;
@@ -34,20 +38,22 @@ import org.apache.flink.api.java.typeutils.GenericTypeInfo;
 import org.apache.flink.api.java.typeutils.TupleTypeInfo;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.connector.kafka.source.KafkaSource;
+import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.co.RichCoFlatMapFunction;
 import org.apache.flink.util.Collector;
+import org.apache.kafka.clients.consumer.OffsetResetStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
 import java.util.HashSet;
 
-    public class Query3Stateful {
+public class Query3KafkaSource {
 
-    private static final Logger logger  = LoggerFactory.getLogger(Query3Stateful.class);
+    private static final Logger logger = LoggerFactory.getLogger(Query3KafkaSource.class);
 
     public static void main(String[] args) throws Exception {
 
@@ -58,78 +64,111 @@ import java.util.HashSet;
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
         // enable latency tracking
-        env.getConfig().setLatencyTrackingInterval(5000);
+        // env.getConfig().setLatencyTrackingInterval(5000);
 
         env.disableOperatorChaining();
 
-        final int auctionSrcRate = params.getInt("auction-srcRate", 20000);
+        final int max_parallelism_source = params.getInt("source-max-parallelism", 20);
 
-        final int personSrcRate = params.getInt("person-srcRate", 10000);
+//        DataStream<Auction> auctions = env.addSource(new AuctionSourceFunction(auctionSrcRate))
+//                .name("Custom Source: Auctions")
+//                .setParallelism(params.getInt("p-auction-source", 1));
 
-        DataStream<Auction> auctions = env.addSource(new AuctionSourceFunction(auctionSrcRate))
-                .name("Custom Source: Auctions")
-                .setParallelism(params.getInt("p-auction-source", 1));
+        KafkaSource<Auction> auction_source =
+                KafkaSource.<Auction>builder()
+                        .setBootstrapServers("kafka-service:9092")
+                        .setTopics("auction_topic")
+                        .setGroupId("consumer_group1")
+                        .setProperty("fetch.min.bytes", "1000")
+                        .setStartingOffsets(OffsetsInitializer.committedOffsets(OffsetResetStrategy.EARLIEST))
+                        .setValueOnlyDeserializer(new AuctionDeserializationSchema())
+                        .build();
 
-        DataStream<Person> persons = env.addSource(new PersonSourceFunction(personSrcRate))
-                .name("Custom Source: Persons")
-                .setParallelism(params.getInt("p-person-source", 1))
+        DataStream<Auction> auctions =
+                env.fromSource(auction_source, WatermarkStrategy.noWatermarks(), "auctionsSource")
+                        .setParallelism(params.getInt("p-auction-source", 1))
+                        .setMaxParallelism(max_parallelism_source)
+                        .uid("auctionsSource")
+                        .slotSharingGroup("AuctionSource");
+
+        KafkaSource<Person> person_source =
+                KafkaSource.<Person>builder()
+                        .setBootstrapServers("kafka-service:9092")
+                        .setTopics("person_topic")
+                        .setGroupId("consumer_group2")
+                        .setProperty("fetch.min.bytes", "1000")
+                        .setStartingOffsets(OffsetsInitializer.committedOffsets(OffsetResetStrategy.EARLIEST))
+                        .setValueOnlyDeserializer(new PersonDeserializationSchema())
+                        .build();
+
+        DataStream<Person> persons = env.fromSource(person_source, WatermarkStrategy.noWatermarks(), "personSource").setParallelism(params.getInt("p-person-source", 1)).setMaxParallelism(max_parallelism_source)
+                .slotSharingGroup("PersonSource")
                 .filter(new FilterFunction<Person>() {
                     @Override
                     public boolean filter(Person person) throws Exception {
                         return (person.state.equals("OR") || person.state.equals("ID") || person.state.equals("CA"));
                     }
                 })
-                .setParallelism(params.getInt("p-person-source", 1));
+                .setParallelism(params.getInt("p-person-source", 1)).slotSharingGroup("Filter");
 
         // SELECT Istream(P.name, P.city, P.state, A.id)
         // FROM Auction A [ROWS UNBOUNDED], Person P [ROWS UNBOUNDED]
         // WHERE A.seller = P.id AND (P.state = `OR' OR P.state = `ID' OR P.state = `CA')
 
-      KeyedStream<Auction, Long> keyedAuctions =
-              auctions.keyBy(new KeySelector<Auction, Long>() {
-                 @Override
-                 public Long getKey(Auction auction) throws Exception {
-                    return auction.seller;
-                 }
-              });
+        KeyedStream<Auction, Long> keyedAuctions =
+                auctions.keyBy(new KeySelector<Auction, Long>() {
+                    @Override
+                    public Long getKey(Auction auction) throws Exception {
+                        return auction.seller;
+                    }
+                });
 
-      KeyedStream<Person, Long> keyedPersons =
+        KeyedStream<Person, Long> keyedPersons =
                 persons.keyBy(new KeySelector<Person, Long>() {
                     @Override
                     public Long getKey(Person person) throws Exception {
                         return person.id;
                     }
                 });
-      
-      DataStream<Tuple4<String, String, String, Long>> joined = keyedAuctions.connect(keyedPersons)
-              .flatMap(new JoinPersonsWithAuctions()).name("Incremental join").setParallelism(params.getInt("p-join", 1));
+
+        DataStream<Tuple4<String, String, String, Long>> joined = keyedAuctions.connect(keyedPersons)
+                .flatMap(new JoinPersonsWithAuctions()).name("Incrementaljoin").setParallelism(params.getInt("p-join", 1)).slotSharingGroup("CoFlatMap");
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         joined.transform("Sink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
-                .setParallelism(params.getInt("p-join", 1));
+                .setParallelism(params.getInt("p-join", 1)).slotSharingGroup("Sink");
 
         // execute program
-        env.execute("Nexmark Query3 stateful");
+        env.execute("Nexmark Query3");
     }
 
     private static final class JoinPersonsWithAuctions extends RichCoFlatMapFunction<Auction, Person, Tuple4<String, String, String, Long>> {
 
         // person state: id, <name, city, state>
-        private MapState<Long, Tuple3<String, String, String>> personMap;
+        private MapState<Long, Tuple3<String, String, String>> personMap;;
 
         // auction state: seller, List<id>
-        private HashMap<Long, HashSet<Long>> auctionMap = new HashMap<>();
+        private MapState<Long, HashSet<Long>> auctionMap;
 
         @Override
-        public void open(Configuration parameters) throws Exception {
+        public void open(Configuration parameters){
             MapStateDescriptor<Long, Tuple3<String, String, String>> personDescriptor =
-                    new MapStateDescriptor<Long, Tuple3<String, String, String>>(
-                            "person-map",
-                            BasicTypeInfo.LONG_TYPE_INFO,
-                            new TupleTypeInfo<>(BasicTypeInfo.STRING_TYPE_INFO, BasicTypeInfo.STRING_TYPE_INFO, BasicTypeInfo.STRING_TYPE_INFO)
-                           );
+            new MapStateDescriptor<Long, Tuple3<String, String, String>>(
+                    "person-map",
+                    BasicTypeInfo.LONG_TYPE_INFO,
+                    new TupleTypeInfo<>(BasicTypeInfo.STRING_TYPE_INFO, BasicTypeInfo.STRING_TYPE_INFO, BasicTypeInfo.STRING_TYPE_INFO)
+                   );
 
             personMap = getRuntimeContext().getMapState(personDescriptor);
+
+            MapStateDescriptor<Long, HashSet<Long>> auctionDescriptor =
+            new MapStateDescriptor<Long, HashSet<Long>>(
+                    "auction-map",
+                    BasicTypeInfo.LONG_TYPE_INFO,
+                    TypeInformation.of(new TypeHint<HashSet<Long>>(){})
+                   );
+
+            auctionMap = getRuntimeContext().getMapState(auctionDescriptor);
         }
 
         @Override
@@ -139,15 +178,13 @@ import java.util.HashSet;
                 // emit and don't store
                 Tuple3<String, String, String> match = personMap.get(auction.seller);
                 out.collect(new Tuple4<>(match.f0, match.f1, match.f2, auction.id));
-            }
-            else {
+            } else {
                 // we need to store this auction for future matches
-                if (auctionMap.containsKey(auction.seller)) {
+                if (auctionMap.contains(auction.seller)) {
                     HashSet<Long> ids = auctionMap.get(auction.seller);
                     ids.add(auction.id);
                     auctionMap.put(auction.seller, ids);
-                }
-                else {
+                } else {
                     HashSet<Long> ids = new HashSet<>();
                     ids.add(auction.id);
                     auctionMap.put(auction.seller, ids);
@@ -161,9 +198,10 @@ import java.util.HashSet;
             personMap.put(person.id, new Tuple3<>(person.name, person.city, person.state));
 
             // check if person has a match in the auction state
-            if (auctionMap.containsKey(person.id)) {
+            if (auctionMap.contains(person.id)) {
                 // output all matches and remove
-                HashSet<Long> auctionIds = auctionMap.remove(person.id);
+                HashSet<Long> auctionIds = auctionMap.get(person.id);
+                auctionMap.remove(person.id);
                 for (Long auctionId : auctionIds) {
                     out.collect(new Tuple4<>(person.name, person.city, person.state, auctionId));
                 }

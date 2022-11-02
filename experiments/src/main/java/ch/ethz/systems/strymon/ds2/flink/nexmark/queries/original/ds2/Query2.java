@@ -16,28 +16,24 @@
  * limitations under the License.
  */
 
-package ch.ethz.systems.strymon.ds2.flink.nexmark.queries;
+package ch.ethz.systems.strymon.ds2.flink.nexmark.queries.original.ds2;
 
-import ch.ethz.systems.strymon.ds2.common.BidDeserializationSchema;
 import ch.ethz.systems.strymon.ds2.flink.nexmark.sinks.DummyLatencyCountingSink;
+import ch.ethz.systems.strymon.ds2.flink.nexmark.sources.BidSourceFunction;
 import org.apache.beam.sdk.nexmark.model.Bid;
-import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.typeutils.GenericTypeInfo;
 import org.apache.flink.api.java.utils.ParameterTool;
-import org.apache.flink.connector.kafka.source.KafkaSource;
-import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.util.Collector;
-import org.apache.kafka.clients.consumer.OffsetResetStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Query2KafkaSource {
+public class Query2 {
 
-    private static final Logger logger  = LoggerFactory.getLogger(Query2KafkaSource.class);
+    private static final Logger logger  = LoggerFactory.getLogger(Query2.class);
 
     public static void main(String[] args) throws Exception {
 
@@ -50,25 +46,11 @@ public class Query2KafkaSource {
         env.disableOperatorChaining();
 
         // enable latency tracking
-        // env.getConfig().setLatencyTrackingInterval(5000);
+        env.getConfig().setLatencyTrackingInterval(5000);
 
-        final int max_parallelism_source = params.getInt("source-max-parallelism", 20);
+        final int srcRate = params.getInt("srcRate", 100000);
 
-        KafkaSource<Bid> source =
-                KafkaSource.<Bid>builder()
-                        .setBootstrapServers("kafka-service:9092")
-                        .setTopics("bids_topic")
-                        .setGroupId("consumer_group")
-                        .setProperty("fetch.min.bytes", "1000")
-                        .setStartingOffsets(OffsetsInitializer.committedOffsets(OffsetResetStrategy.EARLIEST))
-                        .setValueOnlyDeserializer(new BidDeserializationSchema())
-                        .build();
-        
-        DataStream<Bid> bids = env.fromSource(source, WatermarkStrategy.noWatermarks(), "BidsSource")
-                                    .slotSharingGroup("BidsSource")
-                                    .setParallelism(params.getInt("p-source", 1))
-                                    .setMaxParallelism(max_parallelism_source)
-                                    .uid("BidsSource");
+        DataStream<Bid> bids = env.addSource(new BidSourceFunction(srcRate)).setParallelism(params.getInt("p-source", 1));
 
         // SELECT Rstream(auction, price)
         // FROM Bid [NOW]
@@ -82,14 +64,14 @@ public class Query2KafkaSource {
                             out.collect(new Tuple2<>(bid.auction, bid.price));
                         }
                     }
-                }).setParallelism(params.getInt("p-flatMap", 1)).slotSharingGroup("FlatMap");
+                }).setParallelism(params.getInt("p-flatMap", 1));
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         converted.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
-                .setParallelism(params.getInt("p-flatMap", 1)).slotSharingGroup("Sink");
+                .setParallelism(params.getInt("p-flatMap", 1));
 
         // execute program
-        env.execute("Nexmark Query2 with a Kafka Source");
+        env.execute("Nexmark Query2");
     }
 
 }

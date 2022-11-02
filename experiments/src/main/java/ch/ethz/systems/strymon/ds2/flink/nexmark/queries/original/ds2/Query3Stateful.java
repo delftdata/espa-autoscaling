@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package ch.ethz.systems.strymon.ds2.flink.nexmark.queries;
+package ch.ethz.systems.strymon.ds2.flink.nexmark.queries.original.ds2;
 
 import ch.ethz.systems.strymon.ds2.flink.nexmark.sinks.DummyLatencyCountingSink;
 import ch.ethz.systems.strymon.ds2.flink.nexmark.sources.AuctionSourceFunction;
@@ -24,11 +24,16 @@ import ch.ethz.systems.strymon.ds2.flink.nexmark.sources.PersonSourceFunction;
 import org.apache.beam.sdk.nexmark.model.Auction;
 import org.apache.beam.sdk.nexmark.model.Person;
 import org.apache.flink.api.common.functions.FilterFunction;
+import org.apache.flink.api.common.state.MapState;
+import org.apache.flink.api.common.state.MapStateDescriptor;
+import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.api.java.typeutils.GenericTypeInfo;
+import org.apache.flink.api.java.typeutils.TupleTypeInfo;
 import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.KeyedStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -40,9 +45,9 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.HashSet;
 
-public class Query3 {
+    public class Query3Stateful {
 
-    private static final Logger logger  = LoggerFactory.getLogger(Query3.class);
+    private static final Logger logger  = LoggerFactory.getLogger(Query3Stateful.class);
 
     public static void main(String[] args) throws Exception {
 
@@ -53,7 +58,7 @@ public class Query3 {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
         // enable latency tracking
-       // env.getConfig().setLatencyTrackingInterval(5000);
+        env.getConfig().setLatencyTrackingInterval(5000);
 
         env.disableOperatorChaining();
 
@@ -104,21 +109,33 @@ public class Query3 {
                 .setParallelism(params.getInt("p-join", 1));
 
         // execute program
-        env.execute("Nexmark Query3");
+        env.execute("Nexmark Query3 stateful");
     }
 
     private static final class JoinPersonsWithAuctions extends RichCoFlatMapFunction<Auction, Person, Tuple4<String, String, String, Long>> {
 
         // person state: id, <name, city, state>
-        private HashMap<Long, Tuple3<String, String, String>> personMap = new HashMap<>();
+        private MapState<Long, Tuple3<String, String, String>> personMap;
 
         // auction state: seller, List<id>
         private HashMap<Long, HashSet<Long>> auctionMap = new HashMap<>();
 
         @Override
+        public void open(Configuration parameters) throws Exception {
+            MapStateDescriptor<Long, Tuple3<String, String, String>> personDescriptor =
+                    new MapStateDescriptor<Long, Tuple3<String, String, String>>(
+                            "person-map",
+                            BasicTypeInfo.LONG_TYPE_INFO,
+                            new TupleTypeInfo<>(BasicTypeInfo.STRING_TYPE_INFO, BasicTypeInfo.STRING_TYPE_INFO, BasicTypeInfo.STRING_TYPE_INFO)
+                           );
+
+            personMap = getRuntimeContext().getMapState(personDescriptor);
+        }
+
+        @Override
         public void flatMap1(Auction auction, Collector<Tuple4<String, String, String, Long>> out) throws Exception {
             // check if auction has a match in the person state
-            if (personMap.containsKey(auction.seller)) {
+            if (personMap.contains(auction.seller)) {
                 // emit and don't store
                 Tuple3<String, String, String> match = personMap.get(auction.seller);
                 out.collect(new Tuple4<>(match.f0, match.f1, match.f2, auction.id));

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package ch.ethz.systems.strymon.ds2.flink.nexmark.queries;
+package ch.ethz.systems.strymon.ds2.flink.nexmark.queries.isolated;
 
 import ch.ethz.systems.strymon.ds2.common.BidDeserializationSchema;
 import ch.ethz.systems.strymon.ds2.flink.nexmark.sinks.DummyLatencyCountingSink;
@@ -42,7 +42,7 @@ import javax.annotation.Nullable;
 
 public class Query5KafkaSource {
 
-    private static final Logger logger  = LoggerFactory.getLogger(Query5.class);
+    private static final Logger logger  = LoggerFactory.getLogger(Query5KafkaSource.class);
 
     public static void main(String[] args) throws Exception {
 
