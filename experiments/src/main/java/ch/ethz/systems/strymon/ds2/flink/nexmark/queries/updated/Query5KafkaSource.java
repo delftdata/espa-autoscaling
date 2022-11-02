@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package ch.ethz.systems.strymon.ds2.flink.nexmark.queries.isolated;
+package ch.ethz.systems.strymon.ds2.flink.nexmark.queries.updated;
 
 import ch.ethz.systems.strymon.ds2.common.BidDeserializationSchema;
 import ch.ethz.systems.strymon.ds2.flink.nexmark.sinks.DummyLatencyCountingSink;
@@ -49,6 +49,21 @@ public class Query5KafkaSource {
         // Checking input parameters
         final ParameterTool params = ParameterTool.fromArgs(args);
 
+        final String sourceSSG;
+        final String sinkSSG;
+        final String windowSSG;
+
+        if(params.getBoolean("slot-sharing", false)){
+            sourceSSG = "Source";
+            sinkSSG = "Sink";
+            windowSSG = "WindowedAggregation";
+        }
+        else{
+            sourceSSG = "default";
+            sinkSSG = "default";
+            windowSSG = "default";
+        }
+
         // set up the execution environment
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
@@ -70,11 +85,11 @@ public class Query5KafkaSource {
                 .build();
 
         DataStream<Bid> bids = env.fromSource(source, WatermarkStrategy.noWatermarks(), "BidsSource")
-                .slotSharingGroup("BidsSouce")
+                .slotSharingGroup(sourceSSG)
                 .setParallelism(params.getInt("p-bid-source", 1))
                 .setMaxParallelism(max_parallelism_source)
                 .assignTimestampsAndWatermarks(new TimestampAssigner())
-                .slotSharingGroup("BidsSouce")
+                .slotSharingGroup(sourceSSG)
                 .uid("BidsSource");
 
         // SELECT B1.auction, count(*) AS num
@@ -89,12 +104,12 @@ public class Query5KafkaSource {
                 .aggregate(new CountBids())
                 .name("Sliding Window")
                 .setParallelism(params.getInt("p-window", 1))
-                .slotSharingGroup("WindowedAggregation");
+                .slotSharingGroup(windowSSG);
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         windowed.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
                 .setParallelism(params.getInt("p-window", 1))
-                .slotSharingGroup("Sink");
+                .slotSharingGroup(sinkSSG);
 
         // execute program
         env.execute("Nexmark Query5 with a Kafka Source");

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package ch.ethz.systems.strymon.ds2.flink.nexmark.queries.isolated;
+package ch.ethz.systems.strymon.ds2.flink.nexmark.queries.updated;
 
 import ch.ethz.systems.strymon.ds2.common.BidDeserializationSchema;
 import ch.ethz.systems.strymon.ds2.flink.nexmark.sinks.DummyLatencyCountingSink;
@@ -57,6 +57,21 @@ public class Query11KafkaSource {
         // Checking input parameters
         final ParameterTool params = ParameterTool.fromArgs(args);
 
+        final String sourceSSG;
+        final String sinkSSG;
+        final String windowSSG;
+
+        if(params.getBoolean("slot-sharing", false)){
+            sourceSSG = "Source";
+            sinkSSG = "Sink";
+            windowSSG = "Windowing";
+        }
+        else{
+            sourceSSG = "default";
+            sinkSSG = "default";
+            windowSSG = "default";
+        }
+
         // set up the execution environment
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
@@ -82,11 +97,11 @@ public class Query11KafkaSource {
 
         DataStream<Bid> bids =
                 env.fromSource(source, WatermarkStrategy.noWatermarks(), "BidsSource")
-                        .slotSharingGroup("BidsSource")
+                        .slotSharingGroup(sourceSSG)
                         .setParallelism(params.getInt("p-source", 1))
                         .setMaxParallelism(max_parallelism_source)
                         .assignTimestampsAndWatermarks(new Query11KafkaSource.BidTimestampAssigner())
-                        .slotSharingGroup("BidsSource")
+                        .slotSharingGroup(sourceSSG)
                         .uid("BidsSource");
 
         DataStream<Tuple2<Long, Long>> windowed = bids.keyBy(new KeySelector<Bid, Long>() {
@@ -98,11 +113,11 @@ public class Query11KafkaSource {
                 .window(EventTimeSessionWindows.withGap(Time.seconds(10)))
                 .trigger(new MaxLogEventsTrigger())
                 .aggregate(new CountBidsPerSession()).setParallelism(params.getInt("p-window", 1))
-                .name("SessionWindow").slotSharingGroup("Windowing");
+                .name("SessionWindow").slotSharingGroup(windowSSG);
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         windowed.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
-                .setParallelism(params.getInt("p-window", 1)).slotSharingGroup("Sink");
+                .setParallelism(params.getInt("p-window", 1)).slotSharingGroup(sinkSSG);
 
 
         // execute program

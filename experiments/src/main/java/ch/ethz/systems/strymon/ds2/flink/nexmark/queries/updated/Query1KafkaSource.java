@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package ch.ethz.systems.strymon.ds2.flink.nexmark.queries.isolated;
+package ch.ethz.systems.strymon.ds2.flink.nexmark.queries.updated;
 
 import ch.ethz.systems.strymon.ds2.common.BidDeserializationSchema;
 import ch.ethz.systems.strymon.ds2.flink.nexmark.sinks.DummyLatencyCountingSink;
@@ -47,6 +47,21 @@ public class Query1KafkaSource {
 
         final int max_parallelism_source = params.getInt("source-max-parallelism", 20);
 
+        final String sourceSSG;
+        final String sinkSSG;
+        final String mapSSG;
+
+        if(params.getBoolean("slot-sharing", false)){
+            sourceSSG = "Source";
+            sinkSSG = "Sink";
+            mapSSG = "Map";
+        }
+        else{
+            sourceSSG = "default";
+            sinkSSG = "default";
+            mapSSG = "default";
+        }
+
         // set up the execution environment
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
@@ -68,21 +83,21 @@ public class Query1KafkaSource {
                 env.fromSource(source, WatermarkStrategy.noWatermarks(), "BidsSource")
                         .setParallelism(params.getInt("p-source", 1))
                         .setMaxParallelism(max_parallelism_source)
-                        .uid("BidsSource").slotSharingGroup("Source");
+                        .uid("BidsSource").slotSharingGroup(sourceSSG);
                         
         DataStream<Tuple4<Long, Long, Long, Long>> mapped  = bids.map(new MapFunction<Bid, Tuple4<Long, Long, Long, Long>>() {
             @Override
             public Tuple4<Long, Long, Long, Long> map(Bid bid) throws Exception {
                 return new Tuple4<>(bid.auction, dollarToEuro(bid.price, exchangeRate), bid.bidder, bid.dateTime);
             }
-        }).slotSharingGroup("Map").setParallelism(params.getInt("p-map", 1))
+        }).slotSharingGroup(mapSSG).setParallelism(params.getInt("p-map", 1))
                 .name("Mapper")
                 .uid("Mapper");
 
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         mapped.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
-                .slotSharingGroup("Sink")
+                .slotSharingGroup(sinkSSG)
                 .setParallelism(params.getInt("p-sink", 1))
         .name("LatencySink")
         .uid("LatencySink");

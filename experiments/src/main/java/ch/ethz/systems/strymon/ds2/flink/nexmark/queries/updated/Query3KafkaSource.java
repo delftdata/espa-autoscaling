@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package ch.ethz.systems.strymon.ds2.flink.nexmark.queries.isolated;
+package ch.ethz.systems.strymon.ds2.flink.nexmark.queries.updated;
 
 import ch.ethz.systems.strymon.ds2.common.PersonDeserializationSchema;
 import ch.ethz.systems.strymon.ds2.common.AuctionDeserializationSchema;
@@ -60,6 +60,27 @@ public class Query3KafkaSource {
         // Checking input parameters
         final ParameterTool params = ParameterTool.fromArgs(args);
 
+        final String sourceAuctionSSG;
+        final String sourcePersonSSG;
+        final String sinkSSG;
+        final String filterSSG;
+        final String coFlatMapSSG;
+
+        if(params.getBoolean("slot-sharing", false)){
+            sourceAuctionSSG = "AuctionSource";
+            sourcePersonSSG = "PersonSource";
+            sinkSSG = "Sink";
+            filterSSG = "Filter";
+            coFlatMapSSG = "CoFlatMap";
+        }
+        else{
+            sourceAuctionSSG = "default";
+            sourcePersonSSG = "default";
+            sinkSSG = "default";
+            filterSSG = "default";
+            coFlatMapSSG = "default";
+        }
+
         // set up the execution environment
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
@@ -89,7 +110,7 @@ public class Query3KafkaSource {
                         .setParallelism(params.getInt("p-auction-source", 1))
                         .setMaxParallelism(max_parallelism_source)
                         .uid("auctionsSource")
-                        .slotSharingGroup("AuctionSource");
+                        .slotSharingGroup(sourceAuctionSSG);
 
         KafkaSource<Person> person_source =
                 KafkaSource.<Person>builder()
@@ -102,14 +123,14 @@ public class Query3KafkaSource {
                         .build();
 
         DataStream<Person> persons = env.fromSource(person_source, WatermarkStrategy.noWatermarks(), "personSource").setParallelism(params.getInt("p-person-source", 1)).setMaxParallelism(max_parallelism_source)
-                .slotSharingGroup("PersonSource")
+                .slotSharingGroup(sourcePersonSSG)
                 .filter(new FilterFunction<Person>() {
                     @Override
                     public boolean filter(Person person) throws Exception {
                         return (person.state.equals("OR") || person.state.equals("ID") || person.state.equals("CA"));
                     }
                 })
-                .setParallelism(params.getInt("p-person-source", 1)).slotSharingGroup("Filter");
+                .setParallelism(params.getInt("p-person-source", 1)).slotSharingGroup(filterSSG);
 
         // SELECT Istream(P.name, P.city, P.state, A.id)
         // FROM Auction A [ROWS UNBOUNDED], Person P [ROWS UNBOUNDED]
@@ -132,11 +153,11 @@ public class Query3KafkaSource {
                 });
 
         DataStream<Tuple4<String, String, String, Long>> joined = keyedAuctions.connect(keyedPersons)
-                .flatMap(new JoinPersonsWithAuctions()).name("Incrementaljoin").setParallelism(params.getInt("p-join", 1)).slotSharingGroup("CoFlatMap");
+                .flatMap(new JoinPersonsWithAuctions()).name("Incrementaljoin").setParallelism(params.getInt("p-join", 1)).slotSharingGroup(coFlatMapSSG);
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         joined.transform("Sink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
-                .setParallelism(params.getInt("p-join", 1)).slotSharingGroup("Sink");
+                .setParallelism(params.getInt("p-join", 1)).slotSharingGroup(sinkSSG);
 
         // execute program
         env.execute("Nexmark Query3 with a Kafka Source");

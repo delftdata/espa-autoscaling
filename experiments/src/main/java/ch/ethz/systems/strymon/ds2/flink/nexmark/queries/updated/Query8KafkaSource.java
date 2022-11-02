@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package ch.ethz.systems.strymon.ds2.flink.nexmark.queries.isolated;
+package ch.ethz.systems.strymon.ds2.flink.nexmark.queries.updated;
 
 import ch.ethz.systems.strymon.ds2.common.AuctionDeserializationSchema;
 import ch.ethz.systems.strymon.ds2.common.PersonDeserializationSchema;
@@ -53,6 +53,21 @@ public class Query8KafkaSource {
         // Checking input parameters
         final ParameterTool params = ParameterTool.fromArgs(args);
 
+        final String sourceAuctionSSG;
+        final String sourcePersonSSG;
+        final String sinkSSG;
+
+        if(params.getBoolean("slot-sharing", false)){
+            sourceAuctionSSG = "AuctionSource";
+            sourcePersonSSG = "PersonSource";
+            sinkSSG = "Sink";
+        }
+        else{
+            sourceAuctionSSG = "default";
+            sourcePersonSSG = "default";
+            sinkSSG = "default";
+        }
+
         // set up the execution environment
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
@@ -84,7 +99,7 @@ public class Query8KafkaSource {
                 .setParallelism(params.getInt("p-person-source", 1))
                 .setMaxParallelism(max_parallelism_source)
                 .assignTimestampsAndWatermarks(new PersonTimestampAssigner())
-                .slotSharingGroup("PersonSource");
+                .slotSharingGroup(sourcePersonSSG);
 
 
         KafkaSource<Auction> auction_source =
@@ -102,7 +117,7 @@ public class Query8KafkaSource {
                 .setParallelism(params.getInt("p-auction-source", 1))
                 .setMaxParallelism(max_parallelism_source)
                 .assignTimestampsAndWatermarks(new AuctionTimestampAssigner())
-                .slotSharingGroup("AuctionSource");
+                .slotSharingGroup(sourceAuctionSSG);
 
         // SELECT Rstream(P.id, P.name, A.reserve)
         // FROM Person [RANGE 1 HOUR] P, Auction [RANGE 1 HOUR] A
@@ -131,7 +146,7 @@ public class Query8KafkaSource {
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         joined.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
-                .setParallelism(params.getInt("p-window", 1)).slotSharingGroup("Sink");
+                .setParallelism(params.getInt("p-window", 1)).slotSharingGroup(sinkSSG);
 
         // execute program
         env.execute("Nexmark Query8 with a Kafka Source");

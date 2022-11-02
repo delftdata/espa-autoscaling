@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package ch.ethz.systems.strymon.ds2.flink.nexmark.queries.isolated;
+package ch.ethz.systems.strymon.ds2.flink.nexmark.queries.updated;
 
 import ch.ethz.systems.strymon.ds2.common.BidDeserializationSchema;
 import ch.ethz.systems.strymon.ds2.flink.nexmark.sinks.DummyLatencyCountingSink;
@@ -44,6 +44,21 @@ public class Query2KafkaSource {
         // Checking input parameters
         final ParameterTool params = ParameterTool.fromArgs(args);
 
+        final String sourceSSG;
+        final String sinkSSG;
+        final String filterSSG;
+
+        if(params.getBoolean("slot-sharing", false)){
+            sourceSSG = "Source";
+            sinkSSG = "Sink";
+            filterSSG = "Filter";
+        }
+        else{
+            sourceSSG = "default";
+            sinkSSG = "default";
+            filterSSG = "default";
+        }
+
         // set up the execution environment
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
@@ -65,7 +80,7 @@ public class Query2KafkaSource {
                         .build();
         
         DataStream<Bid> bids = env.fromSource(source, WatermarkStrategy.noWatermarks(), "BidsSource")
-                                    .slotSharingGroup("BidsSource")
+                                    .slotSharingGroup(sourceSSG)
                                     .setParallelism(params.getInt("p-source", 1))
                                     .setMaxParallelism(max_parallelism_source)
                                     .uid("BidsSource");
@@ -82,11 +97,11 @@ public class Query2KafkaSource {
                             out.collect(new Tuple2<>(bid.auction, bid.price));
                         }
                     }
-                }).setParallelism(params.getInt("p-flatMap", 1)).slotSharingGroup("FlatMap");
+                }).setParallelism(params.getInt("p-flatMap", 1)).slotSharingGroup(filterSSG);
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         converted.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
-                .setParallelism(params.getInt("p-flatMap", 1)).slotSharingGroup("Sink");
+                .setParallelism(params.getInt("p-flatMap", 1)).slotSharingGroup(sinkSSG);
 
         // execute program
         env.execute("Nexmark Query2 with a Kafka Source");
