@@ -53,7 +53,7 @@ public class Query1KafkaSource {
         env.disableOperatorChaining();
 
         // enable latency tracking
-        env.getConfig().setLatencyTrackingInterval(5000);
+        // env.getConfig().setLatencyTrackingInterval(5000);
 
         KafkaSource<Bid> source =
         KafkaSource.<Bid>builder()
