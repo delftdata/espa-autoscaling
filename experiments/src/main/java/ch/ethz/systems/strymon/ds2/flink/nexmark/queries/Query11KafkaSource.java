@@ -66,7 +66,7 @@ public class Query11KafkaSource {
 
 
         // enable latency tracking
-        env.getConfig().setLatencyTrackingInterval(5000);
+        // env.getConfig().setLatencyTrackingInterval(5000);
 
         final int max_parallelism_source = params.getInt("source-max-parallelism", 20);
 
@@ -106,7 +106,7 @@ public class Query11KafkaSource {
 
 
         // execute program
-        env.execute("Nexmark Query11");
+        env.execute("Nexmark Query11 with a Kafka Source");
     }
 
     private static final class MaxLogEventsTrigger extends Trigger<Bid, TimeWindow> {
