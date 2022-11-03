@@ -7,6 +7,8 @@ Deployment occurs in three steps:
 2. Query deployment
 3. Autoscaler deployment
 
+
+
 ### NFS server deployment
 The NFS server can automatically be deployed by running the ./scripts/deploy_nfs.sh script. 
 The script does not require any parameter.
@@ -67,6 +69,27 @@ bash ./scripts/deploy_autoscalers.sh $AUTOSCALER $METRIC $QUERY
 
 The script does the following:
 1. Deploy autoscaler pod using metric and query configuration
+
+### Experiment deployemnt
+To deploy a full experiment, the following script can be ran: ./scripts/deploy_experiments.
+This script stitches together the NFS-server deployment, the Query deployment and the Autoscaler deployment.
+It requires the following paramters
+* Query: query to be deployed. Possible values {1, 3, 11}
+* Autoscaler: The autoscaler to be used. Possible values {"dhalion", "ds2-original", "ds2-updated", "HPA", "varga1", "varga2"} 
+* Metric
+  * dhalion: 1, 5, 10
+  * ds2: 0, 33, 66
+  * HPA: 50, 70, 90
+  * varga: 0.3, 0.5, 0.7
+
+```
+AUTOSCALER="dhalion"
+METRIC=5
+QUERY=1
+bash ./scripts/deploy_experiments.sh $AUTOSCALER $METRIC $QUERY
+```
+
+
 
 ## Undeployment
 
