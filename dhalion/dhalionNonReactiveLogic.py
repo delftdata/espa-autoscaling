@@ -89,6 +89,11 @@ def gatherMetrics():
 
     input_rate_query = "sum(rate(flink_taskmanager_job_task_operator_numRecordsInPerSecond[1m])) by (operator_name)"
     input_rate_resuls = getResultsFromPrometheus(input_rate_query)
+    data = input_rate_resuls['data']['results']
+    for result in data:
+        print(result['operator_name'])
+        print(result['value'])
+
     print(f"Input rate results: {input_rate_resuls.json()}")
 
 
