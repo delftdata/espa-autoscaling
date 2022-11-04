@@ -119,23 +119,36 @@ def gatherMetrics():
     current_parallelism = extract_per_operator_metrics(current_parallelism_results)
     print(f"Current parallelism results: {current_parallelism}")
 
+    latency_query = ""
+    latency_results = getResultsFromPrometheus(latency_query)
+    latency = extract_per_operator_metrics(latency_results)
+    print(f"Latency results: {latency}")
 
-    latency_value = 0
+    consumer_lag_deriv_query = ""
+    consumer_lag_deriv_results = getResultsFromPrometheus(consumer_lag_deriv_query)
+    consumer_lag_deriv = extract_per_operator_metrics(consumer_lag_deriv_results)
+    print(f"Consumer Lag Deriv results: {consumer_lag_deriv}")
 
-    deriv_consumer_lag = 0
+    backpressure_query = ""
+    backpressure_results = getResultsFromPrometheus(backpressure_query)
+    backpressure = extract_per_operator_metrics(backpressure_results)
+    print(f"Backpressure results: {backpressure}")
 
+    consumer_lag_query = ""
+    consumer_lag_results = getResultsFromPrometheus(consumer_lag_query)
+    consumer_lag = extract_per_operator_metrics(consumer_lag_results)
+    print(f"Consumer Lag results: {consumer_lag}")
 
-    backpressure_value = 0
-
-
-    consumer_lag = 0
-
-
-    cpu_load = 0
-
+    cpu_load_query = ""
+    cpu_load_lag_results = getResultsFromPrometheus(cpu_load_query)
+    cpu_load = extract_per_operator_metrics(cpu_load_lag_results)
+    print(f"CPU load results: {cpu_load}")
 
     throughput_sink_value = 0
-
+    throughput_query = ""
+    throughput_results = getResultsFromPrometheus(throughput_query)
+    throughput = extract_per_operator_metrics(throughput_results)
+    print(f"Throughput results: {throughput}")
 
     #
     # busy_time = requests.get(
