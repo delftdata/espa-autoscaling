@@ -18,20 +18,20 @@ from datetime import datetime
 # consumer_lag_metric.set(-1)
 
 # obtain environmental variables
-cooldown = os.environ['COOLDOWN']
-avg_over_time = os.environ['AVG_OVER_TIME']
-min_replicas = int(os.environ['MIN_REPLICAS'])
-max_replicas = int(os.environ['MAX_REPLICAS'])
-sleep_time = int(os.environ['SLEEP_TIME'])
-backpressure_lower_threshold = float(os.environ['BACKPRESSURE_LOWER_THRESHOLD'])
-backpressure_upper_threshold = float(os.environ['BACKPRESSURE_UPPER_THRESHOLD'])
-cpu_lower_threshold = float(os.environ['CPU_LOWER_THRESHOLD'])
-cpu_upper_threshold = float(os.environ['CPU_UPPER_THRESHOLD'])  # Does nothing
-consumer_lag_threshold = float(os.environ['CONSUMER_LAG_THRESHOLD'])
-scaling_factor = float(os.environ['SCALING_FACTOR_PERCENTAGE'])
-lag_size = float(os.environ['LAG_SIZE'])
-overprovisioning_factor = float(os.environ["OVERPROVISIONING_FACTOR"])
-latency_threshold = float(os.environ["LATENCY_THRESHOLD"])
+# cooldown = os.environ['COOLDOWN']
+# avg_over_time = os.environ['AVG_OVER_TIME']
+# min_replicas = int(os.environ['MIN_REPLICAS'])
+# max_replicas = int(os.environ['MAX_REPLICAS'])
+# sleep_time = int(os.environ['SLEEP_TIME'])
+# backpressure_lower_threshold = float(os.environ['BACKPRESSURE_LOWER_THRESHOLD'])
+# backpressure_upper_threshold = float(os.environ['BACKPRESSURE_UPPER_THRESHOLD'])
+# cpu_lower_threshold = float(os.environ['CPU_LOWER_THRESHOLD'])
+# cpu_upper_threshold = float(os.environ['CPU_UPPER_THRESHOLD'])  # Does nothing
+# consumer_lag_threshold = float(os.environ['CONSUMER_LAG_THRESHOLD'])
+# scaling_factor = float(os.environ['SCALING_FACTOR_PERCENTAGE'])
+# lag_size = float(os.environ['LAG_SIZE'])
+# overprovisioning_factor = float(os.environ["OVERPROVISIONING_FACTOR"])
+# latency_threshold = float(os.environ["LATENCY_THRESHOLD"])
 
 # cooldown = "120s"
 # avg_over_time = "1m"
@@ -179,50 +179,50 @@ def gatherMetrics():
 
 
 
-def getDesiredParallelism(
-        current_parallelsim,
-        input_rate,
-        latency_value,
-        deriv_consumer_lag,
-        backpressure_value,
-        consumer_lag,
-        cpu_load,
-        throughput_sink_value
-
-):
-    new_number_of_taskmanagers = current_parallelsim
-    # Underprovisioning
-    # Latency_value > latency_threshold
-    # Consumer_lag is increasing
-    if float(latency_value) > latency_threshold \
-            and float(deriv_consumer_lag) > 0:
-        increase_factor = float(input_rate) / float(throughput_sink_value)
-        print("increase_factor", increase_factor)
-        new_number_of_taskmanagers = math.ceil(
-            current_parallelsim * increase_factor * overprovisioning_factor)
-        if new_number_of_taskmanagers > max_replicas:
-            new_number_of_taskmanagers = max_replicas
-        print("scaling up to: " + str(new_number_of_taskmanagers))
-
-    # Overprovisioning if
-    # Backpressure < backpressure_threshold (backpressure_lower_threshold)
-    # Event_time_lag < Latency_threshold
-    # Event_time_lag is below a user_specified threshold
-    #       consumer_lag < lag_size * float(input_rate)
-    #       10000 < 0.2 * float(input_rate)
-    # CPU_utilization < CPU_utilization (cpu_lower_threshold)
-    elif float(backpressure_value) < backpressure_lower_threshold \
-            and float(consumer_lag) < lag_size * float(input_rate) \
-            and current_parallelsim > min_replicas \
-            and float(cpu_load) < cpu_lower_threshold:
-
-        if math.floor(current_parallelsim * (1 - scaling_factor)) >= min_replicas:
-            new_number_of_taskmanagers = math.floor(
-                current_parallelsim * (1 - scaling_factor))
-        else:
-            new_number_of_taskmanagers = min_replicas
-
-        print("scaling down to: " + str(new_number_of_taskmanagers))
+# def getDesiredParallelism(
+#         current_parallelsim,
+#         input_rate,
+#         latency_value,
+#         deriv_consumer_lag,
+#         backpressure_value,
+#         consumer_lag,
+#         cpu_load,
+#         throughput_sink_value
+#
+# ):
+#     new_number_of_taskmanagers = current_parallelsim
+#     # Underprovisioning
+#     # Latency_value > latency_threshold
+#     # Consumer_lag is increasing
+#     if float(latency_value) > latency_threshold \
+#             and float(deriv_consumer_lag) > 0:
+#         increase_factor = float(input_rate) / float(throughput_sink_value)
+#         print("increase_factor", increase_factor)
+#         new_number_of_taskmanagers = math.ceil(
+#             current_parallelsim * increase_factor * overprovisioning_factor)
+#         if new_number_of_taskmanagers > max_replicas:
+#             new_number_of_taskmanagers = max_replicas
+#         print("scaling up to: " + str(new_number_of_taskmanagers))
+#
+#     # Overprovisioning if
+#     # Backpressure < backpressure_threshold (backpressure_lower_threshold)
+#     # Event_time_lag < Latency_threshold
+#     # Event_time_lag is below a user_specified threshold
+#     #       consumer_lag < lag_size * float(input_rate)
+#     #       10000 < 0.2 * float(input_rate)
+#     # CPU_utilization < CPU_utilization (cpu_lower_threshold)
+#     elif float(backpressure_value) < backpressure_lower_threshold \
+#             and float(consumer_lag) < lag_size * float(input_rate) \
+#             and current_parallelsim > min_replicas \
+#             and float(cpu_load) < cpu_lower_threshold:
+#
+#         if math.floor(current_parallelsim * (1 - scaling_factor)) >= min_replicas:
+#             new_number_of_taskmanagers = math.floor(
+#                 current_parallelsim * (1 - scaling_factor))
+#         else:
+#             new_number_of_taskmanagers = min_replicas
+#
+#         print("scaling down to: " + str(new_number_of_taskmanagers))
 
 
 
