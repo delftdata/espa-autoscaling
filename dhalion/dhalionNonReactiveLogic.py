@@ -48,8 +48,8 @@ from datetime import datetime
 # overprovisioning_factor = 1.2
 # latency_threshold = 5
 #
-# prometheus_server = "34.65.53.106:9090"
-prometheus_server = "prometheus-server"
+prometheus_server = "34.90.81.123:9090"
+# prometheus_server = "prometheus-server"
 
 
 # input_rate_query = requests.get(
