@@ -82,6 +82,27 @@ def getResultsFromPrometheus(query):
     url = f"http://{prometheus_server}/api/v1/query?query={query}"
     return requests.get(url)
 
+
+def extract_per_operator_metrics(metrics_json, include_subtask=False):
+    metrics = metrics_json.json()["data"]["result"]
+    metrics_per_operator = {}
+    for operator in metrics:
+        if include_subtask:
+            metrics_per_operator[operator["metric"]["task_name"] + " " + operator["metric"]["subtask_index"]] = float(
+                operator["value"][1])
+        else:
+            metrics_per_operator[operator["metric"]["task_name"]] = float(operator["value"][1])
+    return metrics_per_operator
+
+def extract_topic_input_rate(metrics_json):
+    metrics = metrics_json.json()["data"]["result"]
+    metrics_per_topic= {}
+    for topic in metrics:
+        if "topic" in topic['metric']:
+            metrics_per_topic[topic['metric']['topic']] = float(topic['value'][1])
+    return metrics_per_topic
+
+
 def gatherMetrics():
 
     metrics = {}
@@ -89,17 +110,14 @@ def gatherMetrics():
 
     input_rate_query = "sum(rate(flink_taskmanager_job_task_operator_numRecordsInPerSecond[1m])) by (operator_name)"
     input_rate_resuls = getResultsFromPrometheus(input_rate_query)
-    data = input_rate_resuls['data']['results']
-    for result in data:
-        print(result['operator_name'])
-        print(result['value'])
-
-    print(f"Input rate results: {input_rate_resuls.json()}")
+    input_rate_metrics = getResultsFromPrometheus(input_rate_resuls, True)
+    print(f"Input rate results: {input_rate_metrics}")
 
 
-    current_parallelsim_query = "count(flink_taskmanager_job_task_operator_numRecordsIn) by (task_name)"
-    current_parallelsim_results = getResultsFromPrometheus(current_parallelsim_query)
-    print(f"Current paralelism results: {input_rate_resuls.json()}")
+    current_parallelism_query = "count(flink_taskmanager_job_task_operator_numRecordsIn) by (task_name)"
+    current_parallelism_results = getResultsFromPrometheus(current_parallelism_query)
+    current_parallelism = getResultsFromPrometheus(current_parallelism_results, True)
+    print(f"Current parallelism results: {current_parallelism}")
 
 
     latency_value = 0
