@@ -114,7 +114,7 @@ def gatherMetrics():
     print(f"Input rate results: {input_rate_metrics}")
 
 
-    current_parallelism_query = "count(flink_taskmanager_job_task_operator_numRecordsIn) by (task_name)"
+    current_parallelism_query = "count(flink_taskmanager_job_task_operator_numRecordsIn) by (operator_name)"
     current_parallelism_results = getResultsFromPrometheus(current_parallelism_query)
     current_parallelism = extract_per_operator_metrics(current_parallelism_results)
     print(f"Current parallelism results: {current_parallelism}")
