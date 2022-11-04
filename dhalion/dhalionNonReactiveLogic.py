@@ -94,13 +94,13 @@ def extract_per_operator_metrics(metrics_json, include_subtask=False):
             metrics_per_operator[operator["metric"]["task_name"]] = float(operator["value"][1])
     return metrics_per_operator
 
-def extract_topic_input_rate(metrics_json):
-    metrics = metrics_json.json()["data"]["result"]
-    metrics_per_topic= {}
-    for topic in metrics:
-        if "topic" in topic['metric']:
-            metrics_per_topic[topic['metric']['topic']] = float(topic['value'][1])
-    return metrics_per_topic
+# def extract_topic_input_rate(metrics_json):
+#     metrics = metrics_json.json()["data"]["result"]
+#     metrics_per_topic= {}
+#     for topic in metrics:
+#         if "topic" in topic['metric']:
+#             metrics_per_topic[topic['metric']['topic']] = float(topic['value'][1])
+#     return metrics_per_topic
 
 
 def gatherMetrics():
@@ -110,13 +110,13 @@ def gatherMetrics():
 
     input_rate_query = "sum(rate(flink_taskmanager_job_task_operator_numRecordsInPerSecond[1m])) by (operator_name)"
     input_rate_resuls = getResultsFromPrometheus(input_rate_query)
-    input_rate_metrics = getResultsFromPrometheus(input_rate_resuls, True)
+    input_rate_metrics = extract_per_operator_metrics(input_rate_resuls, True)
     print(f"Input rate results: {input_rate_metrics}")
 
 
     current_parallelism_query = "count(flink_taskmanager_job_task_operator_numRecordsIn) by (task_name)"
     current_parallelism_results = getResultsFromPrometheus(current_parallelism_query)
-    current_parallelism = getResultsFromPrometheus(current_parallelism_results, True)
+    current_parallelism = extract_per_operator_metrics(current_parallelism_results, True)
     print(f"Current parallelism results: {current_parallelism}")
 
 
