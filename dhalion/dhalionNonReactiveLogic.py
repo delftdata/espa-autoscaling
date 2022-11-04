@@ -85,6 +85,7 @@ def getResultsFromPrometheus(query):
 def gatherMetrics():
 
     metrics = {}
+    print("Next round")
 
     input_rate_query = "sum(rate(flink_taskmanager_job_task_operator_numRecordsInPerSecond[1m])) by (operator_name)"
     input_rate_resuls = getResultsFromPrometheus(input_rate_query)
