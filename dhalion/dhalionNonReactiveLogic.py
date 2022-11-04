@@ -88,12 +88,12 @@ def gatherMetrics():
 
     input_rate_query = "sum(rate(flink_taskmanager_job_task_operator_numRecordsInPerSecond[1m])) by (operator_name)"
     input_rate_resuls = getResultsFromPrometheus(input_rate_query)
-    print(f"Input rate results: {input_rate_resuls}")
+    print(f"Input rate results: {input_rate_resuls.raw}")
 
 
     current_parallelsim_query = "count(flink_taskmanager_job_task_operator_numRecordsIn) by (task_name)"
     current_parallelsim_results = getResultsFromPrometheus(current_parallelsim_query)
-    print(f"Current paralelism results: {input_rate_resuls}")
+    print(f"Current paralelism results: {input_rate_resuls.raw}")
 
 
     latency_value = 0
