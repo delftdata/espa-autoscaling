@@ -3,6 +3,7 @@
 AUTOSCALER=$1 #{dhalion, ds2-original, ds2-updated, HPA, varga1, varga2}
 METRIC=$2
 QUERY=$3
+MODE=$4 #{reactive, non-reactive}
 echo "Deploying autoscaler: $AUTOSCALER with metric $METRIC and query $QUERY"
 export METRIC=$METRIC
 export QUERY=$QUERY
@@ -16,11 +17,11 @@ case $AUTOSCALER in
     ;;
   "ds2-original")
     kubectl apply -f ../yamls/autoscalers/ds2/rules_ds2.yaml
-    envsubst < ../yamls/autoscalers/ds2/ds2-original-reactive.yaml | kubectl apply -f -
+    envsubst < ../yamls/autoscalers/ds2/ds2-original-"$MODE".yaml | kubectl apply -f -
     ;;
   "ds2-updated")
     kubectl apply -f ../yamls/autoscalers/ds2/rules_ds2.yaml
-    envsubst < ../yamls/autoscalers/ds2/ds2-updated-reactive.yaml | kubectl apply -f -
+    envsubst < ../yamls/autoscalers/ds2/ds2-updated-"$MODE".yaml | kubectl apply -f -
     ;;
   "HPA")
     envsubst < ../yamls/autoscalers/hpa/cpu-hpa-stabelized.yaml | kubectl apply -f -
