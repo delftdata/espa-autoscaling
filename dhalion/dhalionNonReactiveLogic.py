@@ -228,10 +228,6 @@ def gatherMetrics():
 
 def run():
     while True:
-        # autenticate with kubernetes API
-        config.load_incluster_config()
-        v1 = client.AppsV1Api()
-
         gatherMetrics()
         time.sleep(5)
 
