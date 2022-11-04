@@ -25,9 +25,9 @@ spec:
         - name: SLEEP_TIME
           value: "20"
         - name: CONTAINER
-          value: "9923/experiments:31"
+          value: "gsiachamis/flink-nexmark-queries:1.0"
         - name: JOB
-          value: "ch.ethz.systems.strymon.ds2.flink.nexmark.queries.Query1KafkaSource"  
+          value: "ch.ethz.systems.strymon.ds2.flink.nexmark.queries.updated.Query1KafkaSource"  
         - name: PYTHONUNBUFFERED
           value: "1"
         - name: PYTHONIOENCODING
