@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: taskmanager
-        image: gsiachamis/flink-nexmark-queries
+        image: gsiachamis/flink-nexmark-queries:1.0
         imagePullPolicy: Always
         resources:
           requests:
