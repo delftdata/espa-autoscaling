@@ -177,16 +177,6 @@ def performScaleOperation(operator: str, desiredParallelism):
     DESIRED_PARALELISMS[operator] = desiredParallelism
     print(f"Scaling operator {operator} to {desiredParallelism}")
 
-
-config.load_incluster_config()
-v1 = client.AppsV1Api()
-def scaleTaskmanagers(desiredTaskmanagerParallelism):
-    print("Scaling taskmanagers")
-    body = {"spec": {"replicas": desiredTaskmanagerParallelism}}
-    api_response = v1.patch_namespaced_deployment_scale(
-        name="flink-taskmanager", namespace="default", body=body,
-        pretty=True)
-
 def runSingleDhalionIteration():
     time.sleep(MONITORING_PERIOD_SECONDS)
     """
@@ -236,8 +226,7 @@ def runSingleDhalionIteration():
 
     # Perform Reactive operation
     if max(getCurrentParallelismMetrics().values()) != max(DESIRED_PARALELISMS):
-        scaleTaskmanagers(max(DESIRED_PARALELISMS))
-
+        print(f"New maximum parallelsim: {max(DESIRED_PARALELISMS)}")
 
 
 DESIRED_PARALELISMS = getCurrentParallelismMetrics()
