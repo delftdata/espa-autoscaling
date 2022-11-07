@@ -2,11 +2,8 @@ import math
 import time
 import requests
 import traceback
-from kubernetes import client, config
 
 PROMETHEUS_SERVER = "35.204.17.221:9090"
-
-
 MAX_TASKMANAGERS = 16
 MIN_TASKMANAGERS = 1
 QUERY = 3
@@ -31,6 +28,7 @@ topology_q3 = [
 topology_q11 = [
     ("_BidsSource____Timestamps_Watermarks", "SessionWindow____DummyLatencySink")
 ]
+
 
 def getTopology(query):
     if query == 1:
@@ -59,8 +57,6 @@ def extract_per_operator_metrics(metrics_json, include_subtask=False):
         else:
             metrics_per_operator[operator["metric"]["task_name"]] = float(operator["value"][1])
     return metrics_per_operator
-
-
 
 
 def getAverageBuffersInUsageMetrics() -> {str, float}:
@@ -147,6 +143,7 @@ def queueSizeisCloseToZero(operator: str, inputQueueMetrics: {str, float}, input
 
 
 def getScaleUpFactor(operator: str, backpressureTimes: {str, float}) -> float:
+    # TODO: oopsie, backpressureTime should be an aggregation of the upstream operators of the operator
     """
     ScaleupFactor is calculated using the following formula:
     "Percentage of time that the Heron Instance spent suspending the input data over the amount of time where
@@ -155,27 +152,32 @@ def getScaleUpFactor(operator: str, backpressureTimes: {str, float}) -> float:
     if operator in backpressureTimes.keys():
         backpressureTime = backpressureTimes[operator]
         normalTime = 1 - backpressureTime
+        print(backpressureTime)
+        print(normalTime)
         return 1 + backpressureTime / normalTime
     else:
         print(f"Error: {operator} not found in backpressure metrics: {backpressureTimes}")
         return 1
 
 
-def getDesiredParallelism(operator: str, currentParallelisms: {str, int}, scaling_factor: float):
+def getDesiredParallelism(operator: str, currentParallelisms: {str, int}, scaling_factor: float, scaling_up):
     if operator in currentParallelisms.keys():
         parallelism = currentParallelisms[operator]
-        newParallelism = math.ceil(parallelism * scaling_factor)
-        return newParallelism
+        if scaling_up:
+            return math.ceil(parallelism * scaling_factor)
+        else:
+            return math.floor(parallelism * scaling_factor)
     else:
         print(f"Error: {operator} not found in parallelism: {currentParallelisms}")
         return -1
 
 
+
 def performScaleOperation(operator: str, desiredParallelism):
-    desiredParallelsim = max(MIN_TASKMANAGERS, desiredParallelism)
-    desiredParallelsim = min(MAX_TASKMANAGERS, desiredParallelism)
+    desiredParallelism = max(MIN_TASKMANAGERS, desiredParallelism)
+    desiredParallelism = min(MAX_TASKMANAGERS, desiredParallelism)
     DESIRED_PARALELISMS[operator] = desiredParallelism
-    print(f"Scaling operator {operator} to {desiredParallelism}")
+    print(f"Scaling operation  {operator} to {desiredParallelism}")
 
 def runSingleDhalionIteration():
     time.sleep(MONITORING_PERIOD_SECONDS)
@@ -206,8 +208,9 @@ def runSingleDhalionIteration():
             # Calculate scale up factor
             operatorScaleUpFactor = getScaleUpFactor(operator, backpressureTimes)
             # Get desired parallelism
-            operatorDesiredParallelism = getDesiredParallelism(operator, currentParallelisms, operatorScaleUpFactor)
+            operatorDesiredParallelism = getDesiredParallelism(operator, currentParallelisms, operatorScaleUpFactor, True)
             # Scale up the operator
+            print(f"{operator}: {operatorScaleUpFactor}, {operatorDesiredParallelism}")
             performScaleOperation(operator, operatorDesiredParallelism)
     # If no backpressure exists, assume a healthy state
     else:
@@ -220,13 +223,9 @@ def runSingleDhalionIteration():
             if queueSizeisCloseToZero(operator, buffersInUsage, BUFFER_USAGE_CLOSE_TO_ZERO_THRESHOLD):
                 # Scale down with SCALE_DOWN_FACTOR
                 # Get desired parallelism
-                operatorDesiredParallelism = getDesiredParallelism(operator, currentParallelisms, SCALE_DOWN_FACTOR)
+                operatorDesiredParallelism = getDesiredParallelism(operator, currentParallelisms, SCALE_DOWN_FACTOR, False)
                 # Scale down the operator
                 performScaleOperation(operator, operatorDesiredParallelism)
-
-    # Perform Reactive operation
-    if max(getCurrentParallelismMetrics().values()) != max(DESIRED_PARALELISMS):
-        print(f"New maximum parallelsim: {max(DESIRED_PARALELISMS)}")
 
 
 DESIRED_PARALELISMS = getCurrentParallelismMetrics()
@@ -235,6 +234,7 @@ def run_original_dhalion_autoscaler():
         try:
             runSingleDhalionIteration()
             print(f"Current desired parallelisms: {DESIRED_PARALELISMS}")
+            print(f"Current parallelism:          {getCurrentParallelismMetrics()}")
         except:
             traceback.print_exc()
             run_original_dhalion_autoscaler()
