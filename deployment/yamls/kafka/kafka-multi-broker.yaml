@@ -69,9 +69,9 @@ spec:
         - name: KAFKA_AUTO_CREATE_TOPICS_ENABLE
           value: "false"
         - name: KAFKA_LOG_RETENTION_MS
-          value: 10000
+          value: "10000"
         - name: KAFKA_LOG_RETENTION_CHECK_INTERVAL_MS
-          value: 5000
+          value: "5000"
         # - name: KAFKA_CREATE_TOPICS
         #   value: topic:24:1  
         - name: EXTRA_ARGS 
