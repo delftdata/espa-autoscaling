@@ -2,7 +2,9 @@ import math
 import time
 import requests
 import traceback
+from kubernetes import client, config
 
+USEFLINKREACTIVE = True
 PROMETHEUS_SERVER = "35.204.17.221:9090"
 MAX_TASKMANAGERS = 16
 MIN_TASKMANAGERS = 1
@@ -10,6 +12,7 @@ QUERY = 3
 SCALE_DOWN_FACTOR = 0.8
 BUFFER_USAGE_CLOSE_TO_ZERO_THRESHOLD = 0.1
 MONITORING_PERIOD_SECONDS = 10
+
 
 
 topology_q1 = [
@@ -142,21 +145,32 @@ def queueSizeisCloseToZero(operator: str, inputQueueMetrics: {str, float}, input
     return False
 
 
-def getScaleUpFactor(operator: str, backpressureTimes: {str, float}) -> float:
+def getScaleUpFactor(operator: str, backpressureTimeMetrics: {str, float}, topology: (str, str)) -> float:
     # TODO: oopsie, backpressureTime should be an aggregation of the upstream operators of the operator
     """
     ScaleupFactor is calculated using the following formula:
     "Percentage of time that the Heron Instance spent suspending the input data over the amount of time where
     backpressure was not observed"
     """
-    if operator in backpressureTimes.keys():
-        backpressureTime = backpressureTimes[operator]
+    if operator in backpressureTimeMetrics.keys():
+        backpressureValues = []
+        for op1, op2 in topology:
+            if op2 == operator:
+                if op1 in backpressureTimeMetrics.keys():
+                    backpressureValues.append(backpressureTimeMetrics[op1])
+                else:
+                    print(f"Error: {operator} from ({op1}, {op2}) not found in backpressure metrics: {backpressureTimeMetrics}")
+
+        backpressureTime = 0
+        if backpressureValues is not None:
+            backpressureTime = max(backpressureValues)
+        else:
+            print(f"Warning: no backpressure cause found for {operator}")
         normalTime = 1 - backpressureTime
-        print(backpressureTime)
-        print(normalTime)
-        return 1 + backpressureTime / normalTime
+        scaleUpFactor = 1 + backpressureTime / normalTime
+        return scaleUpFactor
     else:
-        print(f"Error: {operator} not found in backpressure metrics: {backpressureTimes}")
+        print(f"Error: {operator} not found in backpressure metrics: {backpressureTimeMetrics}")
         return 1
 
 
@@ -176,8 +190,11 @@ def getDesiredParallelism(operator: str, currentParallelisms: {str, int}, scalin
 def performScaleOperation(operator: str, desiredParallelism):
     desiredParallelism = max(MIN_TASKMANAGERS, desiredParallelism)
     desiredParallelism = min(MAX_TASKMANAGERS, desiredParallelism)
-    DESIRED_PARALELISMS[operator] = desiredParallelism
+    desired_parallelism[operator] = desiredParallelism
     print(f"Scaling operation  {operator} to {desiredParallelism}")
+
+
+desired_parallelism = getCurrentParallelismMetrics()
 
 def runSingleDhalionIteration():
     time.sleep(MONITORING_PERIOD_SECONDS)
@@ -206,7 +223,7 @@ def runSingleDhalionIteration():
         # For every operator causing backpressure
         for operator in bottleneckOperators:
             # Calculate scale up factor
-            operatorScaleUpFactor = getScaleUpFactor(operator, backpressureTimes)
+            operatorScaleUpFactor = getScaleUpFactor(operator, backpressureTimes, topology)
             # Get desired parallelism
             operatorDesiredParallelism = getDesiredParallelism(operator, currentParallelisms, operatorScaleUpFactor, True)
             # Scale up the operator
@@ -227,19 +244,55 @@ def runSingleDhalionIteration():
                 # Scale down the operator
                 performScaleOperation(operator, operatorDesiredParallelism)
 
-
-DESIRED_PARALELISMS = getCurrentParallelismMetrics()
 def run_original_dhalion_autoscaler():
+    """
+    Run Dhalion with operator scaling
+    :return: None
+    """
     while True:
         try:
             runSingleDhalionIteration()
-            print(f"Current desired parallelisms: {DESIRED_PARALELISMS}")
+            print(f"Current desired parallelisms: {desired_parallelism}")
             print(f"Current parallelism:          {getCurrentParallelismMetrics()}")
         except:
             traceback.print_exc()
             run_original_dhalion_autoscaler()
 
 
+
+
+def run_original_dhalion_autoscaler_reactive():
+    """
+    Run Dhalion with Flink Reactive
+    :return: None
+    """
+    config.load_incluster_config()
+    v1_client = client.AppsV1Api()
+
+    def adaptFlinkReactiveTaskmanagers(new_number_of_taskmanagers):
+        body = {"spec": {"replicas": new_number_of_taskmanagers}}
+        api_response = v1_client.patch_namespaced_deployment_scale(
+            name="flink-taskmanager",
+            namespace="default",
+            body=body,
+            pretty=True
+        )
+
+    while True:
+        try:
+            runSingleDhalionIteration()
+            max_current_parallelism = max(getCurrentParallelismMetrics())
+            max_desired_parallelism = max(desired_parallelism.values())
+            if max_current_parallelism != max_desired_parallelism:
+                adaptFlinkReactiveTaskmanagers(max_desired_parallelism)
+        except:
+            traceback.print_exc()
+            run_original_dhalion_autoscaler()
+
+
 if __name__ == "__main__":
-    run_original_dhalion_autoscaler()
+    if USEFLINKREACTIVE:
+        run_original_dhalion_autoscaler_reactive()
+    else:
+        run_original_dhalion_autoscaler()
 
