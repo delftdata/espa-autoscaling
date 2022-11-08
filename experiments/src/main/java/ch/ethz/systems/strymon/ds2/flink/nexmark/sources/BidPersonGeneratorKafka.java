@@ -486,6 +486,7 @@ public class BidPersonGeneratorKafka {
          * Run workbench
          */
         long start_time = System.currentTimeMillis();
+        System.out.println("Starting data generation");
         while (((System.currentTimeMillis() - start_time) / 60000) < loadPattern.getLoadPatternPeriod()) {
             long emitStartTime = System.currentTimeMillis();
 
@@ -503,7 +504,7 @@ public class BidPersonGeneratorKafka {
                     }
                 }
                 catch (Exception e){
-                    System.out.println(e);
+                    e.printStackTrace();
                 }
 
 
@@ -523,9 +524,7 @@ public class BidPersonGeneratorKafka {
             Thread.sleep(1200000);
         }
         catch (Exception e){
-            System.out.println(e);
-            System.out.println(e.getMessage());
-            System.out.println(e.fillInStackTrace());
+            e.printStackTrace();
         }
     }
 
