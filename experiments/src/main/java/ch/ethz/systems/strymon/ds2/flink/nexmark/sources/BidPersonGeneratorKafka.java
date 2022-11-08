@@ -491,14 +491,19 @@ public class BidPersonGeneratorKafka {
 
             int current_rate = getExperimentRate(start_time);
             for (int i = 0; i < current_rate; i += amountOfTopics) {
-                if (bidsTopicEnabled) {
-                    this.generateBidEvent(producer, "bids_topic");
+                try {
+                    if (bidsTopicEnabled) {
+                        this.generateBidEvent(producer, "bids_topic");
+                    }
+                    if (personTopicEnabled) {
+                        this.generateBidEvent(producer, "person_topic");
+                    }
+                    if (auctionTopicEnabled) {
+                        this.generateBidEvent(producer, "auction_topic");
+                    }
                 }
-                if (personTopicEnabled) {
-                    this.generateBidEvent(producer, "person_topic");
-                }
-                if (auctionTopicEnabled) {
-                    this.generateBidEvent(producer, "auction_topic");
+                catch (Exception e){
+                    System.out.println(e)
                 }
 
 
