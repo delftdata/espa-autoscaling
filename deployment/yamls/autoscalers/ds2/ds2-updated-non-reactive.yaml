@@ -1,0 +1,61 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: ds2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ds2
+  template:
+    metadata:
+      labels:
+        app: ds2
+    spec:
+      containers:
+      - name: python-container
+        image: gsiachamis/ds2:1.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+        args: ["python", "ds2_lag_non_reactive.py"]
+        env:
+        - name: AVG_OVER_TIME
+          value: "1m"
+        - name: SLEEP_TIME
+          value: "20"
+        - name: CONTAINER
+          value: "gsiachamis/flink-nexmark-queries:1.0"
+        - name: JOB
+          value: "ch.ethz.systems.strymon.ds2.flink.nexmark.queries.updated.Query1KafkaSource"  
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        - name: PYTHONIOENCODING
+          value: "UTF-8" 
+        - name: MIN_REPLICAS
+          value: "1"
+        - name: MAX_REPLICAS
+          value: "16"
+        - name: COOLDOWN
+          value: "240s"
+        - name: BIDSQUERY
+          value: "yes"
+        - name: QUERY
+          value: "query-${QUERY}"
+        - name: OVERPROVISIONING_FACTOR
+          value: "1.${METRIC}"
+        - name: LAG_PROCESSING_TIME
+          value: "120"
+        - name: DELETE_TIME_JOB
+          value: "4"
+        - name: DELETE_TIME_POD
+          value: "4"
+        - name: SAVEPOINT_TIME
+          value: "4"  
+        - name: INPUT_RATE_MULTIPLIER
+          value: "1"
+        - name: SCALE_UP_LAG_THRESHOLD
+          value: "5"
+        - name: SCALE_DOWN_LAG_THRESHOLD
+          value: "1"
+

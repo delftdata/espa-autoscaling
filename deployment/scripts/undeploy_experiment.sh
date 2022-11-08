@@ -2,10 +2,11 @@
 
 query=$1
 autoscaler=$2
+mode=$3
 
 echo "Undeploying experiment Query=$query autoscaler=$autoscaler"
-source ./scripts/undeploy_autoscaler.sh $autoscaler
-source ./scripts/undeploy_queries.sh $query
+source ./undeploy_autoscaler.sh $autoscaler $mode
+source ./undeploy_queries.sh $query $mode
 sleep 60s
-source ./scripts/undeploy_nfs.sh
+source ./undeploy_nfs.sh
 echo "Finished undeploying experiment"
