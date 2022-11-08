@@ -355,7 +355,7 @@ def run():
 
             time.sleep(time_after_delete_pod)
 
-            # deploy new job file with updated parrelalism
+            # deploy new job file with updated parallelism
             k8s_client = client.ApiClient()
             yaml_file = "jobmanager_from_savepoint.yaml"
             utils.create_from_yaml(k8s_client, yaml_file)
