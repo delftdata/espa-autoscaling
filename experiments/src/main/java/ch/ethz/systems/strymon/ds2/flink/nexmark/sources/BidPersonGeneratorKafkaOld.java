@@ -17,250 +17,25 @@
  */
 
 package ch.ethz.systems.strymon.ds2.flink.nexmark.sources;
-
-import org.apache.beam.sdk.nexmark.NexmarkConfiguration;
-import org.apache.beam.sdk.nexmark.sources.generator.GeneratorConfig;
 import org.apache.beam.sdk.nexmark.sources.generator.model.AuctionGenerator;
-import org.apache.beam.sdk.nexmark.sources.generator.model.BidGenerator;
 import org.apache.beam.sdk.nexmark.sources.generator.model.PersonGenerator;
-import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.beam.sdk.nexmark.NexmarkConfiguration;
+import org.apache.beam.sdk.nexmark.sources.generator.GeneratorConfig;
+import org.apache.beam.sdk.nexmark.sources.generator.model.BidGenerator;
 import org.apache.kafka.clients.producer.KafkaProducer;
+import java.util.Properties;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+
 import java.util.Random;
 
 /**
  * A ParallelSourceFunction that generates Nexmark Bid data
  */
-@SuppressWarnings("ALL")
-public class BidPersonGeneratorKafkaV2 {
-
-    static class LoadGenerator {
-
-        /**
-         * def cosine_plot(time, query):
-         * cosine_period = 60
-         * if query == "query-1":
-         * amplitude = 100000
-         * yshift = 150000
-         * <p>
-         * elif query == "query-3":
-         * amplitude = 25000
-         * yshift = 50000
-         * <p>
-         * elif query == "query-11":
-         * amplitude = 15000
-         * yshift = 30000
-         * <p>
-         * values = []
-         * indices = []
-         * for i in range(0, time):
-         * period = (2 * math.pi / cosine_period)
-         * val = yshift + amplitude * math.cos(period * i)
-         * val += random.randrange(-10000, 10000)
-         * values.append(val)
-         * indices.append(i)
-         * values = [int(val) for val in values]
-         * values = [-1*val if val < 0 else val for val in values]
-         * return indices, values
-         */
-        public Tuple2<List<Integer>, List<Integer>> getCosinePlot(
-                int time,
-                String query,
-                Random random) {
-            int cosinePeriod = 60;
-            int amplitude = 0;
-            int yShift = 0;
-            switch (query) {
-                case "query-1":
-                    amplitude = 100000;
-                    yShift = 150000;
-                    break;
-                case "query-3":
-                    amplitude = 25000;
-                    yShift = 50000;
-                    break;
-                case "query-11":
-                    amplitude = 15000;
-                    yShift = 30000;
-                    break;
-            }
-            List<Integer> values = new ArrayList<>();
-            List<Integer> indices = new ArrayList<>();
-            for (int i = 0; i < time; i++) {
-                double period = (2 * Math.PI / cosinePeriod);
-                double value = yShift + amplitude * Math.cos(period * i);
-                value += random.nextDouble() * 20000 - 10000;
-                value = Math.abs(value);
-                values.add((int) value);
-                indices.add(i);
-            }
-            return new Tuple2<>(indices, values);
-        }
-
-        /***
-         def random_walk(time, query):
-         if query == "query-1":
-         val = 150000
-         elif query == "query-3":
-         val = 50000
-         elif query == "query-11":
-         val = 30000
-
-         values = []
-         indices = []
-         for i in range(0, time):
-         val += random.randrange(-10000, 10000)
-         values.append(val)
-         indices.append(i)
-         values = [int(val) for val in values]
-         values = [-1*val if val < 0 else val for val in values]
-         return indices, values
-         ***/
-        public Tuple2<List<Integer>, List<Integer>> getRandomWalk(
-                int time,
-                String query,
-                Random random) {
-            int startValue = 0;
-            switch (query) {
-                case "query-1":
-                    startValue = 150000;
-                    break;
-                case "query-3":
-                    startValue = 50000;
-                    break;
-                case "query-11":
-                    startValue = 30000;
-                    break;
-            }
-
-            List<Integer> values = new ArrayList<>();
-            List<Integer> indices = new ArrayList<>();
-
-            int value = startValue;
-            for (int i = 0; i < time; i++) {
-                value += random.nextDouble() * 20000 - 10000;
-                value = Math.abs(value);
-                values.add(value);
-                indices.add(i);
-            }
-            return new Tuple2<>(indices, values);
-        }
-
-        /***
-         def increasing(time, query):
-         if query == "query-1":
-         magnitude = 240000
-         elif query == "query-3":
-         magnitude = 75000
-         elif query == "query-11":
-         magnitude = 150000
-         initial_val = magnitude
-         values = []
-         indices = []
-         val = 2000
-         for i in range(0, time):
-         val += random.randrange(int(-initial_val * (1 / 30)), int(initial_val * (1 / 22)))
-         values.append(val)
-         indices.append(i)
-         values = [int(val) for val in values]
-         values = [-1*val if val < 0 else val for val in values]
-         return indices, values
-         ***/
-        public Tuple2<List<Integer>, List<Integer>> increasing(
-                int time,
-                String query,
-                Random random) {
-            int magnitude = 0;
-            switch (query) {
-                case "query-1":
-                    magnitude = 240000;
-                    break;
-                case "query-3":
-                    magnitude = 75000;
-                    break;
-                case "query-11":
-                    magnitude = 150000;
-                    break;
-            }
-            int startValue = 2000;
-
-            List<Integer> values = new ArrayList<>();
-            List<Integer> indices = new ArrayList<>();
-
-            int value = startValue;
-            for (int i = 0; i < time; i++) {
-                int minRange = -1 * magnitude / 30;
-                int maxRange = magnitude / 22;
-                value += random.nextDouble() * (minRange * maxRange) - minRange;
-                value = Math.abs(value);
-                values.add(value);
-                indices.add(i);
-            }
-            return new Tuple2<>(indices, values);
-        }
-
-
-        /***
-         def decreasing(time, query):
-         if query == "query-1":
-         val = 240000
-         elif query == "query-3":
-         val = 80000
-         elif query == "query-11":
-         val = 150000
-         initial_val = val
-         values = []
-         indices = []
-         val += 2000
-         for i in range(0, time):
-         val += random.randrange(int(-initial_val * (1 / 21)), int(initial_val * (1/28)))
-         values.append(val)
-         indices.append(i)
-         values = [int(val) for val in values]
-         values = [-1*val if val < 0 else val for val in values]
-         return indices, values
-         ***/
-        public Tuple2<List<Integer>, List<Integer>> decreasing(
-                int time,
-                String query,
-                Random random) {
-            int startValue = 0;
-            switch (query) {
-                case "query-1":
-                    startValue = 240000;
-                    break;
-                case "query-3":
-                    startValue = 80000;
-                    break;
-                case "query-11":
-                    startValue = 150000;
-                    break;
-            }
-
-            List<Integer> values = new ArrayList<>();
-            List<Integer> indices = new ArrayList<>();
-
-            int value = startValue + 2000;
-            for (int i = 0; i < time; i++) {
-                int minRange = -1 * startValue / 21;
-                int maxRange = startValue / 28;
-                value -= random.nextDouble() * (minRange * maxRange) - minRange;
-                value = Math.abs(value);
-                values.add(value);
-                indices.add(i);
-            }
-            return new Tuple2<>(indices, values);
-        }
-    }
-
-
+public class BidPersonGeneratorKafkaOld {
 
     private volatile boolean running = true;
     private final GeneratorConfig config = new GeneratorConfig(NexmarkConfiguration.DEFAULT, 1, 1000L, 0, 1);
@@ -304,12 +79,13 @@ public class BidPersonGeneratorKafkaV2 {
     private int[] query_11_increasing = {4617,11067,7161,3929,852,5307,7095,8807,2718,1697,4964,482,3827,6565,11267,10832,13358,6678,5384,7510,3093,2487,8050,8005,7171,5683,1197,1368,3563,3153,331,164,2922,6819,9571,11576,6987,7596,6096,10417,15005,18103,20846,24271,28101,31136,30865,28294,31228,32563,37794,43449,43897,47641,45074,45435,48875,53472,53280,48310,54988,56409,56187,57838,59913,61813,60749,59971,55404,58082,53126,59230,55855,51799,58244,53674,48901,53875,50305,52989,57563,58584,56339,58944,59616,63575,60530,66948,66230,69369,64687,59780,63292,67199,71016,69341,65585,64577,61261,56759,55604,51803,47243,53361,53155,55468,50726,55260,58540,61329,61519,57488,61150,60503,58266,59797,64127,63234,59408,63567,67091,63230,60049,55691,52404,57081,60355,63593,61209,62742,67623,68538,68011,70878,75311,79449,84540,86556,89316,94599};
     private int[] query_11_decreasing = {150636,145117,142436,138036,134476,136838,137683,142438,143380,144672,148352,141244,136970,131889,136619,132695,126950,123387,127431,122421,121848,117091,115227,116310,117206,121447,119197,119665,124691,126401,126388,130503,127174,124963,129391,131197,132196,136390,130170,128717,126398,125578,121592,126374,123310,118270,116532,114927,114695,107833,110983,111403,111633,109945,109603,113910,117232,116853,117921,119010,111919,114330,115208,119857,118436,123662,126028,125281,125147,125317,126807,129832,134396,134041,136611,136845,135593,138433,139299,139735,140944,141136,140242,140625,138745,136350,130270,130940,124887,124947,120354,123616,117904,113186,112147,116603,111910,111333,105432,109570,110300,113834,116536,111634,105788,108360,101260,104864,108048,106491,103445,107020,108440,103529,98886,100345,103366,101608,102554,105087,98405,102682,97075,96949,91370,84288,77462,76675,73175,70904,72586,76861,74154,74466,68635,68453,69554,70251,71577,67687};
 
-    private int rate;
+    private final int rate;
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    public BidPersonGeneratorKafkaV2(int srcRate) {
+    public BidPersonGeneratorKafkaOld(int srcRate) {
         this.rate = srcRate;
     }
+
     public int getPerSecondRate(long time, int cosine_period, int amplitude, int vertical_shift, int horizontal_shift, int zero_time) {
         int elapsed_minutes = (int)Math.floor((double) ((System.currentTimeMillis() - time) / 60000));
         double period = 2 * Math.PI / cosine_period;
@@ -564,7 +340,7 @@ public class BidPersonGeneratorKafkaV2 {
 
 
     public static void main(String[] args){
-        BidPersonGeneratorKafkaV2 test = new BidPersonGeneratorKafkaV2(10000);
+        BidPersonGeneratorKafkaOld test = new BidPersonGeneratorKafkaOld(10000);
         try{
             test.run(args);
             Thread.sleep(1200000);
