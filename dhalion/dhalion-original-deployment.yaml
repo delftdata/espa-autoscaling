@@ -24,19 +24,19 @@ spec:
         args: ["python", "dhalionOriginalLogic.py"]
         env:
         - name: USE_FLINK_REACTIVE  # {true, false} - false is default
-          value: true
+          value: "true"
         - name: PROMETHEUS_SERVER   # prometheus-server is default
-          value: prometheus-server
+          value: "prometheus-server"
         - name: MIN_TASKMANAGERS    # 1 is default
-          value: 1
+          value: "1"
         - name: MAX_TASKMANAGERS    # 16 is default
-          value: 16
+          value: "16"
         - name: QUERY  # 1 is default
-          value: 3
+          value: "3"
         - name: MONITORING_PERIOD_SECONDS # 360 is default
-          value: 60
+          value: "60"
         - name: BUFFER_USAGE_CLOSE_TO_ZERO_THRESHOLD # 0.1 is default
-          value: 0.1
+          value: "0.1"
         - name: PYTHONUNBUFFERED
           value: "1"
         - name: PYTHONIOENCODING
