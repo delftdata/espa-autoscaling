@@ -35,6 +35,8 @@ spec:
           value: "3"
         - name: MONITORING_PERIOD_SECONDS # 360 is default
           value: "60"
+        - name: METRIC_AGGREGATION_PERIOD_SECONDS # 60 is default
+          value: "60"
         - name: BUFFER_USAGE_CLOSE_TO_ZERO_THRESHOLD # 0.1 is default
           value: "0.1"
         - name: PYTHONUNBUFFERED
