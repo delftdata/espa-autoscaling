@@ -21,6 +21,8 @@ MAX_TASKMANAGERS = int(os.environ.get("MAX_TASKMANAGERS", 16))
 QUERY = int(os.environ.get("QUERY", 1))
 # Size of the monitoring period
 MONITORING_PERIOD_SECONDS = int(os.environ.get("MONITORING_PERIOD_SECONDS", "360"))
+# Period to aggregate values (setting it too low my result in missing values)
+METRIC_AGGREGATION_PERIOD_SECONDS = int(os.environ.get("METRIC_AGGREGATION_PERIOD_SECONDS", "60"))
 
 # Thresholds
 # Scale down factor
@@ -86,7 +88,7 @@ def getAverageBuffersInUsageMetrics() -> {str, float}:
     Fetch average inputBuffer usage of every operator
     :return: A directory with the average input buffer usage of every operator.
     """
-    input_usage_average_query = "avg(flink_taskmanager_job_task_buffers_inPoolUsage) by (task_name)"
+    input_usage_average_query = "avg(avg_over_time(flink_taskmanager_job_task_buffers_inPoolUsage[1m])) by (task_name)"
     input_usage_average_data = getResultsFromPrometheus(input_usage_average_query)
     input_usage_average = extract_per_operator_metrics(input_usage_average_data)
     return input_usage_average
@@ -97,7 +99,7 @@ def getMaximumBuffersInUsageMetrics() -> {str, float}:
     Fetch maximum inputBuffer usage of every operator
     :return: A directory with the maximum input buffer usage of every operator.
     """
-    input_usage_maximum_query = "max(flink_taskmanager_job_task_buffers_inPoolUsage) by (task_name)"
+    input_usage_maximum_query = f"max(avg_over_time(flink_taskmanager_job_task_buffers_inPoolUsage[{METRIC_AGGREGATION_PERIOD_SECONDS}s])) by (task_name)"
     input_usage_maximum_data = getResultsFromPrometheus(input_usage_maximum_query)
     input_usage_maximum = extract_per_operator_metrics(input_usage_maximum_data)
     return input_usage_maximum
@@ -108,7 +110,7 @@ def getAverageBuffersOutUsageMetrics() -> {str, float}:
     Fetch average outputBuffer usage of every operator
     :return: A directory with the average output buffer usage of every operator.
     """
-    output_usage_average_query = "avg(flink_taskmanager_job_task_buffers_outPoolUsage) by (task_name)"
+    output_usage_average_query = f"avg(avg_over_time(flink_taskmanager_job_task_buffers_outPoolUsage[{METRIC_AGGREGATION_PERIOD_SECONDS}s])) by (task_name)"
     ouput_usage_average_data = getResultsFromPrometheus(output_usage_average_query)
     output_usage_average = extract_per_operator_metrics(ouput_usage_average_data)
     return output_usage_average
@@ -119,7 +121,7 @@ def getMaximumBuffersOutUsageMetrics() -> {str, float}:
     Fetch maximum outputBuffer usage of every operator
     :return: A directory with the maximum output buffer usage of every operator.
     """
-    output_usage_maximum_query = "max(flink_taskmanager_job_task_buffers_outPoolUsage) by (task_name)"
+    output_usage_maximum_query = f"max(avg_over_time(flink_taskmanager_job_task_buffers_outPoolUsage[{METRIC_AGGREGATION_PERIOD_SECONDS}s])) by (task_name)"
     ouput_usage_maximum_data = getResultsFromPrometheus(output_usage_maximum_query)
     output_usage_maximum = extract_per_operator_metrics(ouput_usage_maximum_data)
     return output_usage_maximum
@@ -130,7 +132,7 @@ def getBackpressureMetrics() -> {str, bool}:
     Get backpressure metrics from prometheus.
     :return: A direcotry of {operator, boolean} with the boolean indicating whether the operator is backpressured
     """
-    backpressure_query = "flink_taskmanager_job_task_isBackPressured"
+    backpressure_query = f"max_over_time(flink_taskmanager_job_task_isBackPressured[{METRIC_AGGREGATION_PERIOD_SECONDS}s])"
     backpressure_data = getResultsFromPrometheus(backpressure_query)
     backpressure = extract_per_operator_metrics(backpressure_data)
     results = {}
@@ -156,11 +158,10 @@ def getCurrentParallelismMetrics() -> {str, int}:
     Get the current parallelisms of the individual operators
     :return: A directory with {operator, currentParallelism}
     """
-    parallelism_query = "count(flink_taskmanager_job_task_operator_numRecordsIn) by (task_name)"
+    parallelism_query = f"count(sum_over_time(flink_taskmanager_job_task_operator_numRecordsIn[{METRIC_AGGREGATION_PERIOD_SECONDS}s])) by (task_name)"
     parallelism_data = getResultsFromPrometheus(parallelism_query)
     parallelism = extract_per_operator_metrics(parallelism_data)
     return parallelism
-
 
 def isBackpressured(backpressure_metrics: {str, bool}) -> bool:
     """
@@ -217,6 +218,50 @@ def queueSizeisCloseToZero(operator: str, inputQueueMetrics: {str, float}, input
         if inputQueueMetrics[operator] <= inputQueueThreshold:
             return True
     return False
+
+def getCurrentNumberOfTaskmanagersMetrics(v1) -> int:
+    try:
+        number_of_taskmanagers = -1
+        ret = v1.list_namespaced_deployment(watch=False, namespace="default", pretty=True,
+                                            field_selector="metadata.name=flink-taskmanager")
+        for i in ret.items:
+            number_of_taskmanagers = int(i.spec.replicas)
+        return number_of_taskmanagers
+    except:
+        traceback.print_exc()
+        return -1
+
+
+def fetchCurrentOperatorParallelismInformation(v1=None) -> {str, int}:
+    """
+    Get per-operator parallelism
+    If Flink reactive is used:
+        Fetch current amount of taskmanagers
+        Return a direcotry with all operators having this parallelism
+        v1 is required for this scenario
+    If Flink reactive is not used:
+        Fetch taskmanagers using the getCurrentParallelismMetrics() function.
+        v1 is not required for this scenario
+    :param v1: Only required when using Flink Reactive. Used to fetch current amount of taskmanagers
+    :return: Directory with operators as key and parallelisms as values
+    """
+    if USE_FLINK_REACTIVE:
+        if not v1:
+            print(f"Error: no valid configurations of v1: {v1}")
+            return {}
+
+        currentTaskmanagers = getCurrentNumberOfTaskmanagersMetrics(v1)
+        if currentTaskmanagers < 0:
+            print(f"Error: no valid amount of taskmanagers found: {currentTaskmanagers}")
+            return {}
+
+        operatorParallelismInformation = {}
+        for operator in getAllOperators(getTopology(QUERY)):
+            operatorParallelismInformation[operator] = currentTaskmanagers
+        return operatorParallelismInformation
+    else:
+        return getCurrentParallelismMetrics()
+
 
 
 def getScaleUpFactor(operator: str, backpressureTimeMetrics: {str, float}, topology: (str, str)) -> float:
@@ -291,12 +336,8 @@ def performScaleOperation(operator: str, desiredParallelism):
     print(f"Scaling operator '{operator}' to parallelism '{desiredParallelism}'.")
 
 
-# Value to maintain the current desired values, used for keeping track of operator-specific parallelisms when using
-# Flink Reactive.
-desired_parallelism = getCurrentParallelismMetrics()
 
-
-def runSingleDhalionIteration():
+def runSingleDhalionIteration(v1=None):
     """
     Single Dhalion Autoscaler Iterator. It follows the following pseudo code:
     Wait for monitoring period
@@ -311,21 +352,29 @@ def runSingleDhalionIteration():
         undo action and blacklist action
     :return: None
     """
+    print("\nStarting new Dhalion iteration.")
     time.sleep(MONITORING_PERIOD_SECONDS)
 
     # Get topology of current query
     topology = getTopology(QUERY)
     # Get Backpressure information of every operator
     backpressureMetrics = getBackpressureMetrics()
+
+    currentParallelisms: {str, int} = fetchCurrentOperatorParallelismInformation(v1)
+
     # If backpressure exist, assume unhealthy state and investigate scale up possibilities
     if isBackpressured(backpressureMetrics):
         print("Backpressure detected. System is in a unhealthy state. Investigating scale-up possibilities.")
         # Get operators causing backpressure
         bottleneckOperators: [str] = getBottleneckOperators(backpressureMetrics, topology)
         print(f"The following operators are found to cause a possible bottleneck: {bottleneckOperators}")
-
         backpressureTimes: {str, float} = getBackpressuredTimeMetrics()
-        currentParallelisms: {str, int} = getCurrentParallelismMetrics()
+        print(
+            f"Found the following metrics: "
+            f"Backpressure-times[{backpressureTimes}] "
+            f"currentParallelisms[{currentParallelisms}]"
+        )
+
         # For every operator causing backpressure
         for operator in bottleneckOperators:
             # Calculate scale up factor
@@ -334,16 +383,17 @@ def runSingleDhalionIteration():
             operatorDesiredParallelism = getDesiredParallelism(operator, currentParallelisms, operatorScaleUpFactor,
                                                                True)
             # Scale up the operator
-            print(f"{operator}: {operatorScaleUpFactor}, {operatorDesiredParallelism}")
-
             performScaleOperation(operator, operatorDesiredParallelism)
     # If no backpressure exists, assume a healthy state
     else:
         print("No backpressure detected, system is in an healthy state. Investigating scale-down possibilities.")
         # Get information about input buffers of operators
         buffersInUsage = getMaximumBuffersInUsageMetrics()
-        currentParallelisms: {str, int} = getCurrentParallelismMetrics()
-        print(buffersInUsage)
+        print(
+            f"Found the following metrics: "
+            f"Buffer-in-usage[{buffersInUsage}] "
+            f"currentParallelisms[{currentParallelisms}]"
+        )
         # For every operator
         for operator in getAllOperators(topology):
             # Check if input queue buffer is almost empty
@@ -356,20 +406,34 @@ def runSingleDhalionIteration():
                 performScaleOperation(operator, operatorDesiredParallelism)
 
 
+# Value to maintain the current desired values, used for keeping track of operator-specific parallelisms when using
+# Flink Reactive.
+desired_parallelism: {str, int} = {}
+
+
+def setDesired_parallelism(v1=None):
+    try:
+        global desired_parallelism
+        desired_parallelism = fetchCurrentOperatorParallelismInformation(v1)
+        return
+    except:
+        traceback.print_exc()
+
+
+
 def run_original_dhalion_autoscaler():
     """
     Run Dhalion with operator based scaling scaling.
     :return: None
     """
+    setDesired_parallelism()
     while True:
         try:
             runSingleDhalionIteration()
-            print(f"Current desired parallelisms: {desired_parallelism}")
-            print(f"Current parallelism:          {getCurrentParallelismMetrics()}")
+            print(f"Desired parallelism: {desired_parallelism}")
+            print(f"Current parallelism: {fetchCurrentOperatorParallelismInformation()}")
         except:
             traceback.print_exc()
-            run_original_dhalion_autoscaler()
-
 
 def run_original_dhalion_autoscaler_reactive():
     """
@@ -377,27 +441,38 @@ def run_original_dhalion_autoscaler_reactive():
     :return: None
     """
     config.load_incluster_config()
-    v1_client = client.AppsV1Api()
+    v1 = client.AppsV1Api()
+    setDesired_parallelism(v1)
 
     def adaptFlinkReactiveTaskmanagers(new_number_of_taskmanagers):
-        body = {"spec": {"replicas": new_number_of_taskmanagers}}
-        api_response = v1_client.patch_namespaced_deployment_scale(
-            name="flink-taskmanager",
-            namespace="default",
-            body=body,
-            pretty=True
-        )
+        try:
+            print(f"Scaling total amount of taskmanagers to {new_number_of_taskmanagers}")
+            body = {"spec": {"replicas": new_number_of_taskmanagers}}
+            api_response = v1.patch_namespaced_deployment_scale(
+                name="flink-taskmanager", namespace="default", body=body,
+                pretty=True)
+        except:
+            traceback.print_exc()
+
 
     while True:
         try:
-            runSingleDhalionIteration()
-            max_current_parallelism = max(getCurrentParallelismMetrics())
-            max_desired_parallelism = max(desired_parallelism.values())
-            if max_current_parallelism != max_desired_parallelism:
-                adaptFlinkReactiveTaskmanagers(max_desired_parallelism)
+            runSingleDhalionIteration(v1)
+            currentParallelism = fetchCurrentOperatorParallelismInformation(v1)
+            print(f"Desired parallelisms: {desired_parallelism}")
+            print(f"Current parallelism: {currentParallelism}")
+
+            if desired_parallelism.values() is None:
+                print(f"Error: incorrect values for desired_parallelism: {desired_parallelism}]")
+            elif currentParallelism is None:
+                print(f"Error: incorrect value for currentNumberOfTaskkmanagers: {currentParallelism}")
+            else:
+                max_current_parallelism = max(currentParallelism)
+                max_desired_parallelism = max(desired_parallelism.values())
+                if max_current_parallelism != max_desired_parallelism:
+                    adaptFlinkReactiveTaskmanagers(max_desired_parallelism)
         except:
             traceback.print_exc()
-            run_original_dhalion_autoscaler()
 
 
 if __name__ == "__main__":
@@ -408,6 +483,7 @@ if __name__ == "__main__":
           f"\tMAX_TASKMANAGERS: {MAX_TASKMANAGERS}\n"
           f"\tQUERY: {QUERY}\n"
           f"\tMONITORING_PERIOD_SECONDS: {MONITORING_PERIOD_SECONDS}\n"
+          f"\tMETRIC_AGGREGATION_PERIOD_SECONDS: {METRIC_AGGREGATION_PERIOD_SECONDS}\n"
           f"\tSCALE_DOWN_FACTOR: {SCALE_DOWN_FACTOR}\n"
           f"\tBUFFER_USAGE_CLOSE_TO_ZERO_THRESHOLD: {BUFFER_USAGE_CLOSE_TO_ZERO_THRESHOLD}"
           )
