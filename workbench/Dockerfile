@@ -15,6 +15,7 @@ RUN ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
 
 # Clone repository
 RUN git clone git@github.com:delftdata/msc-autoscalers-experimental.git
+RUN cd msc-autoscalers-experimental && git pull && cd ..
 
 # Create real image
 FROM ubuntu
@@ -22,6 +23,6 @@ COPY --from=intermediate /msc-autoscalers-experimental /msc-autoscalers-experime
 
 RUN apt update
 RUN apt install -y maven git htop iputils-ping wget net-tools
-RUN cd msc-autoscalers-experimental/experiments && mvn clean install
+RUN cd msc-autoscalers-experimental/experiments && mvn clean install -q
 
 WORKDIR /msc-autoscalers-experimental/experiments
