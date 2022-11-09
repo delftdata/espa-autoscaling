@@ -19,8 +19,6 @@
 package ch.ethz.systems.strymon.ds2.flink.nexmark.sources;
 
 import ch.ethz.systems.strymon.ds2.flink.nexmark.sources.LoadPattern.*;
-import ch.ethz.systems.strymon.ds2.flink.nexmark.sources.LoadPattern.LoadPattern;
-
 import org.apache.beam.sdk.nexmark.NexmarkConfiguration;
 import org.apache.beam.sdk.nexmark.sources.generator.GeneratorConfig;
 import org.apache.beam.sdk.nexmark.sources.generator.model.AuctionGenerator;
