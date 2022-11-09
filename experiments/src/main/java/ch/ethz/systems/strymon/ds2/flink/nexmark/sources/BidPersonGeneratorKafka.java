@@ -157,11 +157,11 @@ public class BidPersonGeneratorKafka {
         }
     }
 
-    public int getExperimentRate(long startTime){
+    public int getExperimentRate(long startTime, List<Integer> loadPattern){
         int elapsed_minutes = (int)Math.floor((double) ((System.currentTimeMillis() - startTime) / 60000));
         // Repeat the pattern if the experiment is not stopped yet.
-        elapsed_minutes  = elapsed_minutes % this.loadPattern.size();
-        return this.loadPattern.get(elapsed_minutes);
+        elapsed_minutes  = elapsed_minutes % loadPattern.size();
+        return loadPattern.get(elapsed_minutes);
     }
 
 
@@ -448,8 +448,9 @@ public class BidPersonGeneratorKafka {
         /**
          * Load pattern generation
          */
-        LoadPattern loadPattern = this.getLoadPattern(params);
-        if (this.debuggingEnabled) { loadPattern.plotLoadPattern(); }
+        LoadPattern loadPatternConfiguration = this.getLoadPattern(params);
+        List<Integer> loadPattern = loadPatternConfiguration.getLoadPattern().f1;
+        if (this.debuggingEnabled) { loadPatternConfiguration.plotLoadPattern(); }
 
         /***
          * Kafka configuration
@@ -486,19 +487,25 @@ public class BidPersonGeneratorKafka {
          * Run workbench
          */
         long start_time = System.currentTimeMillis();
-        while (((System.currentTimeMillis() - start_time) / 60000) < loadPattern.getLoadPatternPeriod()) {
+        System.out.println("Starting data generation");
+        while (((System.currentTimeMillis() - start_time) / 60000) < loadPatternConfiguration.getLoadPatternPeriod()) {
             long emitStartTime = System.currentTimeMillis();
 
-            int current_rate = getExperimentRate(start_time);
+            int current_rate = getExperimentRate(start_time, loadPattern);
             for (int i = 0; i < current_rate; i += amountOfTopics) {
-                if (bidsTopicEnabled) {
-                    this.generateBidEvent(producer, "bids_topic");
+                try {
+                    if (bidsTopicEnabled) {
+                        this.generateBidEvent(producer, "bids_topic");
+                    }
+                    if (personTopicEnabled) {
+                        this.generateBidEvent(producer, "person_topic");
+                    }
+                    if (auctionTopicEnabled) {
+                        this.generateBidEvent(producer, "auction_topic");
+                    }
                 }
-                if (personTopicEnabled) {
-                    this.generateBidEvent(producer, "person_topic");
-                }
-                if (auctionTopicEnabled) {
-                    this.generateBidEvent(producer, "auction_topic");
+                catch (Exception e){
+                    e.printStackTrace();
                 }
 
 
@@ -518,8 +525,7 @@ public class BidPersonGeneratorKafka {
             Thread.sleep(1200000);
         }
         catch (Exception e){
-            System.out.println(e.getMessage());
-            System.out.println(e.fillInStackTrace());
+            e.printStackTrace();
         }
     }
 

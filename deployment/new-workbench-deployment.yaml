@@ -18,9 +18,10 @@ spec:
         imagePullPolicy: Always
         resources:
           requests:
-            cpu: 1500m
-          limits:
             cpu: 2000m
+            memory: 2000Mi
+          limits:
+            cpu: 2500m
+            memory: 2500Mi
         env:
         args: ["mvn", "exec:java", "-Dexec.mainClass=ch.ethz.systems.strymon.ds2.flink.nexmark.sources.BidPersonGeneratorKafka", "-Dexec.args= --enable-bids-topic true --enable-person-topic true --load-pattern 'cosine' --query 3"]
-      
