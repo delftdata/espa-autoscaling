@@ -33,9 +33,9 @@ spec:
         - name: PYTHONIOENCODING
           value: "UTF-8" 
         - name: MIN_REPLICAS
-          value: "1"
+          value: "3"
         - name: MAX_REPLICAS
-          value: "16"
+          value: "20"
         - name: COOLDOWN
           value: "240s"
         - name: BIDSQUERY

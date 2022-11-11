@@ -7,6 +7,7 @@ import subprocess
 import os
 import traceback
 from kubernetes import client, config, utils
+from timeit import default_timer as timer
 
 def writeConfig(**kwargs):
     template = """apiVersion: batch/v1
@@ -45,6 +46,8 @@ spec:
           volumeMounts:
             - name: flink-config-volume
               mountPath: /opt/flink/conf
+            - name: my-pvc-nfs
+              mountPath: /opt/flink/savepoints
           securityContext:
             runAsUser: 0  # refers to user _flink_ from official flink image, change if necessary
       volumes:
@@ -55,7 +58,10 @@ spec:
               - key: flink-conf.yaml
                 path: flink-conf.yaml
               - key: log4j-console.properties
-                path: log4j-console.properties"""
+                path: log4j-console.properties
+        - name: my-pvc-nfs
+          persistentVolumeClaim:
+            claimName: nfs """
 
     with open('jobmanager_from_savepoint.yaml', 'w') as yfile:
         yfile.write(template.format(**kwargs))
@@ -97,6 +103,8 @@ time_after_delete_pod = int(os.environ['DELETE_TIME_POD'])
 time_after_savepoint = int(os.environ['SAVEPOINT_TIME'])
 input_rate_multiplier = float(os.environ['INPUT_RATE_MULTIPLIER'])
 
+SAVEPOINT_IN_PROGRESS_STATUS = "IN_PROGRESS"
+SAVEPOINT_COMPLETED_STATUS = "COMPLETED"
 
 
 # lag_processing_time = 120
@@ -141,6 +149,9 @@ def run():
         input_rate_kafka = extract_topic_input_rate(input_rate_kafka)
         lag = extract_per_operator_metrics(lag)
         source_true_processing = extract_per_operator_metrics(true_processing)
+        # a flag for when rescaling is not possible due to insufficient resources.
+        insufficient_resources = False
+
 
         try:
             del input_rate_kafka["__consumer_offsets"]
@@ -230,7 +241,10 @@ def run():
                     writer.writerow(row)
         print("Wrote topology file")
 
+        print("Start scaling policy.")
+        start_time = timer()
         ds2_model_result = subprocess.run(["cargo", "run", "--release", "--bin", "policy", "--", "--topo", "ds2_query_data/flink_topology_" + query + "2.csv", "--rates", "ds2_query_data/flink_rates_" + query + ".log", "--source-rates", "ds2_query_data/" + query + "_source_rates.csv", "--system", "flink"], capture_output=True)
+        print("Scaling module took ", timer() - start_time, "s.")
         output_text = ds2_model_result.stdout.decode("utf-8").replace("\n", "")
         output_text_values = output_text.split(",")
         suggested_parallelism = {}
@@ -257,15 +271,21 @@ def run():
 
         number_of_taskmanagers = 0
         for key, val in suggested_parallelism.items():
-            number_of_taskmanagers = max(number_of_taskmanagers, int(val))
+            number_of_taskmanagers = number_of_taskmanagers +int(val)
 
         print("Suggested number of taskmanagers", number_of_taskmanagers)
 
-
+        # max_replicas is the maximum amount of taskmanagers our cluster can host. 
+        # min_replicas is the minimum amount of taskmanagers the job needs to run. Every operator needs at least one taskmanager.
         if number_of_taskmanagers > max_replicas:
-            number_of_taskmanagers = 16
-        if number_of_taskmanagers <= 0:
-            number_of_taskmanagers = 1
+            number_of_taskmanagers = max_replicas
+            insufficient_resources = True
+        if number_of_taskmanagers <= min_replicas:
+            number_of_taskmanagers = min_replicas
+
+        if(insufficient_resources):
+            print("Rescaling not feasible. Insufficient resources.")
+
 
         # autenticate with kubernetes API
         config.load_incluster_config()
@@ -282,18 +302,35 @@ def run():
             current_number_of_taskmanagers = int(i.spec.replicas)
         print("current number of taskmanagers: " + str(current_number_of_taskmanagers))
 
-        if current_number_of_taskmanagers != number_of_taskmanagers and float(previous_scaling_event) == 0 :
+        if current_number_of_taskmanagers != number_of_taskmanagers and float(previous_scaling_event) == 0 and not insufficient_resources:
             savepoint = requests.post("http://flink-jobmanager-rest:8081/jobs/" + job_id + "/savepoints")
 
             # sleep so savepoint can be taken
             time.sleep(time_after_savepoint)
             trigger_id = savepoint.json()['request-id']
             savepoint_name = requests.get("http://flink-jobmanager-rest:8081/jobs/" + job_id + "/savepoints/" + trigger_id)
+            print(json.dumps(savepoint_name.json(), indent=4))
             savepoint_path = savepoint_name.json()["operation"]["location"]
             print(savepoint_path)
 
             stop_request = requests.post("http://flink-jobmanager-rest:8081/jobs/" + job_id + "/stop")
             print(stop_request)
+
+                # Job stopping is an async operation, we need to query the status before we can continue
+            status = SAVEPOINT_IN_PROGRESS_STATUS
+            while status == SAVEPOINT_IN_PROGRESS_STATUS:
+                r = requests.get(f'http://flink-jobmanager-rest:8081/jobs/{job_id}/savepoints/{trigger_id}')
+                print("REQ2 RES - CHECKING:")
+                print(r.json())
+                status = r.json()["status"]["id"]
+                time.sleep(1)
+
+            if status == SAVEPOINT_COMPLETED_STATUS:
+                # global save_point_path
+                print("REQ2 RES - FINAL:")
+                print(r.json())
+                save_point_path = r.json()["operation"]["location"]
+                print("Current save point is located at: ", save_point_path)
 
             if query == "query-1":
                 p1 = suggested_parallelism['Source:_BidsSource']
