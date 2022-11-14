@@ -8,8 +8,8 @@ echo "Undeploying autoscaler: $AUTOSCALER"
 
 case $AUTOSCALER in
   "dhalion")
-    kubectl delete --wait=true -f ../yamls/autoscaler/dhalion/dhalion_rbac_rules.yaml
-    kubectl delete --wait=true -f ../yamls/autoscaler/dhalion/dhalion-deployment_v2.yaml
+    kubectl delete --wait=true -f ../yamls/autoscalers/dhalion/dhalion_rbac_rules.yaml
+    kubectl delete --wait=true -f ../yamls/autoscalers/dhalion/dhalion-deployment_v2.yaml
   ;;
   "ds2-original")
     kubectl delete --wait=true -f ../yamls/autoscaler/ds2/rules_ds2.yaml

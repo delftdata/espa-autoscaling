@@ -36,7 +36,7 @@ from HPA import HPA
 
 if __name__ == "__main__":
     configs = Configurations()
-    configs.PROMETHEUS_SERVER = "34.91.91.253:9090"
-    configs.FLINK_JOBMANAGER_SERVER = "34.91.68.163:8081"
+    configs.PROMETHEUS_SERVER = "34.91.198.154:9090"
+    configs.FLINK_JOBMANAGER_SERVER = "34.91.18.96:8081"
     gatherer = MetricGatherer(configs)
-    print(gatherer.jobTopologyData_getTopology())
+    print(gatherer.jobTopologyData_getOperatorHostMapping())

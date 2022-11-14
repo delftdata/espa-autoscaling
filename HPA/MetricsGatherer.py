@@ -59,18 +59,60 @@ class MetricGatherer:
         return TaskmanagerJVM_CPUUsage
 
 
-
-
     def __jobTopologyData_getJobId(self) -> int:
         job_id_json = requests.get(f"http://{self.configurations.FLINK_JOBMANAGER_SERVER}/jobs/")
         job_id = job_id_json.json()['jobs'][0]['id']
         return job_id
+
+    def __jobTopologyData_getJobJson(self, job_id=None):
+        if not job_id:
+            job_id = self.__jobTopologyData_getJobId()
+        job_plan_json = requests.get(f"http://{self.configurations.FLINK_JOBMANAGER_SERVER}/jobs/{job_id}").json()
+        return job_plan_json
 
     def __jobTopologyData_getJobPlanJson(self, job_id=None):
         if not job_id:
             job_id = self.__jobTopologyData_getJobId()
         job_plan_json = requests.get(f"http://{self.configurations.FLINK_JOBMANAGER_SERVER}/jobs/{job_id}/plan").json()
         return job_plan_json
+
+    def __jobTopologyData_getVerticeJSON(self, vertice_id, job_id=None):
+        if not job_id:
+            job_id = self.__jobTopologyData_getJobId()
+        vertice_json = requests.get(f"http://{self.configurations.FLINK_JOBMANAGER_SERVER}/jobs/{job_id}/vertices/{vertice_id}").json()
+        return vertice_json
+
+    def __jobTopologyData_getVerticeJSONs(self, job_id= None, job=None) -> [str]:
+        if not job_id:
+            job_id = self.__jobTopologyData_getJobId()
+            job = self.__jobTopologyData_getJobJson(job_id)
+        if not job:
+            job = self.__jobTopologyData_getJobJson(job_id)
+
+        vertice_jsons = []
+        for vertice_json in job['vertices']:
+            vertice_id = vertice_json['id']
+            vertice_json = self.__jobTopologyData_getVerticeJSON(vertice_id, job_id)
+            vertice_jsons.append((vertice_json))
+        return vertice_jsons
+
+    def jobTopologyData_getOperatorHostMapping(self, job_id=None, job=None):
+        if not job_id:
+            job_id = self.__jobTopologyData_getJobId()
+            job = self.__jobTopologyData_getJobJson(job_id)
+        if not job:
+            job = self.__jobTopologyData_getJobJson(job_id)
+
+        verticeJSONs = self.__jobTopologyData_getVerticeJSONs()
+        taskmanagerMapping = {}
+        for verticeJSON in verticeJSONs:
+            operator = verticeJSON['name']
+            taskmanager_ids = []
+            for subtask_json in verticeJSON['subtasks']:
+                taskmanager_ids.append(subtask_json['taskmanager-id'])
+            taskmanagerMapping[operator] = taskmanager_ids
+        return taskmanagerMapping
+
 
     def jobTopologyData_getOperators(self, jobPlan=None) -> {str, int}:
         if not jobPlan:
@@ -113,7 +155,6 @@ class MetricGatherer:
                         node_in_name = id_operator_mapping[edge_in_operator_id]
                         topology.append((node_in_name, node_name))
         return topology
-
 
 
 
