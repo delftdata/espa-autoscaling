@@ -185,7 +185,7 @@ class MetricsGatherer:
     def gatherReady_UnReadyTaskmanagerMapping(self):
         """
         Get a tuple of two mappings:
-            operator -> list of ready operators (Longer alive than initial readyness delay and status = RUNNING)
+            operator -> list of ready operators (status = RUNNING)
             operator -> list of non-ready operators (other)
         :return: ({operator -> [taskmanager]}, {operator -> [taskmanager]}
         """
@@ -199,15 +199,12 @@ class MetricsGatherer:
             if operator in operator_taskmanager_information:
                 ready_taskmanagers = []
                 nonready_taskmanagers = []
-                print(operator_taskmanager_information[operator])
                 for tm_id, status, duration_ms in operator_taskmanager_information[operator]:
                     taskmanager = tm_id.replace(".", "_").replace("-", "_")
-                    if duration_ms / 1000 > self.configurations.HPA_AUTOSCALER_INITIAL_READINESS_DELAY_SECONDS:
-                        if status == "RUNNING":
-                            ready_taskmanagers.append(taskmanager)
-                            continue
-                    nonready_taskmanagers.append(taskmanager)
-                    continue
+                    if status == "RUNNING":
+                        ready_taskmanagers.append(taskmanager)
+                    else:
+                        nonready_taskmanagers.append(taskmanager)
                 operator_ready_taskmanagers[operator] = ready_taskmanagers
                 operator_nonready_taskmanagers[operator] = nonready_taskmanagers
             else:

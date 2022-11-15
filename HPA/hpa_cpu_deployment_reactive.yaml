@@ -43,6 +43,8 @@ spec:
           value: "0.7"
         - name: HPA_MAX_INITIALIZATION_TRIES # 5 is default
           value: "5"
+        - name: HPA_COOLDOWN_PERIOD_SECONDS # 120 is default
+          value: "120"
         - name: PYTHONUNBUFFERED
           value: "1"
         - name: PYTHONIOENCODING
