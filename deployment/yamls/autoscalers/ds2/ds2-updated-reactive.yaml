@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: python-container
-        image: 9923/ds2:24
+        image: gsiachamis/ds2:1.0
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
@@ -27,7 +27,7 @@ spec:
         - name: CONTAINER
           value: "9923/experiments:31"
         - name: JOB
-          value: "ch.ethz.systems.strymon.ds2.flink.nexmark.queries.Query1KafkaSource"  
+          value: "ch.ethz.systems.strymon.ds2.flink.nexmark.queries.updated.Query1KafkaSource"  
         - name: PYTHONUNBUFFERED
           value: "1"
         - name: PYTHONIOENCODING
