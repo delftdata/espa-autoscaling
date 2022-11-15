@@ -1,3 +1,4 @@
+import statistics
 import traceback
 import time
 
@@ -45,21 +46,71 @@ def HPA_Run(configurations: Configurations):
         time.sleep(configurations.HPA_SYNC_PERIOD_SECONDS)
 
         # Gather metrics:
-        avg_cpu_usages: float = metricsGatherer.gatherAvgCPUUsagePerOperator()
+
+        operator_ready_taskmanagers, operator_unready_taskmanagers = metricsGatherer.gatherReady_UnReadyTaskmanagerMapping()
+        taskmanager_cpu_usages = metricsGatherer.prometheusMetricGatherer.getTaskmanagerJVMCPUUSAGE()
         currentParallelisms = metricsGatherer.fetchCurrentOperatorParallelismInformation(knownOperators=operators)
 
-        # Calculate desired parallelisms based on metrics
-        desiredParallelisms = hpa.calculateAllDesiredParallelisms(
-            avg_cpu_usages,
-            currentParallelisms,
-            configurations.HPA_TARGET_VALUE
-        )
+        # Per operator, calculate desired parallelism.
+        desiredParallelisms = {}  # save desired parallelisms for debug purposes
+        for operator in operators:
 
-        # Add desired parallelisms to scale-down window
-        if len(desiredParallelisms) != len(operators):
-            print(f"Warning: desired parallelisms '{desiredParallelisms}' does not contain all operators '{operators}.")
-        for operator in desiredParallelisms.keys():
-            hpa.addDesiredParallelismForOperator(operator,  desiredParallelisms[operator])
+            # Check if all metrics are available for operator
+            if operator not in operator_ready_taskmanagers:
+                print(f"Error: operator '{operator}' not found in operator_ready_taskmanagers '{operator_ready_taskmanagers}'")
+                continue
+            if operator not in operator_unready_taskmanagers:
+                print(f"Error: operator '{operator}' not found in operator_unready_taskmanagers '{operator_unready_taskmanagers}'")
+                continue
+            if operator not in currentParallelisms:
+                print(f"Error: operator '{operator}' not found in current parallelisms '{currentParallelisms}'")
+                continue
+
+            ready_taskmanagers = operator_ready_taskmanagers[operator]
+            unready_taskmanagers = operator_unready_taskmanagers[operator]
+
+            # Calculate the scale_factor of the ready taskmanagers
+            ready_CPU_usages = metricsGatherer.gatherCPUUsageOfTaskmanagers(ready_taskmanagers, taskmanager_cpu_usages)
+            if len(ready_CPU_usages) <= 0:
+                print(f"Error: list of ready_CPU_usages is empty: 'ready_CPU_usages'. ")
+                print(f"Metrics used: read_taskmanagers: '{ready_taskmanagers}', cpu_usages '{taskmanager_cpu_usages}'")
+                continue
+
+            ready_average_CPU_value = statistics.mean(ready_CPU_usages)
+            ready_scale_factor = hpa.calculateScaleRatio(ready_average_CPU_value, configurations.HPA_TARGET_VALUE)
+            operator_scale_factor = ready_scale_factor
+
+            print(f"Ready taskmanagers {ready_taskmanagers}, operator_scale_factor = {operator_scale_factor}")
+
+            # If we have unready taskmanagers, calculate scale_factor of them
+            if len(unready_taskmanagers) > 0:
+                print("Checking whether scale_factor still holds when taking unready taskmanagers into consideration")
+
+                assumed_metric = 1 if ready_scale_factor < 1 else 0
+                all_CPU_usages = ready_CPU_usages + [assumed_metric for _ in unready_taskmanagers]
+                if len(all_CPU_usages) <= 0:
+                    print(f"Error: list of all_CPU_usages is empty: '{all_CPU_usages}'. ")
+                    print(
+                        f"Metrics used: unready_taskmanagers: '{unready_taskmanagers}', all_CPU_usages '{all_CPU_usages}'")
+                    continue
+
+                all_average_CPU_value = statistics.mean(all_CPU_usages)
+                all_ready_scale_factor = hpa.calculateScaleRatio(all_average_CPU_value, configurations.HPA_TARGET_VALUE)
+                print(f"Unready taskmanagers {unready_taskmanagers}, scalefactor: {all_ready_scale_factor}")
+
+                if (all_ready_scale_factor < 1 and ready_scale_factor < 1) \
+                        or (all_ready_scale_factor > 1 and ready_scale_factor > 1):
+                    operator_scale_factor = all_ready_scale_factor
+                else:
+                    operator_scale_factor = 1
+
+            print(f"operator_scale_factor: {operator_scale_factor}")
+
+            currentParallelism = currentParallelisms[operator]
+            desiredParallelism = hpa.calculateDesiredParallelism(operator_scale_factor, currentParallelism)
+            hpa.addDesiredParallelismForOperator(operator, desiredParallelism)
+
+            desiredParallelisms[operator] = desiredParallelism # save desired parallelism for debug purpose
 
         # Get maximum desired parallelisms from scale-down window
         allMaximumDesiredParallelisms: {str, int} = hpa.getAllMaximumParallelismsFromWindow(operators)
@@ -93,6 +144,10 @@ def HPA_Run(configurations: Configurations):
 if __name__ == "__main__":
     print(f"Running HPA Autoscaler with the following configurations:")
     configs: Configurations = Configurations()
+    configs.PROMETHEUS_SERVER = "34.91.177.156:9090"
+    configs.FLINK_JOBMANAGER_SERVER = "35.204.189.88:8081"
+    configs.SCALE_DOWN_WINDOW_SECONDS = 30
+    configs.USE_FLINK_REACTIVE = False
     configs.printConfigurations()
     for i in range(1, configs.HPA_MAX_INITIALIZATION_TRIES+1):
         try:

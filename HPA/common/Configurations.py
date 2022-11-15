@@ -21,6 +21,8 @@ class Configurations:
 
     HPA_MAX_INITIALIZATION_TRIES = int(os.environ.get("HPA_MAX_INITIALIZATION_TRIES", 5))
 
+    HPA_AUTOSCALER_INITIAL_READINESS_DELAY_SECONDS = int(os.environ.get("HPA_AUTOSCALER_INITIAL_READINESS_DELAY", 30))
+
     def printConfigurations(self):
         print(f"\tUSE_FLINK_REACTIVE: {self.USE_FLINK_REACTIVE}")
         print(f"\tPROMETHEUS_SERVER: {self.PROMETHEUS_SERVER}")
@@ -31,3 +33,5 @@ class Configurations:
         print(f"\tHPA_SYNC_PERIOD_SECONDS: {self.HPA_SYNC_PERIOD_SECONDS}")
         print(f"\tSCALE_DOWN_WINDOW_SECONDS: {self.SCALE_DOWN_WINDOW_SECONDS}")
         print(f"\tHPA_TARGET_VALUE: {self.HPA_TARGET_VALUE}")
+        print(f"\tHPA_AUTOSCALER_INITIAL_READINESS_DELAY_SECONDS: "
+              f"{self.HPA_AUTOSCALER_INITIAL_READINESS_DELAY_SECONDS}")

@@ -51,7 +51,7 @@ class JobManagerMetricGatherer:
             vertice_jsons.append(vertice_json)
         return vertice_jsons
 
-    def getOperatorHostMapping(self, job_id=None, job=None):
+    def getOperatorHostInformation(self, job_id=None, job=None):
         if not job_id:
             job_id = self.__getJobId()
             job = self.__getJobJson(job_id)
@@ -62,10 +62,10 @@ class JobManagerMetricGatherer:
         taskmanagerMapping = {}
         for verticeJSON in verticeJSONs:
             operator = verticeJSON['name']
-            taskmanager_ids = []
+            taskmanager_information = []
             for subtask_json in verticeJSON['subtasks']:
-                taskmanager_ids.append(subtask_json['taskmanager-id'])
-            taskmanagerMapping[operator] = taskmanager_ids
+                taskmanager_information.append((subtask_json['taskmanager-id'], subtask_json['status'], subtask_json['duration']))
+            taskmanagerMapping[operator] = taskmanager_information
         return taskmanagerMapping
 
     def getOperators(self, jobPlan=None) -> {str, int}:
@@ -181,31 +181,62 @@ class MetricsGatherer:
         self.jobmanagerMetricGatherer = JobManagerMetricGatherer(configurations)
         self.prometheusMetricGatherer = PrometheusMetricGatherer(configurations)
 
-    def gatherAvgCPUUsagePerOperator(self):
-        taskmanager_CPUUsages = self.prometheusMetricGatherer.getTaskmanagerJVMCPUUSAGE()
-        operator_taskmanager_mapping = self.jobmanagerMetricGatherer.getOperatorHostMapping()
+
+    def gatherReady_UnReadyTaskmanagerMapping(self):
+        """
+        Get a tuple of two mappings:
+            operator -> list of ready operators (Longer alive than initial readyness delay and status = RUNNING)
+            operator -> list of non-ready operators (other)
+        :return: ({operator -> [taskmanager]}, {operator -> [taskmanager]}
+        """
+        operator_taskmanager_information = self.jobmanagerMetricGatherer.getOperatorHostInformation()
         operators = self.jobmanagerMetricGatherer.getOperators()
 
-        operator_CPUUsage = {}
+        operator_ready_taskmanagers = {}
+        operator_nonready_taskmanagers = {}
+
         for operator in operators:
-            CPUUsages = []
-            if operator in operator_taskmanager_mapping:
-                for tm_id in operator_taskmanager_mapping[operator]:
-                    # operator from jobmanager contains _ instead of . and -
+            if operator in operator_taskmanager_information:
+                ready_taskmanagers = []
+                nonready_taskmanagers = []
+                print(operator_taskmanager_information[operator])
+                for tm_id, status, duration_ms in operator_taskmanager_information[operator]:
                     taskmanager = tm_id.replace(".", "_").replace("-", "_")
-                    if taskmanager in taskmanager_CPUUsages:
-                        CPUUsages.append(taskmanager_CPUUsages[taskmanager])
-                    else:
-                        print(f"Error: did not find CPUUsage of taskmanager '{taskmanager}' in {taskmanager_CPUUsages}")
+                    if duration_ms / 1000 > self.configurations.HPA_AUTOSCALER_INITIAL_READINESS_DELAY_SECONDS:
+                        if status == "RUNNING":
+                            ready_taskmanagers.append(taskmanager)
+                            continue
+                    nonready_taskmanagers.append(taskmanager)
+                    continue
+                operator_ready_taskmanagers[operator] = ready_taskmanagers
+                operator_nonready_taskmanagers[operator] = nonready_taskmanagers
             else:
                 print(
-                    f"Error: did not find operator '{operator} in operator_taskmanager_mapping '{operator_taskmanager_mapping}'")
-            if len(CPUUsages) > 0:
-                operator_CPUUsage[operator] = statistics.mean(CPUUsages)
+                    f"Error: did not find operator '{operator} in operator_taskmanager_information "
+                    f"'{operator_taskmanager_information}'")
+                operator_ready_taskmanagers[operator] = []
+                operator_nonready_taskmanagers[operator] = []
+        return operator_ready_taskmanagers, operator_nonready_taskmanagers
+
+
+    def gatherCPUUsageOfTaskmanagers(self, taskmanagers: [str], taskmanager_CPUUsages=None) -> [float]:
+        """
+        Given a list of taskmanagers. Fetch their CPU_usage and add them to a list.
+        If CPU_usage is unavailable, add taskmanager_unavailable_value. Add nothing if taskmanager_unavailable_value is None.
+        :param taskmanagers: Taskmanagers to fetch CPU usage from
+        :param taskmanager_CPUUsages: Optional variable containing all taskmanagers CPU usages
+        :return: List of CPU_values belonging to the taskmanagers
+        """
+        if not taskmanager_CPUUsages:
+            taskmanager_CPUUsages = self.prometheusMetricGatherer.getTaskmanagerJVMCPUUSAGE()
+        cpu_usages = []
+        for taskmanager in taskmanagers:
+            if taskmanager in taskmanager_CPUUsages:
+                cpu_usages.append(taskmanager_CPUUsages[taskmanager])
             else:
-                operator_CPUUsage[operator] = 0
-                print(f"Error: did not find any CPUUsages for operator {operator}")
-        return operator_CPUUsage
+                print(f"Error: taskmanager '{taskmanager}' not found in cpu_usages '{cpu_usages}'")
+        return cpu_usages
+
 
     # Metrics gathering
     def gatherUtilizationMetrics(self) -> {str, int}:

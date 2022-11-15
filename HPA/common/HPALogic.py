@@ -75,45 +75,27 @@ class HPALogic:
             allMaximumParallelisms[operator] = self.__getMaximumParallelismOfOperatorFromWindow(operator)
         return allMaximumParallelisms
 
-    def __calculateDesiredParallelism(self, current_metric_variable: float, target_metric_variable: float,
-                                      current_parallelism):
+
+    def calculateScaleRatio(self, current_metric_variable: float, target_metric_variable: float):
         """
-        Given a current metric value, the target metric value and the current parallelism.
-        Calculate the desired parallelism.
-        Desired parallelism is set between MAX_PARALLELISM and MIN_PARALLELISM
-        :param current_metric_variable: Current metric value
-        :param target_metric_variable: Target metric value
-        :param current_parallelism: Current parallelism of operator
-        :return: Desired parallelism of operator
+        Calcualte the scale ratio based on the current_metric_variable and the target_metric_variable
+        :param current_metric_variable: Current metric variable
+        :param target_metric_variable: Target metric variable
+        :return: Scale factor calculated by current_metric_variable / target_metric_variable
         """
-        multiplier: float = current_metric_variable / target_metric_variable
-        new_desired_parallelism = math.ceil(current_parallelism * multiplier)
+        scaleRatio = current_metric_variable / target_metric_variable
+        return scaleRatio
+
+
+    def calculateDesiredParallelism(self, scale_factor: float, current_parallelism):
+        """
+        Based on the scale_factor and the current_parallelism. Determine the desired parallelism.
+        The desired_parallelism should be in range between (MIN_PARALLELISM and MAX_PARALLELISM)
+        :param scale_factor: scale_factor to scale operator by
+        :param current_parallelism: current parallelism of operator
+        :return: desired parallelism of operator
+        """
+        new_desired_parallelism = math.ceil(current_parallelism * scale_factor)
         new_desired_parallelism = min(new_desired_parallelism, self.configurations.MAX_PARALLELISM)
         new_desired_parallelism = max(new_desired_parallelism, self.configurations.MIN_PARALLELISM)
         return new_desired_parallelism
-
-    def calculateAllDesiredParallelisms(self, operatorMetrics: {str, float}, current_parallelisms: {str, float},
-                                        targetValue):
-        """
-        Given all operatorMetrics, currentParallelisms and targetvalue, calculate for all autoscalers the desired
-        parallelism.
-        :param operatorMetrics: Current metrics per operator. Directory with {operatorName, current Metric}
-        :param current_parallelisms: Current parallelisms per operator. Direcotry with {operatorName, current Metric}
-        :param targetValue:
-        :return:
-        """
-        desiredParallelisms = {}
-        for operator in operatorMetrics.keys():
-            if operator not in operatorMetrics.keys():
-                print(f"Error: did not find metric of operator {operator}  in {operatorMetrics}")
-                continue
-            operatorMetric = operatorMetrics[operator]
-
-            if operator not in current_parallelisms.keys():
-                print(f"Error: did not find parallelism of operator {operator}  in {current_parallelisms}")
-                continue
-            operatorParallelism = current_parallelisms[operator]
-
-            desiredParallelism = self.__calculateDesiredParallelism(operatorMetric, targetValue, operatorParallelism)
-            desiredParallelisms[operator] = desiredParallelism
-        return desiredParallelisms
