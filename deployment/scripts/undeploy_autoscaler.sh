@@ -20,7 +20,8 @@ case $AUTOSCALER in
     kubectl delete --wait=true -f ../yamls/autoscalers/ds2/ds2-updated-"$MODE".yaml
   ;;
   "HPA")
-    kubectl delete --wait=true -f ../yamls/autoscalers/hpa/cpu-hpa-stabelized.yaml
+    kubectl delete --wait=true -f ../yamls/autoscalers/hpa/hpa-rbac-rules.yaml
+    kubectl delete --wait=true -f ../yamls/autoscalers/hpa/hpa-cpu-"$MODE".yaml
   ;;
   "varga1")
     helm repo remove prometheus-community

@@ -24,7 +24,8 @@ case $AUTOSCALER in
     envsubst < ../yamls/autoscalers/ds2/ds2-updated-"$MODE".yaml | kubectl apply -f -
     ;;
   "HPA")
-    envsubst < ../yamls/autoscalers/hpa/cpu-hpa-stabelized.yaml | kubectl apply -f -
+    kubectl apply -f ../yamls/autoscalers/hpa/hpa-rbac-rules.yaml
+    envsubst < ../yamls/autoscalers/hpa/hpa-cpu-"$MODE".yaml | kubectl apply -f -
     ;;
   "varga1")
     helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
