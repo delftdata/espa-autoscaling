@@ -24,4 +24,4 @@ spec:
             cpu: 2500m
             memory: 2500Mi
         env:
-        args: ["mvn", "exec:java", "-Dexec.mainClass=ch.ethz.systems.strymon.ds2.flink.nexmark.sources.BidPersonGeneratorKafka", "-Dexec.args= --enable-bids-topic true --enable-person-topic true --load-pattern 'cosine' --query 3"]
+        args: ["mvn", "exec:java", "-Dexec.mainClass=ch.ethz.systems.strymon.ds2.flink.nexmark.sources.BidPersonGeneratorKafka", "-Dexec.args= --enable-auction-topic true --enable-person-topic true --load-pattern 'cosine' --query 3"]
