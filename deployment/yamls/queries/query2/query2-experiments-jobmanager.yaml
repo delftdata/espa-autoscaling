@@ -1,0 +1,69 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: flink-jobmanager
+spec:
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: '9249'
+        # prometheus.io/scrape: 'true'
+        ververica.com/scrape_every_2s: 'true'
+      labels:
+        app: flink
+        component: jobmanager
+    spec:
+      restartPolicy: OnFailure
+      initContainers:
+        - name: take-data-dir-ownership
+          image: alpine:3
+          command:
+          - chmod
+          - ugo+rwx
+          - savepoints
+          volumeMounts:
+          - name: my-pvc-nfs
+            mountPath: /savepoints
+      containers:
+        - name: jobmanager
+          image: gsiachamis/flink-nexmark-queries:1.0
+          imagePullPolicy: Always
+          securityContext:
+            runAsUser: 0
+          env:
+          args: ["standalone-job", "--job-classname", "ch.ethz.systems.strymon.ds2.flink.nexmark.queries.updated.Query2KafkaSource", "--source-max-parallelism", "20", "--slot-sharing", "false"]
+          # args: ["standalone-job", "--job-classname", "org.apache.flink.DemoJob", "--fromSavepoint", "/opt/flink/savepoints/savepoint-ache.flink.DemoJob", "--fromSavepoint", "/opt/flink/savepoints/savepoint-340664-9060d916d03f", "--topic", "topic", "--bootstrap.servers", "kafka-service:9092", "--group.id", "yolo", "--p1", "1", "--p2", "2", --p3, "1"]
+          # args: ["standalone-job", "--job-classname", "org.apache.flink.DemoJob", "--topic", "topic", "--bootstrap.servers", "kafka-service:9092", "--group.id", "yolo"]
+          ports:
+            - containerPort: 6123
+              name: rpc
+            - containerPort: 6124
+              name: blob-server
+            - containerPort: 8081
+              name: webui
+          livenessProbe:
+            tcpSocket:
+              port: 6123
+            initialDelaySeconds: 30
+            periodSeconds: 60
+          volumeMounts:
+            - name: flink-config-volume
+              mountPath: /opt/flink/conf
+            - name: my-pvc-nfs
+              mountPath: /opt/flink/savepoints   
+      securityContext:
+        fsGroup: 1000
+      volumes:
+        - name: flink-config-volume
+          configMap:
+            name: flink-config
+            items:
+              - key: flink-conf.yaml
+                path: flink-conf.yaml
+              - key: log4j-console.properties
+                path: log4j-console.properties
+        - name: my-pvc-nfs
+          persistentVolumeClaim:
+            claimName: nfs      
+        
+
