@@ -1,9 +1,9 @@
 import math
 import time
-from Configurations import Configurations
+from .Configurations import Configurations
 
 
-class HPA:
+class HPALogic:
     configurations: Configurations
 
     """
@@ -26,18 +26,21 @@ class HPA:
         :param desiredParallelism: desired parallelism of operator
         :return: None
         """
-        if not operator in self.desiredParallelisms.keys():
+        if operator not in self.desiredParallelisms.keys():
             self.desiredParallelisms[operator] = []
         self.desiredParallelisms[operator].append((time.time(), desiredParallelism))
 
-    def updateScaleDownWindow(self):
+    def __updateScaleDownWindow(self):
         """
         Update desiredParallelisms based on the scale-down operator
         :return:
         """
         for operator in self.desiredParallelisms.keys():
             parallelisms = self.desiredParallelisms[operator]
-            updated_parallelisms = list(filter(lambda v: time.time() - v[0] <= self.configurations.SCALE_DOWN_WINDOW_SECONDS, parallelisms))
+            updated_parallelisms = list(filter(
+                lambda v: time.time() - v[0] <= self.configurations.SCALE_DOWN_WINDOW_SECONDS,
+                parallelisms
+            ))
             self.desiredParallelisms[operator] = updated_parallelisms
 
     def getKnownOperators(self):
@@ -47,7 +50,7 @@ class HPA:
         """
         return self.desiredParallelisms.keys()
 
-    def getMaximumParallelismOfOperator(self, operator):
+    def __getMaximumParallelismOfOperatorFromWindow(self, operator):
         """
         Get the maximum parallelism for operator {operator}
         :param operator: Operator to get maximum parallelism for
@@ -58,13 +61,22 @@ class HPA:
             if len(parallelisms) > 0:
                 return max(parallelisms)
             else:
-                print(f"Error: failed fetching maximum parallelism of operator {operator}: no desired parallelisms found")
+                print(f"Error: failed fetching max parallelism of operator {operator}: no desired parallelisms found")
                 return -1
         else:
             print(f"Error: failed fetching maximum parallelism of operator {operator}: operator unknown")
             return -1
 
-    def __calculateDesiredParallelism(self, current_metric_variable: float, target_metric_variable: float, current_parallelism):
+
+    def getAllMaximumParallelismsFromWindow(self, operators: [str]) -> {str, int}:
+        self.__updateScaleDownWindow()
+        allMaximumParallelisms: {str, int} = {}
+        for operator in operators:
+            allMaximumParallelisms[operator] = self.__getMaximumParallelismOfOperatorFromWindow(operator)
+        return allMaximumParallelisms
+
+    def __calculateDesiredParallelism(self, current_metric_variable: float, target_metric_variable: float,
+                                      current_parallelism):
         """
         Given a current metric value, the target metric value and the current parallelism.
         Calculate the desired parallelism.
@@ -80,7 +92,8 @@ class HPA:
         new_desired_parallelism = max(new_desired_parallelism, self.configurations.MIN_PARALLELISM)
         return new_desired_parallelism
 
-    def calculateAllDesiredParallelisms(self, operatorMetrics: {str, float}, current_parallelisms: {str, float}, targetValue):
+    def calculateAllDesiredParallelisms(self, operatorMetrics: {str, float}, current_parallelisms: {str, float},
+                                        targetValue):
         """
         Given all operatorMetrics, currentParallelisms and targetvalue, calculate for all autoscalers the desired
         parallelism.
@@ -91,10 +104,16 @@ class HPA:
         """
         desiredParallelisms = {}
         for operator in operatorMetrics.keys():
-            if operator in current_parallelisms.keys():
-                desiredParallelism = self.__calculateDesiredParallelism(operatorMetrics, targetValue)
-                desiredParallelisms[operator] = desiredParallelism
-            else:
-                print(f"Error: did not find parallelism of operator {operator}  in {current_parallelisms}")
-        return desiredParallelisms
+            if operator not in operatorMetrics.keys():
+                print(f"Error: did not find metric of operator {operator}  in {operatorMetrics}")
+                continue
+            operatorMetric = operatorMetrics[operator]
 
+            if operator not in current_parallelisms.keys():
+                print(f"Error: did not find parallelism of operator {operator}  in {current_parallelisms}")
+                continue
+            operatorParallelism = current_parallelisms[operator]
+
+            desiredParallelism = self.__calculateDesiredParallelism(operatorMetric, targetValue, operatorParallelism)
+            desiredParallelisms[operator] = desiredParallelism
+        return desiredParallelisms
