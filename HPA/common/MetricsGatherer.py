@@ -152,10 +152,28 @@ class PrometheusMetricGatherer:
         Get the CPU usage of every taskmanager
         :return:
         """
-        TaskmanagerJVM_CPUUsage_query = f"avg_over_time(flink_taskmanager_Status_JVM_CPU_Load[{self.configurations.METRIC_AGGREGATION_PERIOD_SECONDS}s])"
+        TaskmanagerJVM_CPUUsage_query = f"avg_over_time(flink_taskmanager_Status_JVM_CPU_Load" \
+                                        f"[{self.configurations.METRIC_AGGREGATION_PERIOD_SECONDS}s])"
         TaskmanagerJVM_CPUUsage_data = self.__getResultsFromPrometheus(TaskmanagerJVM_CPUUsage_query)
         TaskmanagerJVM_CPUUsage = self.__extract_per_taskmanager_metrics(TaskmanagerJVM_CPUUsage_data)
         return TaskmanagerJVM_CPUUsage
+
+    def getOperatorIdleTimePerSecond(self) -> {str, float}:
+        """
+        Get idle time per second operators spend idle per task
+        :return: {operator:str -> idleTime per second: float}
+        """
+        idleTimeMsPerSecond_query = f"avg(avg_over_time(flink_taskmanager_job_task_idleTimeMsPerSecond" \
+                                    f"[{self.configurations.METRIC_AGGREGATION_PERIOD_SECONDS}s])/1000) by (task_name)"
+        idleTimeMsPerSecond_data = self.__getResultsFromPrometheus(idleTimeMsPerSecond_query)
+        idleTimeMsPerSecond = self.__extract_per_operator_metrics(idleTimeMsPerSecond_data)
+        return idleTimeMsPerSecond
+
+    def getSumBufferInUsageMetrics(self) -> {str, float}:
+        inputBufferUsageSum_query = "sum(avg_over_time(flink_taskmanager_job_task_buffers_inPoolUsage[1m])) by (task_name)"
+        inputBufferUsageSum_data = self.__getResultsFromPrometheus(inputBufferUsageSum_query)
+        inputBufferUsageSum = self.__extract_per_operator_metrics(inputBufferUsageSum_data)
+        return inputBufferUsageSum
 
     # Parallelism gathering
     def getCurrentParallelismMetrics(self) -> {str, int}:
@@ -236,15 +254,24 @@ class MetricsGatherer:
 
 
     # Metrics gathering
-    def gatherUtilizationMetrics(self) -> {str, int}:
+    def gatherUtilizationMetrics(self) -> {str, float}:
         """
         1 - (avg(flink_taskmanager_job_task_idleTimeMsPerSecond) by (<<.GroupBy>>) / 1000)
         :return:
         """
-        print("todo")
-        return None
+        idle_timeMetrics: {str, float} = self.prometheusMetricGatherer.getOperatorIdleTimePerSecond()
+        utilizationMetrics: {str, float} = {}
+        for operator in idle_timeMetrics.keys():
+            idle_time = idle_timeMetrics[operator]
+            utilizationMetrics[operator] = 1 - idle_time
+        return utilizationMetrics
+
 
     def gatherRelativeLagChangeMetrics(self) -> {str, int}:
+
+
+
+
         """
         ((
              sum(flink_taskmanager_job_task_operator_KafkaSourceReader_KafkaConsumer_records_lag_max * flink_taskmanager_job_task_operator_KafkaSourceReader_KafkaConsumer_assigned_partitions)

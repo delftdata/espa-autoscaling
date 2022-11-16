@@ -17,7 +17,6 @@ class Configurations:
     MAX_PARALLELISM = int(os.environ.get("MAX_PARALLELISM", 16))
     MIN_PARALLELISM = int(os.environ.get("MIN_PARALLELISM", 1))
 
-    HPA_TARGET_VALUE = float(os.environ.get("HPA_TARGET_VALUE", 0.7))
 
     HPA_MAX_INITIALIZATION_TRIES = int(os.environ.get("HPA_MAX_INITIALIZATION_TRIES", 5))
 
@@ -32,5 +31,22 @@ class Configurations:
         print(f"\tMETRIC_AGGREGATION_PERIOD_SECONDS: {self.METRIC_AGGREGATION_PERIOD_SECONDS}")
         print(f"\tHPA_SYNC_PERIOD_SECONDS: {self.HPA_SYNC_PERIOD_SECONDS}")
         print(f"\tSCALE_DOWN_WINDOW_SECONDS: {self.SCALE_DOWN_WINDOW_SECONDS}")
-        print(f"\tHPA_TARGET_VALUE: {self.HPA_TARGET_VALUE}")
         print(f"\tHPA_COOLDOWN_PERIOD_SECONDS: {self.HPA_COOLDOWN_PERIOD_SECONDS}")
+
+
+class ConfigurationsCPU(Configurations):
+    CPU_UTILIZATION_TARGET_VALUE = float(os.environ.get("CPU_UTILIZATION_TARGET_VALUE", 0.7))
+
+    def printConfigurations(self):
+        super().printConfigurations()
+        print(f"\tCPU_UTILIZATION_TARGET_VALUE: {self.CPU_UTILIZATION_TARGET_VALUE}")
+
+
+class ConfigurationsVarga(Configurations):
+    VARGA_UTILIZATION_TARGET_VALUE = float(os.environ.get("VARGA_UTILIZATION_TARGET_VALUE", 0.7))
+    VARGA_RELATIVE_LAG_CHANGE_TARGET_VALUE = float(os.environ.get("VARGA_RELATIVE_LAG_CHANGE_TARGET_VALUE", 1.0))
+
+    def printConfigurations(self):
+        super().printConfigurations()
+        print(f"\tVARGA_RELATIVE_LAG_CHANGE_TARGET_VALUE: {self.VARGA_RELATIVE_LAG_CHANGE_TARGET_VALUE}")
+        print(f"\tVARGA_UTILIZATION_TARGET_VALUE: {self.VARGA_UTILIZATION_TARGET_VALUE}")

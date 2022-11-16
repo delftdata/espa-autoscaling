@@ -1,5 +1,5 @@
 import traceback
-
+import time
 from .Configurations import Configurations
 
 
@@ -14,7 +14,7 @@ class ScaleManager:
         self.desiredParallelisms = {}
 
 
-    def scaleOperator(self, operator: str, desiredParallelism):
+    def __scaleOperator(self, operator: str, desiredParallelism):
         """
         TODO: implement operator-based scaling
         Perform a scaling operator for the operator.
@@ -29,7 +29,7 @@ class ScaleManager:
         print(f"TODO: Scale operator '{operator}' to parallelism '{desiredParallelism}'. ")
 
 
-    def adaptFlinkReactiveTaskmanagers(self, new_number_of_taskmanagers):
+    def __adaptFlinkReactiveTaskmanagers(self, new_number_of_taskmanagers):
         if not self.configurations.USE_FLINK_REACTIVE:
             print(f"Error: trying to scale taskmanagers with disabled Flink Reactive. Returning.")
             return
@@ -42,3 +42,26 @@ class ScaleManager:
                 pretty=True)
         except:
             traceback.print_exc()
+
+    def performScaleOperations(self, currentParallelisms: {str, int}, maximumDesiredParallelisms: {str, int},
+                               cooldownPeriod: int = None):
+        # Scale if current parallelism is different from desired parallelism
+        performedScalingOperation = False
+        if self.configurations.USE_FLINK_REACTIVE:
+            desiredTaskmanagersAmount = max(maximumDesiredParallelisms.values())
+            currentTaskmanagerAmount = max(currentParallelisms.values())
+            if currentTaskmanagerAmount != desiredTaskmanagersAmount:
+                performedScalingOperation = True
+                self.__adaptFlinkReactiveTaskmanagers(desiredTaskmanagersAmount)
+        else:
+            for operator in maximumDesiredParallelisms.keys():
+                currentParallelism = currentParallelisms[operator]
+                desiredParallelism = maximumDesiredParallelisms[operator]
+                if currentParallelism != desiredParallelism:
+                    performedScalingOperation = True
+                    self.__scaleOperator(operator, desiredParallelism)
+
+        if cooldownPeriod and performedScalingOperation:
+            print(f"Performed scaling operation. Entering {self.configurations.HPA_COOLDOWN_PERIOD_SECONDS}s "
+                  f"cooldown-period.")
+            time.sleep(cooldownPeriod)
