@@ -16,18 +16,25 @@ def Dhalion_Run(configurations: DhalionConfigurations):
     :param configurations: Configurations class containing all autoscaler configurations
     :return: None
     """
-    metricsGatherer: DhalionMetricsGatherer = DhalionMetricsGatherer(configurations)
+
     scaleManager: ScaleManager = ScaleManager(configurations)
-    dhalion: DhalionLogic = DhalionLogic(configurations)
+
+    metricsGatherer: DhalionMetricsGatherer = DhalionMetricsGatherer(configurations)
+    operators = metricsGatherer.jobmanagerMetricGatherer.getOperators()
+    topology = metricsGatherer.jobmanagerMetricGatherer.getTopology()
+    initialParallelisms = metricsGatherer.fetchCurrentOperatorParallelismInformation(
+        knownOperators=operators
+    )
+    print(f"Found operators: '{operators}' with topology: '{topology}'")
+    print(f"Found initial parallelisms: '{initialParallelisms}'")
+
+    dhalion: DhalionLogic = DhalionLogic(configurations, initialParallelisms)
 
     if configurations.USE_FLINK_REACTIVE:
         config.load_incluster_config()
         v1 = client.AppsV1Api()
         metricsGatherer.v1 = v1
         scaleManager.v1 = v1
-
-    operators = metricsGatherer.jobmanagerMetricGatherer.getOperators()
-    topology = metricsGatherer.jobmanagerMetricGatherer.getTopology()
 
     def Dhalion_Iteration():
         """
@@ -98,8 +105,7 @@ def Dhalion_Run(configurations: DhalionConfigurations):
             # For every operator
             for operator in operators:
                 # Check if input queue buffer is almost empty
-                if dhalion.queueSizeisCloseToZero(operator, buffersInUsage,
-                                                  configurations.DHALION_BUFFER_USAGE_CLOSE_TO_ZERO_THRESHOLD):
+                if dhalion.queueSizeisCloseToZero(operator, buffersInUsage):
                     # Scale down with SCALE_DOWN_FACTOR
                     # Get desired parallelism
                     operatorDesiredParallelism = dhalion.calculateDesiredParallelism(
@@ -108,8 +114,7 @@ def Dhalion_Run(configurations: DhalionConfigurations):
                         configurations.DHALION_SCALE_DOWN_FACTOR
                     )
 
-                    # Scale down the operator if using operator-based scaling
-                    dhalion.calculateDesiredParallelism(operator, operatorDesiredParallelism)
+                    dhalion.setDesiredParallelism(operator, operatorDesiredParallelism)
 
             # Manage scaling actions
             desiredParallelisms = dhalion.getDesiredParallelisms()
@@ -121,18 +126,24 @@ def Dhalion_Run(configurations: DhalionConfigurations):
                 cooldownPeriod=configurations.COOLDOWN_PERIOD_SECONDS
             )
 
-        print("Dhalion initialization succeeded. Starting autoscaler loop.")
-        while True:
-            try:
-                Dhalion_Iteration()
-            except:
-                traceback.print_exc()
+    print("Dhalion initialization succeeded. Starting autoscaler loop.")
+    while True:
+        try:
+            Dhalion_Iteration()
+        except:
+            traceback.print_exc()
 
 
 if __name__ == "__main__":
     print(f"Running Dhalion Autoscaler with the following configurations:")
     configs: DhalionConfigurations = DhalionConfigurations()
+    configs.PROMETHEUS_SERVER = "34.141.199.161:9090"
+    configs.FLINK_JOBMANAGER_SERVER = "35.204.254.246:8081"
+    configs.DHALION_MONITORING_PERIOD_SECONDS = 15
+    configs.COOLDOWN_PERIOD_SECONDS = 10
+
     configs.printConfigurations()
+
     for i in range(1, configs.MAX_INITIALIZATION_TRIES):
         try:
             Dhalion_Run(configs)

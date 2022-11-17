@@ -9,7 +9,7 @@ class DhalionMetricsGatherer(MetricsGatherer):
     def gatherBackpressureTimeMetrics(self, monitoringPeriodSeconds=None):
         if monitoringPeriodSeconds is not None:
             return self.prometheusMetricGatherer.getBackpressureTimeMetrics(
-                monitoring_period_seconds=monitoringPeriodSeconds
+                monitoringPeriodSeconds=monitoringPeriodSeconds
             )
         else:
             return self.prometheusMetricGatherer.getBackpressureTimeMetrics()

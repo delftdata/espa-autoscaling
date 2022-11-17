@@ -3,11 +3,12 @@ from DhalionConfigurations import DhalionConfigurations
 
 class DhalionLogic:
 
-    desiredParallelisms: {str, int} = {}
+    desiredParallelisms: {str, int}
     configurations: DhalionConfigurations
 
-    def __init__(self, configurations: DhalionConfigurations):
+    def __init__(self, configurations: DhalionConfigurations, currentParallelisms: {str, int}):
         self.configurations = configurations
+        self.desiredParallelisms = currentParallelisms
 
     def setDesiredParallelism(self, operator: str, desiredParallelism: int):
         self.desiredParallelisms[operator] = desiredParallelism

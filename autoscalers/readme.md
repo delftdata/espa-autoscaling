@@ -27,5 +27,5 @@ downscale-stabilization window. ALl recommendations are recordind. From all reco
 
 Expose flink-jobmanager
 ```angular2html
-kubectl expose pods flink-jobmanager-x7d8k --type=LoadBalancer --name=external-jobmanager
+kubectl expose pods flink-jobmanager-d68bz --type=LoadBalancer --name=external-jobmanager
 ```
