@@ -17,7 +17,8 @@ class JobManagerMetricGatherer:
         """
         self.configurations = configurations
 
-    def __stripOperatorName(self, operatorName: str):
+    @staticmethod
+    def __stripOperatorName(operatorName: str):
         """
         The operator names of Prometheus differ from the Jobmanager. While the jobmanager supports " ", ".", and "-",
         Prometheus presents the characters as a "_". To ensure compatibility between the prometheus metrics and the
@@ -113,7 +114,8 @@ class JobManagerMetricGatherer:
             operatorName = self.__stripOperatorName(verticeJSON['name'])
             taskmanager_information = []
             for subtask_json in verticeJSON['subtasks']:
-                taskmanager_information.append((subtask_json['taskmanager-id'], subtask_json['status'], subtask_json['duration']))
+                taskmanager_information.append((subtask_json['taskmanager-id'], subtask_json['status'],
+                                                subtask_json['duration']))
             taskmanagerMapping[operatorName] = taskmanager_information
         return taskmanagerMapping
 
@@ -181,4 +183,3 @@ class JobManagerMetricGatherer:
                         node_in_name = self.__stripOperatorName(id_operator_mapping[edge_in_operator_id])
                         topology.append((node_in_name, node_name))
         return topology
-

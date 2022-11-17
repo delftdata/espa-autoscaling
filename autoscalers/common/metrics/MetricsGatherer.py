@@ -6,17 +6,36 @@ from .PrometheusMetricGatherer import PrometheusMetricGatherer
 
 
 class MetricsGatherer:
+    """
+    The MetricsGatherer class is responsible for gathering the required metrics for the autoscalers to operate.
+    It contains both a MetricGatherer for fetching data from the JobManager and a MetricGather for fetching data from
+    the prometheus server. In addition, it contains functionality to fetch the current parallelism of all operators in
+    the current cluster.
+    """
+
     configurations: Configurations
     jobmanagerMetricGatherer: JobManagerMetricGatherer
     prometheusMetricGatherer: PrometheusMetricGatherer
     v1 = None
 
     def __init__(self, configurations: Configurations):
+        """
+        Constructor of the MetricsGatherer.
+        The metricsGatherer requires a Configurations class containing all necessary configurations or running the class
+        :param configurations: Configurations class containing all configurations of the current run.
+        """
         self.configurations = configurations
         self.jobmanagerMetricGatherer = JobManagerMetricGatherer(configurations)
         self.prometheusMetricGatherer = PrometheusMetricGatherer(configurations)
 
     def __getCurrentNumberOfTaskmanagersMetrics(self) -> int:
+        """
+        When using Flink reactive, the parallelism of every replica is equal to the amount of taskmanagers in the
+        kubernetes cluster. This method fetches the current amount of replicas of the taskmanagers or returns -1 when
+        the request fails.
+        :return: Amount of taskmanagers ran in the kubernetes cluster. Returns -1 if it is unable to retrieve data from
+        the server.
+        """
         if self.v1:
             try:
                 number_of_taskmanagers = -1
