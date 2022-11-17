@@ -31,7 +31,7 @@ spec:
           securityContext:
             runAsUser: 0
           env:
-          args: ["standalone-job", "--job-classname", "ch.ethz.systems.strymon.ds2.flink.nexmark.queries.updated.Query1KafkaSource", "--source-max-parallelism", "20", "--slot-sharing", "false"]
+          args: ["standalone-job", "--job-classname", "ch.ethz.systems.strymon.ds2.flink.nexmark.queries.original.Query8KafkaSource", "--source-max-parallelism", "20", "--slot-sharing", "false"]
           # args: ["standalone-job", "--job-classname", "org.apache.flink.DemoJob", "--fromSavepoint", "/opt/flink/savepoints/savepoint-ache.flink.DemoJob", "--fromSavepoint", "/opt/flink/savepoints/savepoint-340664-9060d916d03f", "--topic", "topic", "--bootstrap.servers", "kafka-service:9092", "--group.id", "yolo", "--p1", "1", "--p2", "2", --p3, "1"]
           # args: ["standalone-job", "--job-classname", "org.apache.flink.DemoJob", "--topic", "topic", "--bootstrap.servers", "kafka-service:9092", "--group.id", "yolo"]
           ports:

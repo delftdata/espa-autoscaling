@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: workbench-container
-        image: jobkanis/workbench:updated
+        image: gsiachamis/workbench:2.0
         imagePullPolicy: Always
         resources:
           requests:

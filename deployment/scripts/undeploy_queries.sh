@@ -39,6 +39,20 @@ case $QUERY in
       kubectl wait --for=delete -f ../yamls/queries/query1/query1-experiments-jobmanager-non-reactive.yaml --timeout=60s
     fi
   ;;
+  2)
+    if [ "$MODE" == "reactive" ]
+    then
+      kubectl delete --wait=true -f  ../yamls/queries/query2/query2-experiments-jobmanager.yaml
+      kubectl delete --wait=true -f  ../yamls/queries/query2/query2-workbench-deployment.yaml
+      # Ensure it does not mess up its entanglement with nfs
+      kubectl wait --for=delete -f ../yamls/queries/query2/query2-experiments-jobmanager.yaml --timeout=60s
+    else
+      kubectl delete --wait=true -f  ../yamls/queries/query2/query2-experiments-jobmanager-non-reactive.yaml
+      kubectl delete --wait=true -f  ../yamls/queries/query2/query2-workbench-deployment.yaml
+      # Ensure it does not mess up its entanglement with nfs
+      kubectl wait --for=delete -f ../yamls/queries/query2/query2-experiments-jobmanager-non-reactive.yaml --timeout=60s
+    fi
+  ;;
   3)
     if [ "$MODE" == "reactive" ]
     then
@@ -51,6 +65,34 @@ case $QUERY in
       kubectl delete --wait=true -f  ../yamls/queries/query3/query3-workbench-deployment.yaml
       # Ensure it does not mess up its entanglement with nfs
       kubectl wait --for=delete -f ../yamls/queries/query3/query3-experiments-jobmanager-non-reactive.yaml --timeout=60s
+    fi
+  ;;
+  5)
+    if [ "$MODE" == "reactive" ]
+    then
+      kubectl delete --wait=true -f  ../yamls/queries/query5/query5-experiments-jobmanager.yaml
+      kubectl delete --wait=true -f  ../yamls/queries/query5/query5-workbench-deployment.yaml
+      # Ensure it does not mess up its entanglement with nfs
+      kubectl wait --for=delete -f ../yamls/queries/query5/query5-experiments-jobmanager.yaml --timeout=60s
+    else
+      kubectl delete --wait=true -f  ../yamls/queries/query5/query5-experiments-jobmanager-non-reactive.yaml
+      kubectl delete --wait=true -f  ../yamls/queries/query5/query5-workbench-deployment.yaml
+      # Ensure it does not mess up its entanglement with nfs
+      kubectl wait --for=delete -f ../yamls/queries/query5/query5-experiments-jobmanager-non-reactive.yaml --timeout=60s
+    fi
+  ;;
+  8)
+    if [ "$MODE" == "reactive" ]
+    then
+      kubectl delete --wait=true -f  ../yamls/queries/query8/query8-experiments-jobmanager.yaml
+      kubectl delete --wait=true -f  ../yamls/queries/query8/query8-workbench-deployment.yaml
+      # Ensure it does not mess up its entanglement with nfs
+      kubectl wait --for=delete -f ../yamls/queries/query8/query8-experiments-jobmanager.yaml --timeout=60s
+    else
+      kubectl delete --wait=true -f  ../yamls/queries/query8/query8-experiments-jobmanager-non-reactive.yaml
+      kubectl delete --wait=true -f  ../yamls/queries/query8/query8-workbench-deployment.yaml
+      # Ensure it does not mess up its entanglement with nfs
+      kubectl wait --for=delete -f ../yamls/queries/query8/query8-experiments-jobmanager-non-reactive.yaml --timeout=60s
     fi
   ;;
   11)

@@ -8,9 +8,9 @@ ns1="autoscaling-q2"
 ns2="autoscaling-q3"
 
 # Experiment configurations to run the experiments in
-file0=./experiments/query_1_experiments.txt
-file1=./experiments/query_3_experiments.txt
-file2=./experiments/query_11_experiments.txt
+file0=../experiments/query_1_experiments.txt
+file1=../experiments/query_3_experiments.txt
+file2=../experiments/query_11_experiments.txt
 
 # input
 namespace=""
@@ -35,6 +35,9 @@ function parseLine() {
     elif [ "$i" -eq 2 ]
     then
       metric="$w"
+    elif [ "$i" -eq 3]
+    then
+      mode="$w"
     fi
     i=$((i+1))
   done
@@ -42,9 +45,9 @@ function parseLine() {
 
 function deployExperiment() {
     parseLine
-    echo "Deploying experiment with namespace=$namespace query=$query autoscaler=$autoscaler metric=$metric"
+    echo "Deploying experiment with namespace=$namespace query=$query autoscaler=$autoscaler metric=$metric mode=$mode"
     minikube profile "$namespace"
-    source ./scripts/deploy_experiment.sh "$query" "$autoscaler" "$metric"
+    source ./deploy_experiment.sh "$query" "$autoscaler" "$metric" "$mode"
 }
 
 function fetchExperiments() {
@@ -52,15 +55,15 @@ function fetchExperiments() {
     echo "Fetching data from namespace=$namespace query=$query autoscaler=$autoscaler metric=$metric"
 
     minikube profile "$namespace"
-    source ./scripts/fetch_prometheus_results.sh "$query" "$autoscaler" "$metric" "$run_local"
+    source ./fetch_prometheus_results.sh "$query" "$autoscaler" "$metric" "$run_local"
 }
 
 function undeployExperiments() {
   parseLine
-  echo "Undeploying experiment with namespace=$namespace query=$query autoscaler=$autoscaler"
+  echo "Undeploying experiment with namespace=$namespace query=$query autoscaler=$autoscaler mode=$mode"
 
   minikube profile "$namespace"
-  source ./scripts/undeploy_experiment.sh "$query" "$autoscaler"
+  source ./undeploy_experiment.sh "$query" "$autoscaler" "$mode"
 }
 
 paste -d@ $file0 $file1 $file2  | while IFS="@" read -r e0 e1 e2
