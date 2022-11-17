@@ -62,6 +62,5 @@ class ScaleManager:
                     self.__scaleOperator(operator, desiredParallelism)
 
         if cooldownPeriod and performedScalingOperation:
-            print(f"Performed scaling operation. Entering {self.configurations.HPA_COOLDOWN_PERIOD_SECONDS}s "
-                  f"cooldown-period.")
+            print(f"Performed scaling operation. Entering {cooldownPeriod}s cooldown-period.")
             time.sleep(cooldownPeriod)

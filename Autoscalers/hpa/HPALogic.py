@@ -1,10 +1,10 @@
 import math
 import time
-from .Configurations import Configurations
+from .HPAConfigurations import HPAConfigurations
 
 
 class HPALogic:
-    configurations: Configurations
+    configurations: HPAConfigurations
 
     """
     A director containing all desired parallelisms.
@@ -16,7 +16,7 @@ class HPALogic:
     """
     desiredParallelisms = {}
 
-    def __init__(self, configurations: Configurations):
+    def __init__(self, configurations: HPAConfigurations):
         self.configurations = configurations
 
     def addDesiredParallelismForOperator(self, operator: str, desiredParallelism: int):
@@ -38,7 +38,7 @@ class HPALogic:
         for operator in self.desiredParallelisms.keys():
             parallelisms = self.desiredParallelisms[operator]
             updated_parallelisms = list(filter(
-                lambda v: time.time() - v[0] <= self.configurations.SCALE_DOWN_WINDOW_SECONDS,
+                lambda v: time.time() - v[0] <= self.configurations.HPA_SCALE_DOWN_WINDOW_SECONDS,
                 parallelisms
             ))
             self.desiredParallelisms[operator] = updated_parallelisms

@@ -2,17 +2,15 @@ import statistics
 import traceback
 import time
 
-from common import Configurations
-from common import HPALogic
-from common import MetricsGatherer
+from HPAConfigurationsCPU import HPAConfigurationsCPU
+from HPAMetricsGathererCPU import HPAMetricsGathererCPU
+from hpa import HPALogic
 from common import ScaleManager
 
 from kubernetes import client, config
 
-from common.Configurations import ConfigurationsCPU
 
-
-def HPA_CPU_Run(configurations: ConfigurationsCPU):
+def HPA_CPU_Run(configurations: HPAConfigurationsCPU):
     """
     Run HPA autoscaler.
     It first instantiates all helper classes using the provided configurations.
@@ -20,7 +18,7 @@ def HPA_CPU_Run(configurations: ConfigurationsCPU):
     :param configurations: Configurations class containing all autoscaler configurations
     :return: None
     """
-    metricsGatherer: MetricsGatherer = MetricsGatherer(configurations)
+    metricsGatherer: HPAMetricsGathererCPU = HPAMetricsGathererCPU(configurations)
     scaleManager: ScaleManager = ScaleManager(configurations)
     hpa: HPALogic = HPALogic(configurations)
 
@@ -44,7 +42,7 @@ def HPA_CPU_Run(configurations: ConfigurationsCPU):
         :return: None
         """
 
-        print("\nStarting next HPA iteration.")
+        print("\nStarting next HPA-CPU iteration.")
         time.sleep(configurations.HPA_SYNC_PERIOD_SECONDS)
 
         # Gather metrics:
@@ -83,7 +81,8 @@ def HPA_CPU_Run(configurations: ConfigurationsCPU):
             ready_average_CPU_value = statistics.mean(ready_CPU_usages)
             currentParallelism = currentParallelisms[operator]
 
-            operator_scale_factor = hpa.calculateScaleRatio(ready_average_CPU_value, configurations.HPA_TARGET_VALUE)
+            operator_scale_factor = hpa.calculateScaleRatio(ready_average_CPU_value,
+                                                            configurations.CPU_UTILIZATION_TARGET_VALUE)
             desiredParallelism = hpa.calculateDesiredParallelism(operator_scale_factor, currentParallelism)
             hpa.addDesiredParallelismForOperator(operator, desiredParallelism)
 
@@ -95,10 +94,14 @@ def HPA_CPU_Run(configurations: ConfigurationsCPU):
         print(f"Desired parallelisms: {desiredParallelisms}")
         print(f"Maximum desired parallelisms: {allMaximumDesiredParallelisms}")
         print(f"Current parallelisms: {currentParallelisms}")
-        scaleManager.performScaleOperations(currentParallelisms, allMaximumDesiredParallelisms)
+        scaleManager.performScaleOperations(
+            currentParallelisms,
+            allMaximumDesiredParallelisms,
+            cooldownPeriod=configurations.COOLDOWN_PERIOD_SECONDS
+        )
 
 
-    print("HPA initialization succeeded. Starting autoscaler loop.")
+    print("HPA-CPU initialization succeeded. Starting autoscaler loop.")
     while True:
         try:
             HPA_CPU_Iteration()
@@ -107,14 +110,14 @@ def HPA_CPU_Run(configurations: ConfigurationsCPU):
 
 
 if __name__ == "__main__":
-    print(f"Running HPA Autoscaler with the following configurations:")
-    configs: ConfigurationsCPU = ConfigurationsCPU()
+    print(f"Running HPA-CPU Autoscaler with the following configurations:")
+    configs: HPAConfigurationsCPU = HPAConfigurationsCPU()
     configs.printConfigurations()
-    for i in range(1, configs.HPA_MAX_INITIALIZATION_TRIES+1):
+    for i in range(1, configs.MAX_INITIALIZATION_TRIES+1):
         try:
             HPA_CPU_Run(configs)
         except:
-            print(f"Initialization of HPA failed ({i}/{configs.HPA_MAX_INITIALIZATION_TRIES}).")
+            print(f"Initialization of HPA-CPU failed ({i}/{configs.MAX_INITIALIZATION_TRIES}).")
             traceback.print_exc()
             time.sleep(10)
     print("Maximum amount of initialization tries exceeded. Shutting down autoscaler.")

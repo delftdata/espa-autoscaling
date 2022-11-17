@@ -1,11 +1,14 @@
 import traceback
 import time
 
-from common import ConfigurationsVarga, MetricsGatherer, ScaleManager, HPALogic
+from HPAConfigurationsVarga import HPAConfigurationsVarga
+from HPAMetricsGathererVarga import HPAMetricsGathererVarga
+from hpa import HPALogic
+from common import ScaleManager
 from kubernetes import client, config
 
 
-def HPA_Varga_Run(configurations: ConfigurationsVarga):
+def HPA_Varga_Run(configurations: HPAConfigurationsVarga):
     """
     Run HPA autoscaler.
     It first instantiates all helper classes using the provided configurations.
@@ -13,7 +16,7 @@ def HPA_Varga_Run(configurations: ConfigurationsVarga):
     :param configurations: Configurations class containing all autoscaler configurations
     :return: None
     """
-    metricsGatherer: MetricsGatherer = MetricsGatherer(configurations)
+    metricsGatherer: HPAMetricsGathererVarga = HPAMetricsGathererVarga(configurations)
     scaleManager: ScaleManager = ScaleManager(configurations)
     hpa: HPALogic = HPALogic(configurations)
 
@@ -37,7 +40,7 @@ def HPA_Varga_Run(configurations: ConfigurationsVarga):
         :return: None
         """
 
-        print("\nStarting next HPA iteration.")
+        print("\nStarting next HPA-Varga iteration.")
         time.sleep(configurations.HPA_SYNC_PERIOD_SECONDS)
 
         # Gather metrics:
@@ -66,6 +69,7 @@ def HPA_Varga_Run(configurations: ConfigurationsVarga):
             relativeLagChange_scale_factor = hpa.calculateScaleRatio(
                 relativeLagChange, configurations.VARGA_RELATIVE_LAG_CHANGE_TARGET_VALUE)
 
+            # Determine desired parallelism and add to scale-down-window
             operator_scale_factor = max(utilization_scale_factor, relativeLagChange_scale_factor)
             desiredParallelism = hpa.calculateDesiredParallelism(operator_scale_factor, currentParallelism)
             hpa.addDesiredParallelismForOperator(operator, desiredParallelism)
@@ -80,7 +84,11 @@ def HPA_Varga_Run(configurations: ConfigurationsVarga):
         print(f"Desired parallelisms: {desiredParallelisms}")
         print(f"Maximum desired parallelisms: {allMaximumDesiredParallelisms}")
         print(f"Current parallelisms: {currentParallelisms}")
-        scaleManager.performScaleOperations(currentParallelisms, allMaximumDesiredParallelisms)
+        scaleManager.performScaleOperations(
+            currentParallelisms,
+            allMaximumDesiredParallelisms,
+            cooldownPeriod=configurations.COOLDOWN_PERIOD_SECONDS
+        )
 
     print("Varga initialization succeeded. Starting autoscaler loop.")
     while True:
@@ -91,30 +99,14 @@ def HPA_Varga_Run(configurations: ConfigurationsVarga):
 
 
 if __name__ == "__main__":
-    print(f"Running Varga Autoscaler with the following configurations:")
-    configs: ConfigurationsVarga = ConfigurationsVarga()
+    print(f"Running HPA-Varga Autoscaler with the following configurations:")
+    configs: HPAConfigurationsVarga = HPAConfigurationsVarga()
     configs.printConfigurations()
-    for i in range(1, configs.HPA_MAX_INITIALIZATION_TRIES+1):
+    for i in range(1, configs.MAX_INITIALIZATION_TRIES+1):
         try:
             HPA_Varga_Run(configs)
         except:
-            print(f"Initialization of HPA failed ({i}/{configs.HPA_MAX_INITIALIZATION_TRIES}).")
+            print(f"Initialization of HPA-Varga failed ({i}/{configs.MAX_INITIALIZATION_TRIES}).")
             traceback.print_exc()
             time.sleep(10)
-    print("Maximum amount of initialization tries exceeded. Shutting down autoscaler.")
-
-
-
-if __name__ == "__main__":
-    print(f"Running Varga Autoscaler with the following configurations:")
-    configs: ConfigurationsVarga = ConfigurationsVarga()
-    configs.FLINK_JOBMANAGER_SERVER = "35.204.204.168:8081"
-    configs.PROMETHEUS_SERVER = "35.204.153.112:9090"
-    configs.printConfigurations()
-
-
-    gatherer = MetricsGatherer(configs)
-    print(gatherer.gatherUtilizationMetrics())
-
-
     print("Maximum amount of initialization tries exceeded. Shutting down autoscaler.")
