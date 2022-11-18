@@ -183,7 +183,16 @@ def run():
             for key in input_rates_per_operator:
                 formatted_key = key.split(" ")
                 operator, operator_id = formatted_key[0], formatted_key[1]
-                row = [operator, operator_id, int(processors_per_operator[operator]), timestamp, true_processing_rate[key], true_output_rate[key], input_rates_per_operator[key], output_rates_per_operator[key]]
+                row = [
+                    operator,
+                    operator_id,
+                    int(processors_per_operator[operator]),
+                    timestamp,
+                    true_processing_rate[key],
+                    true_output_rate[key],
+                    input_rates_per_operator[key],
+                    output_rates_per_operator[key]
+                ]
                 writer.writerow(row)
         print("Wrote rates file")
 

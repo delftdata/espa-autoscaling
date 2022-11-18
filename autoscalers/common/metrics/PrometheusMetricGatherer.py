@@ -140,3 +140,26 @@ class PrometheusMetricGatherer:
         for k, v in backpressure.items():
             results[k] = v == 1.0
         return results
+
+
+    def getOperatorInputRateMetrics(self) -> {str, float}:
+        # originally it used the rate(numRecordsIn)
+        inputRate_query = f"avg_over_time(flink_taskmanager_job_task_operator_numRecordsInPerSecond" \
+                          f"[{self.configurations.METRIC_AGGREGATION_PERIOD_SECONDS}s])"
+        inputRate_data = self.__getResultsFromPrometheus(inputRate_query)
+        inputRates = self.__extract_per_operator_metrics(inputRate_data)
+        return inputRates
+
+    def getOperatorOutputRateMetrics(self) -> {str, float}:
+        outputRate_query = f"avg_over_time(flink_taskmanager_job_task_numRecordsOutPerSecond" \
+                           f"[{self.configurations.METRIC_AGGREGATION_PERIOD_SECONDS}s])"
+        outputRate_data = self.__getResultsFromPrometheus(outputRate_query)
+        outputRates = self.__extract_per_operator_metrics(outputRate_data)
+        return outputRates
+
+    def getOperatorBusyTimeMetrics(self) -> {str, float}:
+        busyTime_query = f"avg_over_time(flink_taskmanager_job_task_busyTimeMsPerSecond" \
+                         f"[{self.configurations.METRIC_AGGREGATION_PERIOD_SECONDS}s])/1000"
+        busyTime_data = self.__getResultsFromPrometheus(busyTime_query)
+        busyTime = self.__extract_per_operator_metrics(busyTime_data)
+        return busyTime
