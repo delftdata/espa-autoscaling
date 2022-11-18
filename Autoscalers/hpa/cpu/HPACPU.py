@@ -4,7 +4,7 @@ import time
 
 from HPAConfigurationsCPU import HPAConfigurationsCPU
 from HPAMetricsGathererCPU import HPAMetricsGathererCPU
-from hpa import HPALogic
+from common import HPALogic
 from common import ScaleManager
 
 from kubernetes import client, config

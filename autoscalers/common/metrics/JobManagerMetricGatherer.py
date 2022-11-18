@@ -26,7 +26,10 @@ class JobManagerMetricGatherer:
         :param operatorName: Operatorname to replace characters with.
         :return: Operator name that has all forbidden characters replaced with a "_"
         """
-        return operatorName.replace(" ", "_").replace(".", "_").replace("-", "_")
+        unsupportedCharacters = ["-&gt", " ", ",", ".", "-", ";", "/", ">"]
+        for unsupportedCharacter in unsupportedCharacters:
+            operatorName = operatorName.replace(unsupportedCharacter, "_")
+        return operatorName
 
     def __getJobId(self) -> int:
         """

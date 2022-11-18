@@ -1,6 +1,6 @@
 import os
 
-from hpa import HPAConfigurations
+from common import HPAConfigurations
 
 
 class HPAConfigurationsCPU(HPAConfigurations):

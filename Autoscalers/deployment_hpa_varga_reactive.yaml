@@ -21,32 +21,41 @@ spec:
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
-        args: ["python", "hpa_cpu.py"]
+        args: ["python", "./hpa/cpu"]
         env:
+        # Python configurations
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        - name: PYTHONIOENCODING
+          value: "UTF-8"
+
+        # Common variables
         - name: USE_FLINK_REACTIVE  # {true, false} - false is default
-          value: "false"
+          value: "true"
         - name: PROMETHEUS_SERVER   # prometheus-server is default
           value: "prometheus-server"
         - name: FLINK_JOBMANAGER_SERVER   # flink-jobmanager-rest:8081 is default
           value: "flink-jobmanager-rest:8081"
-        - name: METRIC_AGGREGATION_PERIOD_SECONDS    # 10 is default
-          value: "10"
-        - name: HPA_SYNC_PERIOD # 15 is default
-          value: "15"
-        - name: SCALE_DOWN_WINDOW_SECONDS # 300 is default
-          value: "300"
         - name: MAX_PARALLELISM # 16 is default
           value: "16"
         - name: MIN_PARALLELISM # 1 is default
           value: "1"
-        - name: HPA_TARGET_VALUE # 0.7 is default
-          value: "0.7"
-        - name: HPA_MAX_INITIALIZATION_TRIES # 5 is default
-          value: "5"
-        - name: HPA_COOLDOWN_PERIOD_SECONDS # 120 is default
+        - name: METRIC_AGGREGATION_PERIOD_SECONDS # 10 is default
+          value: "10"
+        - name: COOLDOWN_PERIOD_SECONDS # 120 is default
           value: "120"
-        - name: PYTHONUNBUFFERED
-          value: "1"
-        - name: PYTHONIOENCODING
-          value: "UTF-8" 
-  
+        - name: MAX_INITIALIZATION_TRIES  # 5 is default
+          value: "5"
+
+        # HPA configurations
+        - name: HPA_SYNC_PERIOD_SECONDS # 15 is default
+          value: "15"
+        - name: HPA_SCALE_DOWN_WINDOW_SECONDS # 300 is default
+          value: "300"
+
+        # CPU configurations
+        - name: CPU_UTILIZATION_TARGET_VALUE # 0.7 is default
+          value: "0.7"
+
+
+

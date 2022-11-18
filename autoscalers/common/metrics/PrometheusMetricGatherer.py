@@ -4,9 +4,18 @@ from common import Configurations
 
 
 class PrometheusMetricGatherer:
+    """
+    The PrometheusMetricGatherer is responsible for fetching data from the Prometheus server.
+    """
+
     configurations: Configurations
 
     def __init__(self, configurations: Configurations):
+        """
+        The constructor of the PrometheusMetricsGather. It requires a Configurations class containing necessary
+        information about the Prometheus server.
+        :param configurations: Configurations class containing the location of the Prometheus server
+        """
         self.configurations = configurations
 
     # Prometheus fetching
@@ -20,7 +29,8 @@ class PrometheusMetricGatherer:
         url = f"http://{self.configurations.PROMETHEUS_SERVER}/api/v1/query?query={query}"
         return requests.get(url)
 
-    def __extract_per_operator_metrics(self, prometheusResponse):
+    @staticmethod
+    def __extract_per_operator_metrics(prometheusResponse):
         """
         Extract per-operator- metrics from the prometheusResponse
         :param prometheusResponse: Response received from Prometheus containing query results
@@ -32,7 +42,14 @@ class PrometheusMetricGatherer:
             metrics_per_operator[operator["metric"]["task_name"]] = float(operator["value"][1])
         return metrics_per_operator
 
-    def __extract_per_taskmanager_metrics(self, prometheusResponse):
+    @staticmethod
+    def __extract_per_taskmanager_metrics(prometheusResponse):
+        """
+        Given a prometheus response, extract the metris per operator.
+        As key use the tm_id and as value the value provided by prometheus.
+        :param prometheusResponse: A Get response from the prometheus server.
+        :return: A directory with as key the taskmanagers tm_id and as value to provided metric {tm_id -> value}
+        """
         metrics = prometheusResponse.json()["data"]["result"]
         metrics_per_operator = {}
         for operator in metrics:
@@ -99,7 +116,7 @@ class PrometheusMetricGatherer:
         Get backpressure time of all operators.
         If monitoring_period_seconds is provided, this will be used as a period to gather metrics for.
         Else self.configurations.METRIC_AGGREGATION_PERIOD_SECONDS is used.
-        :param monitoring_period_seconds: Optional parameter to determine aggregation period.
+        :param monitoringPeriodSeconds: Optional parameter to determine aggregation period.
         :return:
         """
         gatherPeriod = monitoringPeriodSeconds if monitoringPeriodSeconds else self.configurations.\
@@ -123,4 +140,3 @@ class PrometheusMetricGatherer:
         for k, v in backpressure.items():
             results[k] = v == 1.0
         return results
-

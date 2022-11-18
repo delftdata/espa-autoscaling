@@ -15,8 +15,8 @@ class Configurations:
     
     METRIC_AGGREGATION_PERIOD_SECONDS = int(os.environ.get("METRIC_AGGREGATION_PERIOD_SECONDS", 10))
     COOLDOWN_PERIOD_SECONDS = int(os.environ.get("COOLDOWN_PERIOD_SECONDS", 120))
+    ITERATION_PERIOD_SECONDS = int(os.environ.get("ITERATION_PERIOD_SECONDS", 15))
 
-    MAX_INITIALIZATION_TRIES = int(os.environ.get("MAX_INITIALIZATION_TRIES", 5))
 
     def printConfigurations(self):
         print(f"\tUSE_FLINK_REACTIVE: {self.USE_FLINK_REACTIVE}")
@@ -26,5 +26,5 @@ class Configurations:
         print(f"\tMIN_PARALLELISM: {self.MIN_PARALLELISM}")
         print(f"\tMETRIC_AGGREGATION_PERIOD_SECONDS: {self.METRIC_AGGREGATION_PERIOD_SECONDS}")
         print(f"\tCOOLDOWN_PERIOD_SECONDS: {self.COOLDOWN_PERIOD_SECONDS}")
-        print(f"\tMAX_INITIALIZATION_TRIES: {self.MAX_INITIALIZATION_TRIES}")
+        print(f"\tITERATION_PERIOD_SECONDS: {self.ITERATION_PERIOD_SECONDS}")
 
