@@ -4,6 +4,15 @@ from common import Configurations
 from .JobManagerMetricGatherer import JobManagerMetricGatherer
 from .PrometheusMetricGatherer import PrometheusMetricGatherer
 
+OPERATOR_TO_TOPIC_MAPPING = {
+    "bidssource": "bids_topic",
+    "auctionssource": "auction_topic",
+    "personsource": "person_topic"
+}
+
+
+
+
 
 class MetricsGatherer:
     """
@@ -74,3 +83,31 @@ class MetricsGatherer:
             return operatorParallelismInformation
         else:
             return self.jobmanagerMetricGatherer.getOperatorParallelism()
+
+
+    def __subtractSourceNameFromOperatorName(self, operatorName: str, printError=True):
+        for sourceName in OPERATOR_TO_TOPIC_MAPPING.keys():
+            if sourceName in operatorName.lower():
+                return sourceName
+        if printError:
+            print(f"Error: could not determine sourceName from operatorName '{operatorName}'")
+
+
+    def getTopicFromOperatorName(self, operatorName, printError=True):
+        sourceName = self.__subtractSourceNameFromOperatorName(operatorName, printError=printError)
+        if sourceName in OPERATOR_TO_TOPIC_MAPPING:
+            return OPERATOR_TO_TOPIC_MAPPING[sourceName]
+        else:
+            if printError:
+                print(f"Error: could not fetch topic from operatorName '{operatorName}'")
+
+
+    def gatherTopology(self, includeTopics=False):
+        topology = self.jobmanagerMetricGatherer.getTopology()
+        if includeTopics:
+            operators = self.jobmanagerMetricGatherer.getOperators()
+            for operator in operators:
+                topic = self.getTopicFromOperatorName(operator, printError=False)
+                if topic:
+                    topology.append((topic, operator))
+        return topology

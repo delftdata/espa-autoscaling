@@ -1,7 +1,6 @@
 import requests
 
 from common import Configurations
-from .TopologyData import getTopicFromOperatorName
 
 
 class PrometheusMetricGatherer:
@@ -181,28 +180,13 @@ class PrometheusMetricGatherer:
 
         :return:
         """
-        kafkaInputRate_query = f"sum(rate(kafka_server_brokertopicmetrics_messagesin_total\u007btopic!=''\u007d" \
+        kafkaInputRate_query = f"sum(rate(kafka_server_brokertopicmetrics_messagesin_total" \
+                               f"\u007btopic!='',topic!='__consumer_offsets'\u007d" \
                                f"[{self.configurations.METRIC_AGGREGATION_PERIOD_SECONDS}s])) by (topic)"
         kafkaInputRate_data = self.__getResultsFromPrometheus(kafkaInputRate_query)
         kafkaInputRate = self.__extract_per_topic_metrics(kafkaInputRate_data)
         return kafkaInputRate
 
-
-    def getTopicKafkaLag(self) -> {str, int}:
-        """
-        Get the total lag per topic.
-        Function is not yet used, but can be used for a potential improvement of DS2.
-        :return: {topic_name: str -> total_topic_lag}
-        """
-        operatorKafkaLag = self.getOperatorKafkaLag()
-        topicLag = {}
-        for operator, value in operatorKafkaLag.items():
-            topicName = getTopicFromOperatorName(operator)
-            if topicName:
-                topicLag[topicName] = float(value)
-            else:
-                print(f"Error: could not determine topic corresponding to '{operator}' not found")
-        return topicLag
 
     #######################################################
     # Subtask subtraction

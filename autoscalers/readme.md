@@ -25,6 +25,14 @@ downscale-stabilization window. ALl recommendations are recordind. From all reco
 (default: 300s)
 
 
+
+To run DS2:
+```angular2html
+curl https://sh.rustup.rs -sSf | bash -s -- -y
+source "$HOME/.cargo/env"
+```
+
+
 Expose flink-jobmanager
 ```angular2html
 kubectl expose pods flink-jobmanager-7mvpb --type=LoadBalancer --name=external-jobmanager
