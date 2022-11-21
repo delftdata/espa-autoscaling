@@ -1,6 +1,6 @@
 import os
 
-from hpa import HPAConfigurations
+from hpa.HPAConfigurations import HPAConfigurations
 
 
 class HPAConfigurationsVarga(HPAConfigurations):

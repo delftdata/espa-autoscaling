@@ -1,6 +1,6 @@
 import os
 
-from common import HPAConfigurations
+from hpa.HPAConfigurations import HPAConfigurations
 
 
 class HPAConfigurationsCPU(HPAConfigurations):
@@ -9,4 +9,3 @@ class HPAConfigurationsCPU(HPAConfigurations):
     def printConfigurations(self):
         super().printConfigurations()
         print(f"\tCPU_UTILIZATION_TARGET_VALUE: {self.CPU_UTILIZATION_TARGET_VALUE}")
-

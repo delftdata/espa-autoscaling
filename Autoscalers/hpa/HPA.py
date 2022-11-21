@@ -1,9 +1,12 @@
 import math
 import time
+from abc import ABC, abstractmethod
+
 from .HPAConfigurations import HPAConfigurations
+from common import Autoscaler
 
 
-class HPALogic:
+class HPA(Autoscaler, ABC):
     configurations: HPAConfigurations
 
     """
@@ -15,9 +18,6 @@ class HPALogic:
         - p1: desired parallelism
     """
     desiredParallelisms = {}
-
-    def __init__(self, configurations: HPAConfigurations):
-        self.configurations = configurations
 
     def addDesiredParallelismForOperator(self, operator: str, desiredParallelism: int):
         """
@@ -99,3 +99,11 @@ class HPALogic:
         new_desired_parallelism = min(new_desired_parallelism, self.configurations.MAX_PARALLELISM)
         new_desired_parallelism = max(new_desired_parallelism, self.configurations.MIN_PARALLELISM)
         return new_desired_parallelism
+
+    @abstractmethod
+    def runAutoscalerIteration(self):
+        pass
+
+    @abstractmethod
+    def setInitialMetrics(self):
+        pass

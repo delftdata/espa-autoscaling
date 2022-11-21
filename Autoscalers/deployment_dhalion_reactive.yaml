@@ -17,30 +17,40 @@ spec:
     spec:
       containers:
       - name: python-container
-        image: jobkanis/dhalion:updated
+        image: jobkanis/autoscalers:1.0
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
-        args: ["python", "dhalionOriginalLogic.py"]
+        args: ["python", "./", "dhalion"]
         env:
+        # Python configurations
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        - name: PYTHONIOENCODING
+          value: "UTF-8"
+
+        # Common variables
         - name: USE_FLINK_REACTIVE  # {true, false} - false is default
           value: "true"
         - name: PROMETHEUS_SERVER   # prometheus-server is default
           value: "prometheus-server"
-        - name: MIN_TASKMANAGERS    # 1 is default
-          value: "1"
-        - name: MAX_TASKMANAGERS    # 16 is default
+        - name: FLINK_JOBMANAGER_SERVER   # flink-jobmanager-rest:8081 is default
+          value: "flink-jobmanager-rest:8081"
+        - name: MAX_PARALLELISM # 16 is default
           value: "16"
-        - name: QUERY  # 1 is default
-          value: "3"
-        - name: MONITORING_PERIOD_SECONDS # 360 is default
-          value: "60"
-        - name: METRIC_AGGREGATION_PERIOD_SECONDS # 60 is default
-          value: "60"
-        - name: BUFFER_USAGE_CLOSE_TO_ZERO_THRESHOLD # 0.1 is default
-          value: "0.1"
-        - name: PYTHONUNBUFFERED
+        - name: MIN_PARALLELISM # 1 is default
           value: "1"
-        - name: PYTHONIOENCODING
-          value: "UTF-8" 
-  
+        - name: METRIC_AGGREGATION_PERIOD_SECONDS # 10 is default
+          value: "10"
+        - name: COOLDOWN_PERIOD_SECONDS # 120 is default
+          value: "20"
+        - name: MAX_INITIALIZATION_TRIES  # 5 is default
+          value: "5"
+        - name: ITERATION_PERIOD_SECONDS # 15 is default
+          value: "15"
+
+        # Dhalion configurations
+        - name: DHALION_SCALE_DOWN_FACTOR # 0.8 is default
+          value: "0.8"
+        - name: DHALION_BUFFER_USAGE_CLOSE_TO_ZERO_THRESHOLD # 0.1 is default
+          value: "0.1"

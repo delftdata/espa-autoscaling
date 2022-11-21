@@ -1,1 +1,1 @@
-from HPAVarga import HPAVarga
+from .HPAVarga import HPAVarga

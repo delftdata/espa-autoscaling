@@ -1,1 +1,1 @@
-from Dhalion import Dhalion
+from .Dhalion import Dhalion

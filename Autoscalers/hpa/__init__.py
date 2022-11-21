@@ -1,4 +1,4 @@
+from .cpu import HPACPU
+from .varga import HPAVarga
+from .HPA import HPA
 from .HPAConfigurations import HPAConfigurations
-from .HPALogic import HPALogic
-from .cpu import *
-from .varga import *

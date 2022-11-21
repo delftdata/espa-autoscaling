@@ -66,7 +66,7 @@ class MetricsGatherer:
         if self.configurations.USE_FLINK_REACTIVE:
             currentTaskmanagers = self.__getCurrentNumberOfTaskmanagersMetrics()
             if currentTaskmanagers < 0:
-                print(f"Error: no valid amount of taskmanagers found: {currentTaskmanagers}")
+                print(f"Error: nokubectl  valid amount of taskmanagers found: {currentTaskmanagers}")
                 return {}
             operatorParallelismInformation = {}
             for operator in knownOperators:

@@ -12,10 +12,10 @@ class DhalionMetricsGatherer(MetricsGatherer):
                 monitoringPeriodSeconds=monitoringPeriodSeconds
             )
         else:
-            return self.prometheusMetricGatherer.getBackpressureTimeMetrics()
+            return self.prometheusMetricGatherer.getOperatorBackpressureTimeMetrics()
 
     def gatherBuffersInUsageMetrics(self):
-        return self.prometheusMetricGatherer.getMaximumBuffersInUsageMetrics()
+        return self.prometheusMetricGatherer.getOperatorMaximumBuffersInUsageMetrics()
 
     def isSystemBackpressured(self, backpressureStatusMetrics: {str, bool}=None) -> bool:
         """
