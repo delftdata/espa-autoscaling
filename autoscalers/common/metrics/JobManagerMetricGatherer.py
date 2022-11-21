@@ -1,3 +1,5 @@
+import time
+
 import requests
 
 from common import Configurations
@@ -31,7 +33,7 @@ class JobManagerMetricGatherer:
             operatorName = operatorName.replace(unsupportedCharacter, "_")
         return operatorName
 
-    def __getJobId(self) -> int:
+    def getJobId(self) -> int:
         """
         Get get the first ID of the listed jobs on the jobmanager.
         :return: The first ID of the listed jobs on the jobmanager.
@@ -47,7 +49,7 @@ class JobManagerMetricGatherer:
         :return: JSON representation of the  job.
         """
         if not job_id:
-            job_id = self.__getJobId()
+            job_id = self.getJobId()
         job_plan_json = requests.get(f"http://{self.configurations.FLINK_JOBMANAGER_SERVER}/jobs/{job_id}").json()
         return job_plan_json
 
@@ -58,7 +60,7 @@ class JobManagerMetricGatherer:
         :return: JSON representation of the current plan of the job.
         """
         if not job_id:
-            job_id = self.__getJobId()
+            job_id = self.getJobId()
         job_plan_json = requests.get(
             f"http://{self.configurations.FLINK_JOBMANAGER_SERVER}/jobs/{job_id}/plan").json()
         return job_plan_json
@@ -71,7 +73,7 @@ class JobManagerMetricGatherer:
         :return: JSON representation of the current status of the vertice.
         """
         if not job_id:
-            job_id = self.__getJobId()
+            job_id = self.getJobId()
         vertice_json = requests.get(
             f"http://{self.configurations.FLINK_JOBMANAGER_SERVER}/jobs/{job_id}/vertices/{vertice_id}").json()
         return vertice_json
@@ -84,7 +86,7 @@ class JobManagerMetricGatherer:
         :return: A list of vertice_id's that are currently deployed in the job
         """
         if not job_id:
-            job_id = self.__getJobId()
+            job_id = self.getJobId()
             job = self.__getJobJson(job_id)
         if not job:
             job = self.__getJobJson(job_id)
@@ -96,6 +98,7 @@ class JobManagerMetricGatherer:
             vertice_jsons.append(vertice_json)
         return vertice_jsons
 
+
     def getOperatorHostInformation(self, job_id=None, job=None):
         """
         Get a directory with operatorNames as key with as value tuples indicating information of the taskmanagers the
@@ -106,7 +109,7 @@ class JobManagerMetricGatherer:
         on which taskmanagers the operator is deployed and providing the status of this deployment
         """
         if not job_id:
-            job_id = self.__getJobId()
+            job_id = self.getJobId()
             job = self.__getJobJson(job_id)
         if not job:
             job = self.__getJobJson(job_id)
@@ -186,3 +189,4 @@ class JobManagerMetricGatherer:
                         node_in_name = self.__stripOperatorName(id_operator_mapping[edge_in_operator_id])
                         topology.append((node_in_name, node_name))
         return topology
+
