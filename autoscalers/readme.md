@@ -35,5 +35,5 @@ source "$HOME/.cargo/env"
 
 Expose flink-jobmanager
 ```angular2html
-kubectl expose pods flink-jobmanager-7mvpb --type=LoadBalancer --name=external-jobmanager
+kubectl expose pods flink-jobmanager-mxzf4 --type=LoadBalancer --name=external-jobmanager
 ```

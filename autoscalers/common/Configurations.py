@@ -13,7 +13,7 @@ class Configurations:
     MAX_PARALLELISM = int(os.environ.get("MAX_PARALLELISM", 16))
     MIN_PARALLELISM = int(os.environ.get("MIN_PARALLELISM", 1))
     
-    METRIC_AGGREGATION_PERIOD_SECONDS = int(os.environ.get("METRIC_AGGREGATION_PERIOD_SECONDS", 10))
+    METRIC_AGGREGATION_PERIOD_SECONDS = int(os.environ.get("METRIC_AGGREGATION_PERIOD_SECONDS", 60))
     COOLDOWN_PERIOD_SECONDS = int(os.environ.get("COOLDOWN_PERIOD_SECONDS", 120))
     ITERATION_PERIOD_SECONDS = int(os.environ.get("ITERATION_PERIOD_SECONDS", 15))
 
@@ -24,8 +24,12 @@ class Configurations:
     NONREACTIVE_JOB = os.environ.get("NONREACTIVE_JOB",
                                      "ch.ethz.systems.strymon.ds2.flink.nexmark.queries.updated.Query11KafkaSource")
     NONREACTIVE_CONTAINER = os.environ.get("NONREACTIVE_CONTAINER", "gsiachamis/flink-nexmark-queries:1.0")
+    NONREACTIVE_SAVEPOINT_TIMEOUT_TIME_SECONDS = int(os.environ.get("NONREACTIVE_SAVEPOINT_TIMEOUT_TIME_SECONDS", "60"))
+    RUN_LOCALLY = False
 
-def printConfigurations(self):
+    def printConfigurations(self):
+        if self.RUN_LOCALLY:
+            print("\tRunning application locally.")
         print(f"\tUSE_FLINK_REACTIVE: {self.USE_FLINK_REACTIVE}")
         print(f"\tPROMETHEUS_SERVER: {self.PROMETHEUS_SERVER}")
         print(f"\tFLINK_JOBMANAGER_SERVER: {self.FLINK_JOBMANAGER_SERVER}")
@@ -37,6 +41,8 @@ def printConfigurations(self):
         print(f"\tNONREACTIVE_TIME_AFTER_DELETE_JOB: {self.NONREACTIVE_TIME_AFTER_DELETE_JOB}")
         print(f"\tNONREACTIVE_TIME_AFTER_DELETE_POD: {self.NONREACTIVE_TIME_AFTER_DELETE_POD}")
         print(f"\tNONREACTIVE_TIME_AFTER_SAVEPOINT: {self.NONREACTIVE_TIME_AFTER_SAVEPOINT}")
+        print(f"\tNONREACTIVE_SAVEPOINT_TIMEOUT_TIME_SECONDS: {self.NONREACTIVE_SAVEPOINT_TIMEOUT_TIME_SECONDS}")
+
         print(f"\tNONREACTIVE_JOB: {self.NONREACTIVE_JOB}")
         print(f"\tNONREACTIVE_CONTAINER: {self.NONREACTIVE_CONTAINER}")
 
