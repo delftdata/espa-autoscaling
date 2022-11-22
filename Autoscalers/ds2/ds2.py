@@ -4,14 +4,13 @@ import os
 import subprocess
 import traceback
 from pathlib import Path
-
+import time
+from timeit import default_timer as timer
 
 from .DS2Configurations import DS2Configurations
 from .Ds2MetricsGatherer import DS2MetricsGatherer
 from common import ScaleManager, Autoscaler
 from kubernetes import client, config
-import time
-from timeit import default_timer as timer
 
 
 def writeConfig(**kwargs):
@@ -73,11 +72,10 @@ spec:
 
 
 
-SAVEPOINT_IN_PROGRESS_STATUS = "IN_PROGRESS"
-SAVEPOINT_COMPLETED_STATUS = "COMPLETED"
-
-
 class DS2(Autoscaler):
+    """
+    DS2 autoscaler.
+    """
     configurations: DS2Configurations
     metricsGatherer: DS2MetricsGatherer
     scaleManager: ScaleManager
@@ -89,6 +87,9 @@ class DS2(Autoscaler):
     kafkaSourceRatesFileName: str
 
     def __init__(self):
+        """
+        Constructor of DS2.
+        """
         self.configurations = DS2Configurations()
         self.metricsGatherer = DS2MetricsGatherer(self.configurations)
         self.scaleManager = ScaleManager(self.configurations)
@@ -99,14 +100,18 @@ class DS2(Autoscaler):
             self.scaleManager.v1 = v1
 
     def setInitialMetrics(self):
+        """
+        Set initial metrics of autoscaler and create directories required for file writing.
+        :return: None
+        """
         self.operators = self.metricsGatherer.jobmanagerMetricGatherer.getOperators()
-        self.topology = self.metricsGatherer.jobmanagerMetricGatherer.getTopology()
+        self.topology = self.metricsGatherer.gatherTopology(includeTopics=True)
         print(f"Found operators: '{self.operators}' with topology: '{self.topology}'")
 
         # Define file paths for passing through data with DS2 Rust code
-        self.topologyStatusFileName = f"resources/ds2/flink_topology.csv"
-        self.operatorRatesFileName = f"resources/ds2/flink_rates.log"
-        self.kafkaSourceRatesFileName = f"resources/ds2/kafka_source_rates.csv"
+        self.topologyStatusFileName = f"resources/ds2/data/flink_topology.csv"
+        self.operatorRatesFileName = f"resources/ds2/data/flink_rates.log"
+        self.kafkaSourceRatesFileName = f"resources/ds2/data/kafka_source_rates.csv"
         # Make directories of paths if they do not exist
         for path in [self.topologyStatusFileName, self.operatorRatesFileName, self.kafkaSourceRatesFileName]:
             directory = Path(path).parent
@@ -114,80 +119,51 @@ class DS2(Autoscaler):
                 os.makedirs(directory)
                 print(f"Added directory {directory}.")
 
-    def writeOperatorRatesFile(
-            self,
-            topicKafkaInputRates: {str, int},
-            operatorParallelisms: {str, int},
-            subtaskTrueProcessingRates: {str, float},
-            subtaskTrueOutputRates: {str, int},
-            subtaskInputRates: {str, int},
-            subtaskOutputRates: {str, int},
-    ):
+    def writeOperatorRatesFile(self, topicKafkaInputRates: {str, int}, operatorParallelisms: {str, int},
+                               subtaskTrueProcessingRates: {str, float}, subtaskTrueOutputRates: {str, int},
+                               subtaskInputRates: {str, int}, subtaskOutputRates: {str, int}):
+        """
+        Write alll operator status' to file self.operatorRatesFileName.
+        :param topicKafkaInputRates: Per topic kafka input rates with the topic as key and the input rates as value.
+        :param operatorParallelisms: Per operator parallelism with the operatorName as key and the parallelism as value.
+        :param subtaskTrueProcessingRates: Per subtask true processing rate: {"operator subtask_id", trueProcessingRate}
+        :param subtaskTrueOutputRates: Per subtask true processing rate: {"operator subtask_id", trueProcessingRate}
+        :param subtaskInputRates: Per subtask input rate: {"operator subtask_id", inputRate}
+        :param subtaskOutputRates: Per subtask output rate: {"operator subtask_id",  outputRate}
+        :return: None
+        """
         with open(self.operatorRatesFileName, 'w+', newline='') as f:
             writer = csv.writer(f)
-            header = [
-                "# operator_id",
-                "operator_instance_id",
-                "total_number_of_operator_instances",
-                "epoch_timestamp",
-                "true_processing_rate",
-                "true_output_rate",
-                "observed_processing_rate",
-                "observed_output_rate"
-            ]
+            header = ["# operator_id", "operator_instance_id", "total_number_of_operator_instances", "epoch_timestamp",
+                      "true_processing_rate", "true_output_rate", "observed_processing_rate", "observed_output_rate"]
 
             writer.writerow(header)
-
             timestamp = time.time_ns()
             for operator in topicKafkaInputRates.keys():
-                row = [
-                    operator,
-                    0,
-                    1,
-                    timestamp,
-                    1,
-                    1,
-                    1,
-                    1
-                ]
+                row = [operator, 0, 1, timestamp, 1, 1, 1, 1]
                 writer.writerow(row)
-
-
 
             for subtask in subtaskInputRates:
                 try:
                     row = []
                     formatted_key = subtask.split(" ")
-
                     # 1. operator_id
-                    operator = formatted_key[0]
-                    row.append(operator)
+                    row.append(formatted_key[0])
                     # 2. operator_instance_id
-                    subtask_id = formatted_key[1]
-                    row.append(subtask)
-
+                    row.append(formatted_key[1])
                     # 3. total_number_of_operator_instances
-                    operatorParallelism = operatorParallelisms[operator]
-                    row.append(operatorParallelism)
-
+                    row.append(operatorParallelisms[operator])
                     # 4. epoch_timestamp
                     row.append(timestamp)
 
-                    # 5. true_processing_rate
-                    subtaskTrueProcessingRate = subtaskTrueProcessingRates[subtask]
-                    row.append(subtaskTrueProcessingRate)
-
-                    # 6. true_output_rate
-                    subtaskTrueOutputRate = subtaskTrueOutputRates[subtask]
-                    row.append(subtaskTrueOutputRate)
-
-                    # 7. observed_processing_rate
-                    subtaskInputRate = subtaskInputRates[subtask]
-                    row.append(subtaskInputRate)
-
-                    # 8 observed_output_rate
-                    subtaskOutputRate = subtaskOutputRates[subtask]
-                    row.append(subtaskOutputRate)
+                    # 5. subtask true_processing_rate
+                    row.append(subtaskTrueProcessingRates[subtask])
+                    # 6. subtask true_output_rate
+                    row.append(subtaskTrueOutputRates[subtask])
+                    # 7. subtask observed_processing_rate
+                    row.append(subtaskInputRates[subtask])
+                    # 8 subtask observed_output_rate
+                    row.append(subtaskOutputRates[subtask])
 
                     writer.writerow(row)
                 except:
@@ -195,6 +171,12 @@ class DS2(Autoscaler):
                     traceback.print_exc()
 
     def writeKafkaSourceRatesFile(self, topicKafkaInputRates: {str, int}):
+        """
+        Wirte KafkaSourceRates file including the rates of all topics.
+        Data is written to self.kafkaSourceRatesFileName
+        :param topicKafkaInputRates: Metrics including the inputrates of Kafka
+        :return: None.
+        """
         # write rate files
         with open(self.kafkaSourceRatesFileName, 'w+', newline='') as f:
             writer = csv.writer(f)
@@ -203,13 +185,18 @@ class DS2(Autoscaler):
             for key, value in topicKafkaInputRates.items():
                 row = [key, topicKafkaInputRates[key]]
                 writer.writerow(row)
-        print("Wrote source rate file")
 
-    def writeTopologyStatusFile(self,
-                                operatorParallelisms: {str, int},
-                                topology: [(str, str)],
-                                topicKafkaInputRates: {str, int}
-                                ):
+    def writeTopologyStatusFile(self, operatorParallelisms: {str, int}, topology: [(str, str)],
+                                topicKafkaInputRates: {str, int}):
+        """
+        Write topology to a file. The kafkaTopicInputRates are used to also include the kafka_topics as inputs to DS2.
+        The topology should also include the topics.
+        Topology status is written to self.topologyStatusFileName
+        :param operatorParallelisms: Parallelisms of known operators
+        :param topology: Topology including all operators
+        :param topicKafkaInputRates: All kafkaTopic Input rates
+        :return:
+        """
         # setting number of operators for kafka topic to 1, so it can be used in topology.
         for key in topicKafkaInputRates.keys():
             operatorParallelisms[key] = 1
@@ -225,10 +212,21 @@ class DS2(Autoscaler):
                 row = [lOperator, lOperator, lOperatorParallelism,
                        rOperator, rOperator, rOperatorParallelism, ]
                 writer.writerow(row)
-        print("Wrote topology file")
 
     def runAutoscalerIteration(self):
+        """
+        DS2 iteration does the following:
+        1. Sleep INTERATION_PERIOD_SECONDS
+        2. Fetch metrics from prometheus
+        3. Write metrics to file
+        4. Call DS2 subroutine
+        5. Scale to desired parallelism
+        :return: None
+        """
+
         print('Executing DS2 Iteration')
+        time.sleep(self.configurations.ITERATION_PERIOD_SECONDS)
+
         # Fetching metrics
         print("\t1. Fetching metrics")
         topicKafkaInputRates: {str, int} = self.metricsGatherer.gatherTopicKafkaInputRates()
@@ -280,8 +278,9 @@ class DS2(Autoscaler):
         useful_output = []
         for val in output_text_values:
             if "topic" not in val:
-                val = val.replace(" NodeIndex(0)\"", "")
-                val = val.replace(" NodeIndex(4)\"", "")
+                substringsToRemove = [" ", "NodeIndex", "(0)", "(1)", "(2)", "(3)", "(4)", "\""]
+                for substringToRemove in substringsToRemove:
+                    val = val.replace(substringToRemove, "")
                 useful_output.append(val)
 
         desiredParallelisms: {str, int} = {}

@@ -11,6 +11,21 @@ class DS2MetricsGatherer(MetricsGatherer):
         operatorKafkaLag = self.prometheusMetricGatherer.getOperatorKafkaLag()
         return operatorKafkaLag
 
+    def getTopicKafkaLag(self) -> {str, int}:
+        """
+        Get the total lag per topic.
+        Function is not yet used, but can be used for a potential improvement of DS2.
+        :return: {topic_name: str -> total_topic_lag}
+        """
+        operatorKafkaLag = self.gatherOperatorKafkaLag()
+        topicLag = {}
+        for operator, value in operatorKafkaLag.items():
+            topicName = self.getTopicFromOperatorName(operator)
+            if topicName:
+                topicLag[topicName] = float(value)
+            else:
+                print(f"Error: could not determine topic corresponding to '{operator}' not found")
+        return topicLag
 
     def gatherSubtaskBusyTimes(self) -> {str, float}:
         busyTime = self.prometheusMetricGatherer.getSubtaskBusyTimeMetrics()

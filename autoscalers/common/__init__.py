@@ -1,4 +1,6 @@
 from .Configurations import Configurations
 from .ScaleManager import ScaleManager
 from .Autoscaler import Autoscaler
-from .metrics import *
+from .MetricsGatherer import MetricsGatherer
+from .PrometheusMetricGatherer import PrometheusMetricGatherer
+from .JobManagerMetricGatherer import JobManagerMetricGatherer

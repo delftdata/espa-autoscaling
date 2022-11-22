@@ -17,13 +17,15 @@ class Configurations:
     COOLDOWN_PERIOD_SECONDS = int(os.environ.get("COOLDOWN_PERIOD_SECONDS", 120))
     ITERATION_PERIOD_SECONDS = int(os.environ.get("ITERATION_PERIOD_SECONDS", 15))
 
-    NONREACTIVE_CONTAINER = os.environ.get("NONREACTIVE_CONTAINER", "9923/experiments:31")
     NONREACTIVE_QUERY = int(os.environ.get("NONREACTIVE_QUERY",  "1"))
     NONREACTIVE_TIME_AFTER_DELETE_JOB = int(os.environ.get("NONREACTIVE_TIME_AFTER_DELETE_JOB",  "4"))
-    NONREACTIVE_TIME_AFTER_DELETE_POD = int(os.environ.get('NONREACTIVE_TIME_AFTER_DELETE_POD', "4"))
-    NONREACTIVE_TIME_AFTER_SAVEPOINT = int(os.environ.get('NONREACTIVE_TIME_AFTER_SAVEPOINT', "4"))
+    NONREACTIVE_TIME_AFTER_DELETE_POD = int(os.environ.get("NONREACTIVE_TIME_AFTER_DELETE_POD", "4"))
+    NONREACTIVE_TIME_AFTER_SAVEPOINT = int(os.environ.get("NONREACTIVE_TIME_AFTER_SAVEPOINT", "4"))
+    NONREACTIVE_JOB = os.environ.get("NONREACTIVE_JOB",
+                                     "ch.ethz.systems.strymon.ds2.flink.nexmark.queries.updated.Query11KafkaSource")
+    NONREACTIVE_CONTAINER = os.environ.get("NONREACTIVE_CONTAINER", "gsiachamis/flink-nexmark-queries:1.0")
 
-    def printConfigurations(self):
+def printConfigurations(self):
         print(f"\tUSE_FLINK_REACTIVE: {self.USE_FLINK_REACTIVE}")
         print(f"\tPROMETHEUS_SERVER: {self.PROMETHEUS_SERVER}")
         print(f"\tFLINK_JOBMANAGER_SERVER: {self.FLINK_JOBMANAGER_SERVER}")
@@ -35,5 +37,8 @@ class Configurations:
         print(f"\tNONREACTIVE_TIME_AFTER_DELETE_JOB: {self.NONREACTIVE_TIME_AFTER_DELETE_JOB}")
         print(f"\tNONREACTIVE_TIME_AFTER_DELETE_POD: {self.NONREACTIVE_TIME_AFTER_DELETE_POD}")
         print(f"\tNONREACTIVE_TIME_AFTER_SAVEPOINT: {self.NONREACTIVE_TIME_AFTER_SAVEPOINT}")
+        print(f"\tNONREACTIVE_JOB: {self.NONREACTIVE_JOB}")
+        print(f"\tNONREACTIVE_CONTAINER: {self.NONREACTIVE_CONTAINER}")
+
 
 
