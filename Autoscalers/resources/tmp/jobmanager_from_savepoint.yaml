@@ -7,7 +7,6 @@ spec:
     metadata:
       annotations:
         prometheus.io/port: '9249'
-        # prometheus.io/scrape: 'true'
         ververica.com/scrape_every_2s: 'true'
       labels:
         app: flink
@@ -28,10 +27,10 @@ spec:
         - name: jobmanager
           image: gsiachamis/flink-nexmark-queries:1.0
           imagePullPolicy: Always
+          securityContext:
+            runAsUser: 0
           env:
-          args: ["standalone-job", "--job-classname", "ch.ethz.systems.strymon.ds2.flink.nexmark.queries.updated.Query1KafkaSource", "--source-max-parallelism", "20", "--p-source", "4","--p-map","4", "--p-sink","4", "--slot-sharing", "true"]
-          # args: ["standalone-job", "--job-classname", "org.apache.flink.DemoJob", "--fromSavepoint", "/opt/flink/savepoints/savepoint-ache.flink.DemoJob", "--fromSavepoint", "/opt/flink/savepoints/savepoint-340664-9060d916d03f", "--topic", "topic", "--bootstrap.servers", "kafka-service:9092", "--group.id", "yolo", "--p1", "1", "--p2", "2", --p3, "1"]
-          # args: ["standalone-job", "--job-classname", "org.apache.flink.DemoJob", "--topic", "topic", "--bootstrap.servers", "kafka-service:9092", "--group.id", "yolo"]
+          args: ['standalone-job', '--job-classname', 'ch.ethz.systems.strymon.ds2.flink.nexmark.queries.updated.Query1KafkaSource', '--fromSavepoint', 'file:/opt/flink/savepoints/savepoint-946462-87719dfb17af', '--p-sink', '1', '--p-map', '1', '--p-source', '2']
           ports:
             - containerPort: 6123
               name: rpc
@@ -49,8 +48,6 @@ spec:
               mountPath: /opt/flink/conf
             - name: my-pvc-nfs
               mountPath: /opt/flink/savepoints
-          securityContext:
-            runAsUser: 0  # refers to user _flink_ from official flink image, change if necessary
       securityContext:
         fsGroup: 1000
       volumes:
@@ -64,4 +61,4 @@ spec:
                 path: log4j-console.properties
         - name: my-pvc-nfs
           persistentVolumeClaim:
-            claimName: nfs 
+            claimName: nfs

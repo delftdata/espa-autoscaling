@@ -1,0 +1,9 @@
+FROM ubuntu
+
+COPY . .
+
+RUN apt update
+RUN apt install -y maven git htop iputils-ping wget net-tools
+RUN mvn clean install -q
+
+WORKDIR .
