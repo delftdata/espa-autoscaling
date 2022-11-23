@@ -1,7 +1,7 @@
-from common import MetricsGatherer
+from common import ApplicationManager
 
 
-class HPAMetricsGathererCPU(MetricsGatherer):
+class HPACPUApplicationManager(ApplicationManager):
 
     def gatherReady_UnReadyTaskmanagerMapping(self):
         """
@@ -10,8 +10,8 @@ class HPAMetricsGathererCPU(MetricsGatherer):
             operator -> list of non-ready operators (other)
         :return: ({operator -> [taskmanager]}, {operator -> [taskmanager]}
         """
-        operator_taskmanager_information = self.jobmanagerMetricGatherer.getOperatorHostInformation()
-        operators = self.jobmanagerMetricGatherer.getOperators()
+        operator_taskmanager_information = self.jobmanagerManager.getOperatorHostInformation()
+        operators = self.jobmanagerManager.getOperators()
 
         operator_ready_taskmanagers = {}
         operator_nonready_taskmanagers = {}
@@ -45,7 +45,7 @@ class HPAMetricsGathererCPU(MetricsGatherer):
         :return: List of CPU_values belonging to the taskmanagers
         """
         if not taskmanager_CPUUsages:
-            taskmanager_CPUUsages = self.prometheusMetricGatherer.getTaskmanagerJVMCPUUSAGE()
+            taskmanager_CPUUsages = self.prometheusManager.getTaskmanagerJVMCPUUSAGE()
         cpu_usages = []
         for taskmanager in taskmanagers:
             if taskmanager in taskmanager_CPUUsages:

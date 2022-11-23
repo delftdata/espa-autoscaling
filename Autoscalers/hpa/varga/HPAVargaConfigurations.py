@@ -3,7 +3,7 @@ import os
 from hpa.HPAConfigurations import HPAConfigurations
 
 
-class HPAConfigurationsVarga(HPAConfigurations):
+class HPAVargaConfigurations(HPAConfigurations):
     VARGA_UTILIZATION_TARGET_VALUE = float(os.environ.get("VARGA_UTILIZATION_TARGET_VALUE", 0.7))
     VARGA_RELATIVE_LAG_CHANGE_TARGET_VALUE = float(os.environ.get("VARGA_RELATIVE_LAG_CHANGE_TARGET_VALUE", 1.0))
 

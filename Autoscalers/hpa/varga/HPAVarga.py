@@ -1,34 +1,24 @@
-import traceback
 import time
 from abc import ABC
 
-from .HPAConfigurationsVarga import HPAConfigurationsVarga
-from .HPAMetricsGathererVarga import HPAMetricsGathererVarga
+from .HPAVargaConfigurations import HPAVargaConfigurations
+from .HPAVargaApplicationManager import HPAVargaApplicationManager
 from hpa.HPA import HPA
 from common import ScaleManager
-from kubernetes import client, config
-
 
 class HPAVarga(HPA, ABC):
-    configurations: HPAConfigurationsVarga
-    metricsGatherer: HPAMetricsGathererVarga
+    configurations: HPAVargaConfigurations
+    metricsGatherer: HPAVargaApplicationManager
     scaleManager: ScaleManager
     operators: [str]
 
     def __init__(self):
-        self.configurations = HPAConfigurationsVarga()
-        self.metricsGatherer: HPAMetricsGathererVarga = HPAMetricsGathererVarga(self.configurations)
-        self.scaleManager: ScaleManager = ScaleManager(self.configurations)
-
-        if self.configurations.USE_FLINK_REACTIVE:
-            config.load_incluster_config()
-            v1 = client.AppsV1Api()
-            self.metricsGatherer.v1 = v1
-            self.scaleManager.v1 = v1
+        self.configurations = HPAVargaConfigurations()
+        self.metricsGatherer: HPAVargaApplicationManager = HPAVargaApplicationManager(self.configurations)
+        self.scaleManager: ScaleManager = ScaleManager(self.configurations, self.metricsGatherer)
 
     def setInitialMetrics(self):
-        self.operators = self.metricsGatherer.jobmanagerMetricGatherer.getOperators()
-
+        self.operators = self.metricsGatherer.jobmanagerManager.getOperators()
 
     def runAutoscalerIteration(self):
         """

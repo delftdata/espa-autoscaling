@@ -1,7 +1,13 @@
 import os
+from .ExperimentData import ExperimentData
 
 
 class Configurations:
+    experimentData: ExperimentData
+
+    def __init__(self):
+        self.experimentData = ExperimentData()
+
     # Whether to use Flink Reactive for scaling operators
     USE_FLINK_REACTIVE = os.environ.get("USE_FLINK_REACTIVE", "False").lower() in ["true", "1", "t"]
     # Address of the prometheus server
@@ -18,11 +24,11 @@ class Configurations:
     ITERATION_PERIOD_SECONDS = int(os.environ.get("ITERATION_PERIOD_SECONDS", 15))
 
     NONREACTIVE_QUERY = int(os.environ.get("NONREACTIVE_QUERY",  "1"))
-    NONREACTIVE_TIME_AFTER_DELETE_JOB = int(os.environ.get("NONREACTIVE_TIME_AFTER_DELETE_JOB",  "4"))
-    NONREACTIVE_TIME_AFTER_DELETE_POD = int(os.environ.get("NONREACTIVE_TIME_AFTER_DELETE_POD", "4"))
-    NONREACTIVE_TIME_AFTER_SAVEPOINT = int(os.environ.get("NONREACTIVE_TIME_AFTER_SAVEPOINT", "4"))
+    NONREACTIVE_TIME_AFTER_DELETE_JOB_SECONDS = int(os.environ.get("NONREACTIVE_TIME_AFTER_DELETE_JOB_SECONDS", "4"))
+    NONREACTIVE_TIME_AFTER_DELETE_POD_SECONDS = int(os.environ.get("NONREACTIVE_TIME_AFTER_DELETE_POD_SECONDS", "4"))
+    NONREACTIVE_TIME_AFTER_SAVEPOINT_SECONDS = int(os.environ.get("NONREACTIVE_TIME_AFTER_SAVEPOINT_SECONSD", "4"))
     NONREACTIVE_JOB = os.environ.get("NONREACTIVE_JOB",
-                                     "ch.ethz.systems.strymon.ds2.flink.nexmark.queries.updated.Query11KafkaSource")
+                                     "ch.ethz.systems.strymon.ds2.flink.nexmark.queries.updated.Query1KafkaSource")
     NONREACTIVE_CONTAINER = os.environ.get("NONREACTIVE_CONTAINER", "gsiachamis/flink-nexmark-queries:1.0")
     NONREACTIVE_SAVEPOINT_TIMEOUT_TIME_SECONDS = int(os.environ.get("NONREACTIVE_SAVEPOINT_TIMEOUT_TIME_SECONDS", "60"))
     RUN_LOCALLY = False
@@ -38,9 +44,9 @@ class Configurations:
         print(f"\tMETRIC_AGGREGATION_PERIOD_SECONDS: {self.METRIC_AGGREGATION_PERIOD_SECONDS}")
         print(f"\tCOOLDOWN_PERIOD_SECONDS: {self.COOLDOWN_PERIOD_SECONDS}")
         print(f"\tITERATION_PERIOD_SECONDS: {self.ITERATION_PERIOD_SECONDS}")
-        print(f"\tNONREACTIVE_TIME_AFTER_DELETE_JOB: {self.NONREACTIVE_TIME_AFTER_DELETE_JOB}")
-        print(f"\tNONREACTIVE_TIME_AFTER_DELETE_POD: {self.NONREACTIVE_TIME_AFTER_DELETE_POD}")
-        print(f"\tNONREACTIVE_TIME_AFTER_SAVEPOINT: {self.NONREACTIVE_TIME_AFTER_SAVEPOINT}")
+        print(f"\tNONREACTIVE_TIME_AFTER_DELETE_JOB: {self.NONREACTIVE_TIME_AFTER_DELETE_JOB_SECONDS}")
+        print(f"\tNONREACTIVE_TIME_AFTER_DELETE_POD: {self.NONREACTIVE_TIME_AFTER_DELETE_POD_SECONDS}")
+        print(f"\tNONREACTIVE_TIME_AFTER_SAVEPOINT: {self.NONREACTIVE_TIME_AFTER_SAVEPOINT_SECONDS}")
         print(f"\tNONREACTIVE_SAVEPOINT_TIMEOUT_TIME_SECONDS: {self.NONREACTIVE_SAVEPOINT_TIMEOUT_TIME_SECONDS}")
 
         print(f"\tNONREACTIVE_JOB: {self.NONREACTIVE_JOB}")

@@ -1,18 +1,13 @@
 import traceback
 
 from common import Configurations
-from .JobManagerMetricGatherer import JobManagerMetricGatherer
-from .PrometheusMetricGatherer import PrometheusMetricGatherer
+from .JobmanagerManager import JobmanagerManager
+from .PrometheusManager import PrometheusManager
 from .KubernetesManager import KubernetesManager
 
-OPERATOR_TO_TOPIC_MAPPING = {
-    "bidssource": "bids_topic",
-    "auctionssource": "auction_topic",
-    "personsource": "person_topic"
-}
 
 
-class MetricsGatherer:
+class ApplicationManager:
     """
     The MetricsGatherer class is responsible for gathering the required metrics for the autoscalers to operate.
     It contains both a MetricGatherer for fetching data from the JobManager and a MetricGather for fetching data from
@@ -21,8 +16,8 @@ class MetricsGatherer:
     """
 
     configurations: Configurations
-    jobmanagerMetricGatherer: JobManagerMetricGatherer
-    prometheusMetricGatherer: PrometheusMetricGatherer
+    jobmanagerManager: JobmanagerManager
+    prometheusManager: PrometheusManager
     kubernetesManager: KubernetesManager
 
     def __init__(self, configurations: Configurations):
@@ -32,8 +27,8 @@ class MetricsGatherer:
         :param configurations: Configurations class containing all configurations of the current run.
         """
         self.configurations = configurations
-        self.jobmanagerMetricGatherer = JobManagerMetricGatherer(configurations)
-        self.prometheusMetricGatherer = PrometheusMetricGatherer(configurations)
+        self.jobmanagerManager = JobmanagerManager(configurations)
+        self.prometheusManager = PrometheusManager(configurations)
         self.kubernetesManager = KubernetesManager(configurations)
 
     def fetchCurrentOperatorParallelismInformation(self, knownOperators: [str] = None) -> {str, int}:
@@ -50,41 +45,27 @@ class MetricsGatherer:
         :return: Directory with operators as key and parallelisms as values
         """
         if self.configurations.USE_FLINK_REACTIVE:
-            currentTaskmanagers = self.kubernetesManager.getCurrentNumberOfTaskmanagersMetrics()
+            if not self.configurations.RUN_LOCALLY:
+                currentTaskmanagers = self.kubernetesManager.getCurrentNumberOfTaskmanagersMetrics()
+            else:
+                currentTaskmanagers = max(self.prometheusManager.getAllTotalTaskslots())
             if currentTaskmanagers < 0:
-                print(f"Error: nokubectl  valid amount of taskmanagers found: {currentTaskmanagers}")
+                print(f"Error: no valid amount of taskmanagers found: {currentTaskmanagers}")
                 return {}
             operatorParallelismInformation = {}
             for operator in knownOperators:
                 operatorParallelismInformation[operator] = currentTaskmanagers
             return operatorParallelismInformation
         else:
-            return self.jobmanagerMetricGatherer.getOperatorParallelism()
-
-
-    def __subtractSourceNameFromOperatorName(self, operatorName: str, printError=True):
-        for sourceName in OPERATOR_TO_TOPIC_MAPPING.keys():
-            if sourceName in operatorName.lower():
-                return sourceName
-        if printError:
-            print(f"Error: could not determine sourceName from operatorName '{operatorName}'")
-
-
-    def getTopicFromOperatorName(self, operatorName, printError=True):
-        sourceName = self.__subtractSourceNameFromOperatorName(operatorName, printError=printError)
-        if sourceName in OPERATOR_TO_TOPIC_MAPPING:
-            return OPERATOR_TO_TOPIC_MAPPING[sourceName]
-        else:
-            if printError:
-                print(f"Error: could not fetch topic from operatorName '{operatorName}'")
+            return self.jobmanagerManager.getOperatorParallelism()
 
 
     def gatherTopology(self, includeTopics=False):
-        topology = self.jobmanagerMetricGatherer.getTopology()
+        topology = self.jobmanagerManager.getTopology()
         if includeTopics:
-            operators = self.jobmanagerMetricGatherer.getOperators()
+            operators = self.jobmanagerManager.getOperators()
             for operator in operators:
-                topic = self.getTopicFromOperatorName(operator, printError=False)
+                topic = self.configurations.experimentData.getTopicFromOperatorName(operator, printError=False)
                 if topic:
                     topology.append((topic, operator))
         return topology

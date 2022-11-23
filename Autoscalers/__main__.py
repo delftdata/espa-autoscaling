@@ -10,7 +10,7 @@ from ds2 import DS2
 
 
 def getAutoscaler(autoscaler: str) -> Autoscaler:
-    print("Getting autoscaler: 'autoscaler'")
+    print(f"Getting autoscaler: '{autoscaler}'")
     if autoscaler.lower() == "dhalion":
         return Dhalion()
     elif autoscaler.lower() == "hpa-cpu":
@@ -24,8 +24,10 @@ def getAutoscaler(autoscaler: str) -> Autoscaler:
 
 
 def setAutoscalerDeveloperConfigurations(autoscaler: Autoscaler):
-    autoscaler.configurations.PROMETHEUS_SERVER = "34.91.164.174:9090"
-    autoscaler.configurations.FLINK_JOBMANAGER_SERVER = "34.147.38.55:8081"
+    autoscaler.configurations.RUN_LOCALLY = True
+    autoscaler.configurations.USE_FLINK_REACTIVE = True
+    autoscaler.configurations.PROMETHEUS_SERVER = "34.91.9.87:9090"
+    autoscaler.configurations.FLINK_JOBMANAGER_SERVER = "34.90.90.121:8081"
     autoscaler.configurations.ITERATION_PERIOD_SECONDS = 10
 
 
@@ -38,7 +40,7 @@ if __name__ == "__main__":
             print("Developer mode enabled.")
             developerModus = True
     else:
-        raise Exception("fError: missing argument. Please provide autoscaler as parameter {dhalion, hpa-cpu, hpa-varga")
+        raise Exception("fError: missing argument. Please provide autoscaler as parameter {dhalion, hpa-cpu, hpa-varga}")
 
     maxInitializationAttempts = 5 if not developerModus else 1
     for i in range(1, maxInitializationAttempts + 1):

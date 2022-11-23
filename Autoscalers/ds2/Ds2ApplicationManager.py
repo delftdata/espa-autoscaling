@@ -1,14 +1,14 @@
-from common import MetricsGatherer
+from common import ApplicationManager
 
 
-class DS2MetricsGatherer(MetricsGatherer):
+class DS2ApplicationManager(ApplicationManager):
 
     def gatherTopicKafkaInputRates(self) -> {str, int}:
-        topicKafkaInputRates = self.prometheusMetricGatherer.getTopicKafkaInputRates()
+        topicKafkaInputRates = self.prometheusManager.getTopicKafkaInputRates()
         return topicKafkaInputRates
 
     def gatherOperatorKafkaLag(self) -> {str, int}:
-        operatorKafkaLag = self.prometheusMetricGatherer.getOperatorKafkaLag()
+        operatorKafkaLag = self.prometheusManager.getOperatorKafkaLag()
         return operatorKafkaLag
 
     def getTopicKafkaLag(self) -> {str, int}:
@@ -28,7 +28,7 @@ class DS2MetricsGatherer(MetricsGatherer):
         return topicLag
 
     def gatherSubtaskBusyTimes(self) -> {str, float}:
-        busyTime = self.prometheusMetricGatherer.getSubtaskBusyTimeMetrics()
+        busyTime = self.prometheusManager.getSubtaskBusyTimeMetrics()
         return busyTime
 
     def gatherSubtaskTrueProcessingRates(self, subtaskInputRates: {str, int}=None, subtaskBusyTimes: {str, float}=None)\
@@ -55,7 +55,7 @@ class DS2MetricsGatherer(MetricsGatherer):
         if not subtaskOutputRates:
             subtaskOutputRates = self.gatherSubtaskOutputRates()
         if not subtaskBusyTimes:
-            subtaskBusyTimes = self.prometheusMetricGatherer.getSubtaskBusyTimeMetrics()
+            subtaskBusyTimes = self.prometheusManager.getSubtaskBusyTimeMetrics()
 
         subtaskTrueOutputRates = {}
         for subtask in subtaskOutputRates.keys():
@@ -72,9 +72,9 @@ class DS2MetricsGatherer(MetricsGatherer):
         return subtaskTrueOutputRates
 
     def gatherSubtaskInputRates(self) -> {str, int}:
-        subtaskInputRates = self.prometheusMetricGatherer.getSubtaskInputRateMetrics()
+        subtaskInputRates = self.prometheusManager.getSubtaskInputRateMetrics()
         return subtaskInputRates
 
     def gatherSubtaskOutputRates(self) -> {str, int}:
-        subtaskOutputRates = self.prometheusMetricGatherer.getSubtaskOutputRateMetrics()
+        subtaskOutputRates = self.prometheusManager.getSubtaskOutputRateMetrics()
         return subtaskOutputRates

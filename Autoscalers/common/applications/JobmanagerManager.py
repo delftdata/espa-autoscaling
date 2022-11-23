@@ -1,9 +1,11 @@
+import time
+
 import requests
 
 from common import Configurations
 
 
-class JobManagerMetricGatherer:
+class JobmanagerManager:
     """
     JobManagerMetricGatherer is responsible for gathering information from the JobManager pod.
     To do so, it uses the address of the jobmanager provided in the configurations folder.
@@ -188,3 +190,78 @@ class JobManagerMetricGatherer:
                         topology.append((node_in_name, node_name))
         return topology
 
+    # Trigger savepoint and get the required information
+    def triggerSavepointAndGetTriggerId(self, job_id=None):
+        """
+        Trigger a savepoint and get the corresponding triggerId
+        :param job_id: jo_id to trigger savepoint for
+        :return: trigger_id of triggeredSavePoint
+        """
+        if not job_id:
+            job_id = self.getJobId()
+        savePoint = requests.post(f"http://{self.configurations.FLINK_JOBMANAGER_SERVER}/jobs/{job_id}/savepoints")
+        time.sleep(self.configurations.NONREACTIVE_TIME_AFTER_SAVEPOINT_SECONDS)
+        trigger_id = savePoint.json()['request-id']
+        return trigger_id
+
+    def getSavePointTriggerJSON(self, job_id=None, trigger_id=None):
+        """
+        Get the status of a triggered svapoint. If no trigger_id is given, invoke a savepoint and use that trigger_id
+        :param job_id: Job_id to trigger a savepoint for
+        :param trigger_id: Trigger_id if savepoint is already triggered.
+        :return: Json with all information regarding the trigger
+        """
+        if not job_id:
+            job_id = self.getJobId()
+            trigger_id = self.triggerSavepointAndGetTriggerId(job_id=job_id)
+        if not trigger_id:
+            trigger_id = self.triggerSavepointAndGetTriggerId(job_id=job_id)
+        savepoint_json = requests.get(f"http://{self.configurations.FLINK_JOBMANAGER_SERVER}/jobs/{job_id}/savepoints/{trigger_id}").json()
+        return savepoint_json
+
+    def sendStopJobRequest(self, job_id=None):
+        """
+        Send a stop request to the jobmanager and get the response.
+        :param job_id: Job_id to send a stop-request to.
+        :return: The response from the server
+        """
+        if not job_id:
+            job_id = self.getJobId()
+        stop_request = requests.post(f"http://{self.configurations.FLINK_JOBMANAGER_SERVER}/jobs/{job_id}/stop")
+        return stop_request
+
+    def extractSavePointStatusFromSavePointTriggerJSON(self, job_id=None, trigger_id=None, savePointTriggerJson=None):
+        if not job_id:
+            job_id = self.getJobId()
+            trigger_id = self.triggerSavepointAndGetTriggerId(job_id=job_id)
+            savePointTriggerJson = self.getSavePointTriggerJSON(job_id=job_id, trigger_id=trigger_id)
+        if not trigger_id:
+            trigger_id = self.triggerSavepointAndGetTriggerId(job_id=job_id)
+            savePointTriggerJson = self.getSavePointTriggerJSON(job_id=job_id, trigger_id=trigger_id)
+        if not savePointTriggerJson:
+            savePointTriggerJson = self.getSavePointTriggerJSON(job_id=job_id, trigger_id=trigger_id)
+
+        status = savePointTriggerJson["status"]["id"]
+        return status
+
+    def extractSavePointPathFromSavePointTriggerJSON(self, job_id=None, trigger_id=None, savePointTriggerJson=None):
+        if not job_id:
+            job_id = self.getJobId()
+            trigger_id = self.triggerSavepointAndGetTriggerId(job_id=job_id)
+            savePointTriggerJson = self.getSavePointTriggerJSON(job_id=job_id, trigger_id=trigger_id)
+        if not trigger_id:
+            trigger_id = self.triggerSavepointAndGetTriggerId(job_id=job_id)
+            savePointTriggerJson = self.getSavePointTriggerJSON(job_id=job_id, trigger_id=trigger_id)
+        if not savePointTriggerJson:
+            savePointTriggerJson = self.getSavePointTriggerJSON(job_id=job_id, trigger_id=trigger_id)
+        operationJson = savePointTriggerJson['operation']
+        if "location" in operationJson:
+            location = operationJson["location"]
+            return location
+        else:
+            if "failure-cause" in operationJson:
+                print(f"Making a savepoint gave the following error: {operationJson['failure-cause']['class']}: "
+                      f"{operationJson['failure-cause']['stack-trace']}.")
+            else:
+                print(f"Operation.Location unavailable in savepointJSON: {savePointTriggerJson}")
+            return None

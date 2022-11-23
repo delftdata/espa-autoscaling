@@ -8,76 +8,15 @@ import time
 from timeit import default_timer as timer
 
 from .DS2Configurations import DS2Configurations
-from .Ds2MetricsGatherer import DS2MetricsGatherer
+from .DS2ApplicationManager import DS2ApplicationManager
 from common import ScaleManager, Autoscaler
-from kubernetes import client, config
-
-
-def writeConfig(**kwargs):
-    template = """apiVersion: batch/v1
-kind: Job
-metadata:
-  name: flink-jobmanager
-spec:
-  template:
-    metadata:
-      annotations:
-        prometheus.io/port: '9249'
-        ververica.com/scrape_every_2s: 'true'
-      labels:
-        app: flink
-        component: jobmanager
-    spec:
-      restartPolicy: OnFailure
-      containers:
-        - name: jobmanager
-          image: {container}
-          imagePullPolicy: Always
-          env:
-          args: {args}
-          ports:
-            - containerPort: 6123
-              name: rpc
-            - containerPort: 6124
-              name: blob-server
-            - containerPort: 8081
-              name: webui
-          livenessProbe:
-            tcpSocket:
-              port: 6123
-            initialDelaySeconds: 30
-            periodSeconds: 60
-          volumeMounts:
-            - name: flink-config-volume
-              mountPath: /opt/flink/conf
-            - name: my-pvc-nfs
-              mountPath: /opt/flink/savepoints
-          securityContext:
-            runAsUser: 0  # refers to user _flink_ from official flink image, change if necessary
-      volumes:
-        - name: flink-config-volume
-          configMap:
-            name: flink-config
-            items:
-              - key: flink-conf.yaml
-                path: flink-conf.yaml
-              - key: log4j-console.properties
-                path: log4j-console.properties
-        - name: my-pvc-nfs
-          persistentVolumeClaim:
-            claimName: nfs """
-
-    with open('jobmanager_from_savepoint.yaml', 'w') as yfile:
-        yfile.write(template.format(**kwargs))
-
-
 
 class DS2(Autoscaler):
     """
     DS2 autoscaler.
     """
     configurations: DS2Configurations
-    metricsGatherer: DS2MetricsGatherer
+    applicationManager: DS2ApplicationManager
     scaleManager: ScaleManager
 
     operators: [str]
@@ -91,27 +30,23 @@ class DS2(Autoscaler):
         Constructor of DS2.
         """
         self.configurations = DS2Configurations()
-        self.metricsGatherer = DS2MetricsGatherer(self.configurations)
-        self.scaleManager = ScaleManager(self.configurations)
-        if self.configurations.USE_FLINK_REACTIVE:
-            config.load_incluster_config()
-            v1 = client.AppsV1Api()
-            self.metricsGatherer.v1 = v1
-            self.scaleManager.v1 = v1
+        self.applicationManager = DS2ApplicationManager(self.configurations)
+        self.scaleManager = ScaleManager(self.configurations, self.applicationManager)
+
 
     def setInitialMetrics(self):
         """
         Set initial metrics of autoscaler and create directories required for file writing.
         :return: None
         """
-        self.operators = self.metricsGatherer.jobmanagerMetricGatherer.getOperators()
-        self.topology = self.metricsGatherer.gatherTopology(includeTopics=True)
+        self.operators = self.applicationManager.jobmanagerManager.getOperators()
+        self.topology = self.applicationManager.gatherTopology(includeTopics=True)
         print(f"Found operators: '{self.operators}' with topology: '{self.topology}'")
 
         # Define file paths for passing through data with DS2 Rust code
-        self.topologyStatusFileName = f"resources/ds2/data/flink_topology.csv"
-        self.operatorRatesFileName = f"resources/ds2/data/flink_rates.log"
-        self.kafkaSourceRatesFileName = f"resources/ds2/data/kafka_source_rates.csv"
+        self.topologyStatusFileName = f"resources/tmp/ds2/data/flink_topology.csv"
+        self.operatorRatesFileName = f"resources/tmp/ds2/data/flink_rates.log"
+        self.kafkaSourceRatesFileName = f"resources/tmp/ds2/data/kafka_source_rates.csv"
         # Make directories of paths if they do not exist
         for path in [self.topologyStatusFileName, self.operatorRatesFileName, self.kafkaSourceRatesFileName]:
             directory = Path(path).parent
@@ -139,6 +74,7 @@ class DS2(Autoscaler):
 
             writer.writerow(header)
             timestamp = time.time_ns()
+
             for operator in topicKafkaInputRates.keys():
                 row = [operator, 0, 1, timestamp, 1, 1, 1, 1]
                 writer.writerow(row)
@@ -147,23 +83,63 @@ class DS2(Autoscaler):
                 try:
                     row = []
                     formatted_key = subtask.split(" ")
-                    # 1. operator_id
-                    row.append(formatted_key[0])
-                    # 2. operator_instance_id
-                    row.append(formatted_key[1])
+                    if len(formatted_key) >= 2:
+                        # 1. operator_id
+                        operator = formatted_key[0]
+                        row.append(operator)
+                        # 2. operator_instance_id
+                        row.append(formatted_key[1])
+                    else:
+                        print(f"Error: unable to split subtask '{subtask}' into an operator and operator_instance_id: "
+                              f"{formatted_key}. Only assigning operator and setting operator_instance_id to 1")
+                        # operator_id
+                        operator = subtask
+                        row.append(operator)
+                        # operator_instance_id
+                        row.append(0)
+
                     # 3. total_number_of_operator_instances
-                    row.append(operatorParallelisms[operator])
+                    if operator in operatorParallelisms:
+                        row.append(operatorParallelisms[operator])
+                    else:
+                        print(f"Error: could not find operator '{operator}' in "
+                              f"operatorParallelisms '{operatorParallelisms}'")
+                        row.append(1)
+
                     # 4. epoch_timestamp
                     row.append(timestamp)
 
                     # 5. subtask true_processing_rate
-                    row.append(subtaskTrueProcessingRates[subtask])
+                    if subtask in subtaskTrueProcessingRates:
+                        row.append(subtaskTrueProcessingRates[subtask])
+                    else:
+                        print(f"Error: could not find subtask '{subtask}' in "
+                              f"subtaskTrueProcessingRates '{subtaskTrueProcessingRates}'")
+                        row.append(1)
+
                     # 6. subtask true_output_rate
-                    row.append(subtaskTrueOutputRates[subtask])
+                    if subtask in subtaskTrueOutputRates:
+                        row.append(subtaskTrueOutputRates[subtask])
+                    else:
+                        print(f"Error: could not find subtask '{subtask}' in "
+                              f"subtaskTrueOutputRates {subtaskTrueOutputRates}'")
+                        row.append(1)
+
                     # 7. subtask observed_processing_rate
-                    row.append(subtaskInputRates[subtask])
+                    if subtask in subtaskInputRates:
+                        row.append(subtaskInputRates[subtask])
+                    else:
+                        print(f"Error: could not find subtask '{subtask}' in "
+                              f"subtaskInputRates {subtaskInputRates}'")
+                        row.append(1)
+
                     # 8 subtask observed_output_rate
-                    row.append(subtaskOutputRates[subtask])
+                    if subtask in subtaskOutputRates:
+                        row.append(subtaskOutputRates[subtask])
+                    else:
+                        print(f"Error: could not find subtask '{subtask}' in "
+                              f"subtaskOutputRates {subtaskOutputRates}'")
+                        row.append(1)
 
                     writer.writerow(row)
                 except:
@@ -183,7 +159,7 @@ class DS2(Autoscaler):
             header = ["# source_operator_name", "output_rate_per_instance (records/s)"]
             writer.writerow(header)
             for key, value in topicKafkaInputRates.items():
-                row = [key, topicKafkaInputRates[key]]
+                row = [key, value]
                 writer.writerow(row)
 
     def writeTopologyStatusFile(self, operatorParallelisms: {str, int}, topology: [(str, str)],
@@ -198,8 +174,9 @@ class DS2(Autoscaler):
         :return:
         """
         # setting number of operators for kafka topic to 1, so it can be used in topology.
+        parallelisms = dict(operatorParallelisms)
         for key in topicKafkaInputRates.keys():
-            operatorParallelisms[key] = 1
+            parallelisms[key] = 1
 
         with open(self.topologyStatusFileName, 'w', newline='') as f:
             writer = csv.writer(f)
@@ -207,11 +184,15 @@ class DS2(Autoscaler):
                       "operator_name2", "total_number_of_operator_instances2"]
             writer.writerow(header)
             for lOperator, rOperator in topology:
-                lOperatorParallelism = int(operatorParallelisms[lOperator])
-                rOperatorParallelism = int(operatorParallelisms[rOperator])
-                row = [lOperator, lOperator, lOperatorParallelism,
-                       rOperator, rOperator, rOperatorParallelism, ]
-                writer.writerow(row)
+                if lOperator in parallelisms and rOperator in parallelisms:
+                    lOperatorParallelism = int(parallelisms[lOperator])
+                    rOperatorParallelism = int(parallelisms[rOperator])
+                    row = [lOperator, lOperator, lOperatorParallelism,
+                           rOperator, rOperator, rOperatorParallelism, ]
+                    writer.writerow(row)
+                else:
+                    print(f"Error: lOperator: '{lOperator}' or rOperator '{rOperator}' not found in "
+                          f"operatorParallelisms {operatorParallelisms}")
 
     def runAutoscalerIteration(self):
         """
@@ -224,19 +205,29 @@ class DS2(Autoscaler):
         :return: None
         """
 
-        print('Executing DS2 Iteration')
+        print('\nExecuting next DS2 Iteration')
         time.sleep(self.configurations.ITERATION_PERIOD_SECONDS)
 
         # Fetching metrics
         print("\t1. Fetching metrics")
-        topicKafkaInputRates: {str, int} = self.metricsGatherer.gatherTopicKafkaInputRates()
-        operatorParallelisms: {str, int} = self.metricsGatherer.fetchCurrentOperatorParallelismInformation()
-        subtaskInputRates: {str, int} = self.metricsGatherer.gatherSubtaskInputRates()
-        subtaskOutputRates: {str, int} = self.metricsGatherer.gatherSubtaskOutputRates()
-        subtaskTrueProcessingRates: {str, float} = self.metricsGatherer.gatherSubtaskTrueProcessingRates(
+        topicKafkaInputRates: {str, int} = self.applicationManager.gatherTopicKafkaInputRates()
+        operatorParallelisms: {str, int} = self.applicationManager\
+            .fetchCurrentOperatorParallelismInformation(self.operators)
+        subtaskInputRates: {str, int} = self.applicationManager.gatherSubtaskInputRates()
+        subtaskOutputRates: {str, int} = self.applicationManager.gatherSubtaskOutputRates()
+        subtaskTrueProcessingRates: {str, float} = self.applicationManager.gatherSubtaskTrueProcessingRates(
             subtaskInputRates=subtaskInputRates)
-        subtaskTrueOutputRates: {str, int} = self.metricsGatherer.gatherSubtaskTrueOutputRates(
+        subtaskTrueOutputRates: {str, int} = self.applicationManager.gatherSubtaskTrueOutputRates(
             subtaskOutputRates=subtaskOutputRates)
+
+        # print(f"Found the following metrics: \n"
+        #       f"\ttopicKafkaInputRates: {topicKafkaInputRates}\n"
+        #       f"\toperatorParallelisms: {operatorParallelisms}\n"
+        #       f"\tsubtaskInputRates: {subtaskInputRates}\n"
+        #       f"\tsubtaskOutputRates: {subtaskOutputRates}\n"
+        #       f"\tsubtaskTrueProcessingRates: {subtaskTrueProcessingRates}\n"
+        #       f"\tsubtaskTrueOutputRates: {subtaskTrueOutputRates}"
+        # )
 
         # Writing metrics to file
         print("\t2. Writing metrics to file")
@@ -269,11 +260,13 @@ class DS2(Autoscaler):
             "--source-rates", self.kafkaSourceRatesFileName,
             "--system", "flink"
         ], capture_output=True)
+        somethingWentWrong = False
         print("\t3b. DS2's scaling module took ", timer() - start_time, "s to determine desired parallelisms.")
 
         # Fetch DS2's desired parallelisms
-        print("\t4. Fetching DS2's desired parallelisms")
+        print("\t4a. Fetching DS2's desired parallelisms")
         output_text = ds2_model_result.stdout.decode("utf-8").replace("\n", "")
+        print(f"\t4b. DS2 provided the following output: {output_text}")
         output_text_values = output_text.split(",")
         useful_output = []
         for val in output_text_values:
@@ -285,11 +278,22 @@ class DS2(Autoscaler):
 
         desiredParallelisms: {str, int} = {}
         for i in range(0, len(useful_output), 2):
-            operator = useful_output[i]
-            desiredParallelism = math.ceil(float(useful_output[i + 1]))
-            desiredParallelism = min(desiredParallelism, self.configurations.MAX_PARALLELISM)
-            desiredParallelism = max(desiredParallelism, self.configurations.MIN_PARALLELISM)
-            desiredParallelisms[operator] = desiredParallelism
+            if len(useful_output) > i + 1:
+                operator = useful_output[i]
+                desiredParallelism = math.ceil(float(useful_output[i + 1]))
+                desiredParallelism = min(desiredParallelism, self.configurations.MAX_PARALLELISM)
+                desiredParallelism = max(desiredParallelism, self.configurations.MIN_PARALLELISM)
+                desiredParallelisms[operator] = desiredParallelism
+            else:
+                print(f"Error: useful_output {useful_output} is not large enough to process the next desiredParallelism"
+                      f" i={i}.")
+                somethingWentWrong = True
+
+        if somethingWentWrong:
+            print(f"Getting DS2 prediction went wrong. It gave the following result:\n\n"
+                  f"Output:\n{ds2_model_result.stdout}\n\n"
+                  f"Errors:\n{ds2_model_result.stderr}\n\n"
+                  f"Return code:\n{ds2_model_result.returncode}\n\n")
 
         print(f"\t5. Desired parallelisms: {desiredParallelisms}")
 

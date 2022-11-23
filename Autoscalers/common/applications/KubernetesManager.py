@@ -21,6 +21,14 @@ class KubernetesManager:
             self.batchV1 = client.BatchV1Api()
             self.coreV1 = client.CoreV1Api()
 
+    @staticmethod
+    def __mockKubernetesInteraction(operation: str, command: str):
+        print(f"Executing the following operation locally: {operation}")
+        print(f"Please execute the following command. Then press any key to continue...")
+        print(f"\t{command}")
+        input()
+        print("")
+
     # Remove current jobmanager
     def deleteJobManager(self):
         if not self.configurations.RUN_LOCALLY:
@@ -31,7 +39,10 @@ class KubernetesManager:
                 print("Error: deleting jobmanager failed.")
                 traceback.print_exc()
         else:
-            print("Running application locally. Mocking the deletion of jobmanager")
+            self.__mockKubernetesInteraction(
+                operation="Deleting jobmanager job",
+                command=f"kubectl delete job flink-jobmanager"
+            )
 
     def deleteJobManagerPod(self):
         if not self.configurations.RUN_LOCALLY:
@@ -52,13 +63,25 @@ class KubernetesManager:
                 else:
                     print("No jobmanager pod found")
             except:
-                print("Error: failed deleteing jobmanager pod")
+                print("Error: failed deleting jobmanager pod")
                 traceback.print_exc()
         else:
-            print("Running application locally. Mocking the deletion of the jobmanager pod")
+            self.__mockKubernetesInteraction(
+                operation="Delete jobmanager pod",
+                command=f"kubectl delete pods "
+                        "$(kubectl get pods -o yaml | grep flink-jobmanager- | grep name | awk '{print $2}')"
+            )
 
     # Set amount of Flink Taskmanagers
     def adaptFlinkTaskmanagersParallelism(self, new_number_of_taskmanagers):
+        f"""
+        Change the parallelism of the online taskmanagers to new_number_of_taskmanagers.
+        This is done by sending a request to self.appsV1.patched_namespaced_deployment_scale.
+        If an error occurs, an error is thrown and the program continues as normal.
+        If self.configuratinos.RUN_LOCALLY is true, nothing is done.
+        :param new_number_of_taskmanagers: 
+        :return: None
+        """
         if not self.configurations.RUN_LOCALLY:
             try:
                 print(f"Scaling total amount of taskmanagers to {new_number_of_taskmanagers}")
@@ -68,8 +91,11 @@ class KubernetesManager:
                     pretty=True)
             except:
                 traceback.print_exc()
-        print(f"Running application locally. Mocking the adaption of taskmanagers to '{new_number_of_taskmanagers}' "
-              f"taskmanagers")
+        else:
+            self.__mockKubernetesInteraction(
+                operation=f"Adapting parallelism of taskmanagers to {new_number_of_taskmanagers}",
+                command=f"kubectl scale deploy flink-taskmanager --replicas={new_number_of_taskmanagers}"
+            )
 
 
     def getCurrentNumberOfTaskmanagersMetrics(self) -> int:
@@ -102,4 +128,8 @@ class KubernetesManager:
         if not self.configurations.RUN_LOCALLY:
             utils.create_from_yaml(self.appsV1, yaml_file)
         else:
-            print(f"Deploying new jobmanager form file '{yaml_file}. Mocking execution.")
+            self.__mockKubernetesInteraction(
+                operation=f"Deploying a new jobmanager from file {yaml_file}",
+                command=f"kubectl apply -f {yaml_file}"
+            )
+

@@ -2,34 +2,27 @@ import statistics
 import traceback
 import time
 
-from .HPAConfigurationsCPU import HPAConfigurationsCPU
-from .HPAMetricsGathererCPU import HPAMetricsGathererCPU
+from .HPACPUConfigurations import HPACPUConfigurations
+from .HPACPUApplicationManager import HPACPUApplicationManager
 from hpa.HPA import HPA
-from common import ScaleManager, Configurations
-
-from kubernetes import client, config
+from common import ScaleManager
 
 
 class HPACPU(HPA):
-    configurations: HPAConfigurationsCPU
-    metricsGatherer: HPAMetricsGathererCPU
+    configurations: HPACPUConfigurations
+    metricsGatherer: HPACPUApplicationManager
     scaleManager: ScaleManager
     operators: [str]
 
 
     def __init__(self):
-        self.configurations = HPAConfigurationsCPU()
-        self.metricsGatherer: HPAMetricsGathererCPU = HPAMetricsGathererCPU(self.configurations)
-        self.scaleManager: ScaleManager = ScaleManager(self.configurations)
+        self.configurations = HPACPUConfigurations()
+        self.metricsGatherer: HPACPUApplicationManager = HPACPUApplicationManager(self.configurations)
+        self.scaleManager: ScaleManager = ScaleManager(self.configurations, self.metricsGatherer)
 
-        if self.configurations.USE_FLINK_REACTIVE:
-            config.load_incluster_config()
-            v1 = client.AppsV1Api()
-            self.metricsGatherer.v1 = v1
-            self.scaleManager.v1 = v1
 
     def setInitialMetrics(self):
-        self.operators = self.metricsGatherer.jobmanagerMetricGatherer.getOperators()
+        self.operators = self.metricsGatherer.jobmanagerManager.getOperators()
 
 
     def runAutoscalerIteration(self):
@@ -50,7 +43,7 @@ class HPACPU(HPA):
         # Gather metrics:
         operator_ready_taskmanagers, operator_unready_taskmanagers = self.metricsGatherer. \
             gatherReady_UnReadyTaskmanagerMapping()
-        taskmanager_cpu_usages = self.metricsGatherer.prometheusMetricGatherer.getTaskmanagerJVMCPUUSAGE()
+        taskmanager_cpu_usages = self.metricsGatherer.prometheusManager.getTaskmanagerJVMCPUUSAGE()
         currentParallelisms = self.metricsGatherer.fetchCurrentOperatorParallelismInformation(
             knownOperators=self.operators)
 

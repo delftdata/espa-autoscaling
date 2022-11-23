@@ -1,8 +1,9 @@
 import time
+from pathlib import Path
+import os
 from .applications import ApplicationManager
 from .Configurations import Configurations
 
-JOB_MANAGER_FILE = "jobmanager_from_savepoint.yaml"
 
 
 class ScaleManager:
@@ -19,6 +20,13 @@ class ScaleManager:
         self.configurations = configurations
         self.desiredParallelisms = {}
         self.metricsGatherer = metricsGatherer
+        self.nonreactiveJobmanagerTemplate = "resources/templates/non-reactive-jobmanager-template.yaml"
+        self.nonreactiveJobmanagerSavefile = "resources/tmp/jobmanager_from_savepoint.yaml"
+        for path in [self.nonreactiveJobmanagerSavefile]:
+            directory = Path(path).parent
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+                print(f"Added directory {directory}.")
 
     # Scaling operation
     def performScaleOperations(self, currentParallelisms: {str, int}, desiredParallelisms: {str, int},
@@ -138,103 +146,30 @@ class ScaleManager:
 
         # Delete jobmanager
         self.metricsGatherer.kubernetesManager.deleteJobManager()
-        time.sleep(self.configurations.NONREACTIVE_TIME_AFTER_DELETE_JOB)
+        time.sleep(self.configurations.NONREACTIVE_TIME_AFTER_DELETE_JOB_SECONDS)
 
         # Delete jobmanager's pod
         self.metricsGatherer.kubernetesManager.deleteJobManagerPod()
-        time.sleep(self.configurations.NONREACTIVE_TIME_AFTER_DELETE_POD)
+        time.sleep(self.configurations.NONREACTIVE_TIME_AFTER_DELETE_POD_SECONDS)
 
         # Deploy a new job with updated parallelisms
-        self.metricsGatherer.kubernetesManager.deployNewJobManager(JOB_MANAGER_FILE)
+        self.metricsGatherer.kubernetesManager.deployNewJobManager(self.nonreactiveJobmanagerSavefile)
 
     # Write Jobmanager Configuration File
-    def __writeJobmanagerConfigurationFile(**kwargs):
-        template = """
-            apiVersion: batch/v1
-            kind: Job
-            metadata:
-              name: flink-jobmanager
-            spec:
-              template:
-                metadata:
-                  annotations:
-                    prometheus.io/port: '9249'
-                    ververica.com/scrape_every_2s: 'true'
-                  labels:
-                    app: flink
-                    component: jobmanager
-                spec:
-                  restartPolicy: OnFailure
-                  containers:
-                    - name: jobmanager
-                      image: {container}
-                      imagePullPolicy: Always
-                      env:
-                      args: {args}
-                      ports:
-                        - containerPort: 6123
-                          name: rpc
-                        - containerPort: 6124
-                          name: blob-server
-                        - containerPort: 8081
-                          name: webui
-                      livenessProbe:
-                        tcpSocket:
-                          port: 6123
-                        initialDelaySeconds: 30
-                        periodSeconds: 60
-                      volumeMounts:
-                        - name: flink-config-volume
-                          mountPath: /opt/flink/conf
-                        - name: my-pvc-nfs
-                          mountPath: /opt/flink/savepoints
-                      securityContext:
-                        runAsUser: 0  # refers to user _flink_ from official flink image, change if necessary
-                  volumes:
-                    - name: flink-config-volume
-                      configMap:
-                        name: flink-config
-                        items:
-                          - key: flink-conf.yaml
-                            path: flink-conf.yaml
-                          - key: log4j-console.properties
-                            path: log4j-console.properties
-                    - name: my-pvc-nfs
-                      persistentVolumeClaim:
-                        claimName: nfs """
-        with open(JOB_MANAGER_FILE, 'w') as yfile:
+    def __writeJobmanagerConfigurationFile(self, **kwargs):
+        templateFile = open(self.nonreactiveJobmanagerTemplate, "r")
+        template = templateFile.read()
+        print(template)
+        with open(self.nonreactiveJobmanagerSavefile, 'w+') as yfile:
             yfile.write(template.format(**kwargs))
-
-    @staticmethod
-    def __getParamOfOperator(operator, printError=True):
-        operator_param_Mapper = {
-            # Query 1
-            "Source:_BidsSource": "--p-source",
-            "Mapper": "--p-map",
-            "LatencySink": "--p-sink",
-            # Query 3
-            "Source:_auctionsSource": "--p-auction-source",
-            "Source:_personSource": "--p-person-source",
-            "Incrementaljoin": "--p-join",
-            # Query 11
-            # "Source:_BidsSource": "--p-source",
-            "SessionWindow____DummyLatencySink": "--p-window",
-        }
-
-        if operator in operator_param_Mapper.keys():
-            return operator_param_Mapper[operator]
-        else:
-            if printError:
-                print(f"Error: could not retrieve operator '{operator}' from operator_param_mapper "
-                      f"'{operator_param_Mapper}'")
 
     def __createJobmanagerConfigurationFile(self, desiredParallelisms: {str, int}, savepointPath: str):
         args = ["standalone-job", "--job-classname", self.configurations.NONREACTIVE_JOB, "--fromSavepoint",
                 savepointPath]
         for operator in desiredParallelisms.keys():
-            parameter = self.__getParamOfOperator(operator)
+            parameter = self.configurations.experimentData.getParallelismParameterOfOperator(operator)
             if parameter:
                 args.append(parameter)
-                args.append(desiredParallelisms[operator])
+                args.append(str(desiredParallelisms[operator]))
         self.__writeJobmanagerConfigurationFile(container=self.configurations.NONREACTIVE_CONTAINER, args=args)
 

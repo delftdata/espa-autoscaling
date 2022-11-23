@@ -3,7 +3,7 @@ import requests
 from common import Configurations
 
 
-class PrometheusMetricGatherer:
+class PrometheusManager:
     """
     The PrometheusMetricGatherer is responsible for fetching data from the Prometheus server.
     """
@@ -74,18 +74,6 @@ class PrometheusMetricGatherer:
         input_usage_maximum_data = self.__getResultsFromPrometheus(input_usage_maximum_query)
         input_usage_maximum = self.__extract_per_operator_metrics(input_usage_maximum_data)
         return input_usage_maximum
-
-    # Parallelism gathering
-    def getOperatorCurrentParallelismMetrics(self) -> {str, int}:
-        """
-        Get the current parallelisms of the individual operators
-        :return: A directory with {operator, currentParallelism}
-        """
-        parallelism_query = f"count(sum_over_time(flink_taskmanager_job_task_operator_numRecordsIn" \
-                            f"[{self.configurations.METRIC_AGGREGATION_PERIOD_SECONDS}s])) by (task_name)"
-        parallelism_data = self.__getResultsFromPrometheus(parallelism_query)
-        parallelism = self.__extract_per_operator_metrics(parallelism_data)
-        return parallelism
 
     # Get operators Backpressure time per second
     def getOperatorBackpressureTimeMetrics(self, monitoringPeriodSeconds=None) -> {str, float}:
@@ -228,3 +216,30 @@ class PrometheusMetricGatherer:
         subtask_busyTime_data = self.__getResultsFromPrometheus(subtask_busyTime_query)
         subtask_busyTime = self.__extract_per_subtask_metrics(subtask_busyTime_data)
         return subtask_busyTime
+
+    # Get single value
+    @staticmethod
+    def __extract_all_values(prometheusResponse) -> [str]:
+        """
+        Extract all values from a prometheusResponse and return them as a list.
+        :param prometheusResponse: Response from prometheus to get information from
+        :return: List of [value]
+        """
+        metrics = prometheusResponse.json()["data"]["result"]
+        values = []
+        for results in metrics:
+            values.append(results["value"][1])
+        return values
+
+    # Parallelism gathering
+    def getAllTotalTaskslots(self) -> [int]:
+        """
+        Get the total taskslots of all jobs running in the cluster.
+        This can be used to determine the amount of running taskmanagers when running in Reactive mode.
+        :return: A directory with {operator, currentParallelism}
+        """
+        totalTaskslots_query = f"flink_jobmanager_taskSlotsTotal"
+        totalTaskslots_data = self.__getResultsFromPrometheus(totalTaskslots_query)
+        totalTaskslots = self.__extract_all_values(totalTaskslots_data)
+        totalTaskSlotsInts = list(map(lambda v: int(v), totalTaskslots))
+        return totalTaskSlotsInts

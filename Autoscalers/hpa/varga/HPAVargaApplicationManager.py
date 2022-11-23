@@ -1,14 +1,14 @@
-from common import MetricsGatherer
+from common import ApplicationManager
 
 
-class HPAMetricsGathererVarga(MetricsGatherer):
+class HPAVargaApplicationManager(ApplicationManager):
 
     def gatherUtilizationMetrics(self) -> {str, float}:
         """
         1 - (avg(flink_taskmanager_job_task_idleTimeMsPerSecond) by (<<.GroupBy>>) / 1000)
         :return:
         """
-        idle_timeMetrics: {str, float} = self.prometheusMetricGatherer.getOperatorIdleTimePerSecond()
+        idle_timeMetrics: {str, float} = self.prometheusManager.getOperatorIdleTimePerSecond()
         utilizationMetrics: {str, float} = {}
         for operator in idle_timeMetrics.keys():
             idle_time = idle_timeMetrics[operator]

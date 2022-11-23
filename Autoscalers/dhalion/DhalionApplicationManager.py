@@ -1,21 +1,21 @@
-from common import MetricsGatherer
+from common import ApplicationManager
 
 
-class DhalionMetricsGatherer(MetricsGatherer):
+class DhalionApplicationManager(ApplicationManager):
 
     def gatherBackpressureStatusMetrics(self):
-        return self.prometheusMetricGatherer.getBackpressureStatusMetrics()
+        return self.prometheusManager.getOperatorBackpressureStatusMetrics()
 
     def gatherBackpressureTimeMetrics(self, monitoringPeriodSeconds=None):
         if monitoringPeriodSeconds is not None:
-            return self.prometheusMetricGatherer.getBackpressureTimeMetrics(
+            return self.prometheusManager.getOperatorBackpressureStatusMetrics(
                 monitoringPeriodSeconds=monitoringPeriodSeconds
             )
         else:
-            return self.prometheusMetricGatherer.getOperatorBackpressureTimeMetrics()
+            return self.prometheusManager.getOperatorBackpressureTimeMetrics()
 
     def gatherBuffersInUsageMetrics(self):
-        return self.prometheusMetricGatherer.getOperatorMaximumBuffersInUsageMetrics()
+        return self.prometheusManager.getOperatorMaximumBuffersInUsageMetrics()
 
     def isSystemBackpressured(self, backpressureStatusMetrics: {str, bool}=None) -> bool:
         """
@@ -40,7 +40,7 @@ class DhalionMetricsGatherer(MetricsGatherer):
         if not backpressureStatusMetrics:
             backpressureStatusMetrics = self.gatherBackpressureStatusMetrics()
         if not topology:
-            topology = self.jobmanagerMetricGatherer.getTopology()
+            topology = self.jobmanagerManager.getTopology()
 
         bottleNeckOperatorsSet: set = set()
         for lOperator, rOperator in topology:

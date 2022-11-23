@@ -1,3 +1,3 @@
-from .JobManagerMetricGatherer import JobManagerMetricGatherer
-from .PrometheusMetricGatherer import PrometheusMetricGatherer
-from .MetricsGatherer import MetricsGatherer
+from .JobmanagerManager import JobmanagerManager
+from .PrometheusManager import PrometheusManager
+from .ApplicationManager import ApplicationManager
