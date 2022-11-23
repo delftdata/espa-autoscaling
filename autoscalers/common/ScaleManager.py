@@ -1,162 +1,175 @@
-import traceback
 import time
+from pathlib import Path
+import os
+from .applications import ApplicationManager
 from .Configurations import Configurations
 
 
-class ScaleManager:
 
-    v1 = None
+class ScaleManager:
     configurations: Configurations
+    metricsGatherer: ApplicationManager
     desiredParallelisms: {str, int}
 
-    def __init__(self, configurations: Configurations):
+    def __init__(self, configurations: Configurations, metricsGatherer: ApplicationManager):
+        """
+        Constructor of the scaleManager. Instantiates a configurations class and a metricsGatherer class.
+        :param configurations:
+        :param metricsGatherer:
+        """
         self.configurations = configurations
         self.desiredParallelisms = {}
+        self.metricsGatherer = metricsGatherer
+        self.nonreactiveJobmanagerTemplate = "resources/templates/non-reactive-jobmanager-template.yaml"
+        self.nonreactiveJobmanagerSavefile = "resources/tmp/jobmanager_from_savepoint.yaml"
+        for path in [self.nonreactiveJobmanagerSavefile]:
+            directory = Path(path).parent
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+                print(f"Added directory {directory}.")
 
-
-    def __scaleOperator(self, operator: str, desiredParallelism):
+    # Scaling operation
+    def performScaleOperations(self, currentParallelisms: {str, int}, desiredParallelisms: {str, int},
+                               cooldownPeriod: int = None):
         """
-        TODO: implement operator-based scaling
-        Perform a scaling operator for the operator.
-        The desiredParallelism is set between [MIN_TASKMANAGERS, MAX_PARALLELISM]
-        :param operator: Operator to scale
-        :param desiredParallelism: Operator to scale to.
+        Perform a scaling operation from current parallelisms to desiredParallelisms.
+        If we use Flink-reactive, we scale the amount of taskmanagers to the maximum desired parallelism. If this
+        maximum is the same as the current maximum, we do not do anything.
+        If we do non use Flink-reactive, we invoke the _performOperatorBasedScaling function, disabling manually
+        removing the job and restarting a new one with slot-sharing disabled and parallelisms assigned by
+        desiredParallelisms. If currentParallelisms is simislar to desired parallelisms, we do not do anything.
+        After a scaling operation, we invoke a cooldownPeriod as defined by cooldownPeriod. When undefined, we skip
+        the cooldown period
+        :param currentParallelisms: The per-operator current parellelisms
+        :param desiredParallelisms: The per-operator desired parallelisms
+        :param cooldownPeriod: Optional cooldownperiod to be invoked after a scaling operation happens.
         :return: None
         """
-        desiredParallelism = max(self.configurations.MIN_PARALLELISM, desiredParallelism)
-        desiredParallelism = min(self.configurations.MAX_PARALLELISM, desiredParallelism)
-        self.desiredParallelisms[operator] = desiredParallelism
-        print(f"TODO: Scale operator '{operator}' to parallelism '{desiredParallelism}'. ")
 
-
-    def __adaptFlinkReactiveTaskmanagers(self, new_number_of_taskmanagers):
-        if not self.configurations.USE_FLINK_REACTIVE:
-            print(f"Error: trying to scale taskmanagers with disabled Flink Reactive. Returning.")
+        # Scale if current parallelism is different from desired parallelism
+        # Todo, make shorter using intersection
+        if len(currentParallelisms) != len(desiredParallelisms):
+            print(f"Lenght of currentParallelisms {currentParallelisms} is not the same as desiredParallelisms"
+                  f" {desiredParallelisms}.")
+            print(f"Canceling scaling operation")
             return
 
-        try:
-            print(f"Scaling total amount of taskmanagers to {new_number_of_taskmanagers}")
-            body = {"spec": {"replicas": new_number_of_taskmanagers}}
-            api_response = self.v1.patch_namespaced_deployment_scale(
-                name="flink-taskmanager", namespace="default", body=body,
-                pretty=True)
-        except:
-            traceback.print_exc()
+        for key in currentParallelisms.keys():
+            if key not in desiredParallelisms:
+                print(
+                    f"Key {key} found in  currentParallelisms {currentParallelisms} does not exist in "
+                    f"desiredParallelisms {desiredParallelisms}.")
+                print(f"Canceling scaling operation")
+                return
 
-    def performScaleOperations(self, currentParallelisms: {str, int}, maximumDesiredParallelisms: {str, int},
-                               cooldownPeriod: int = None):
-        # Scale if current parallelism is different from desired parallelism
+        for key in desiredParallelisms.keys():
+            if key not in currentParallelisms:
+                print(
+                    f"Key {key} found in desiredParallelisms {desiredParallelisms} does not exist in "
+                    f"currentParallelisms {currentParallelisms}.")
+                print(f"Canceling scaling operation")
+                break
+
         performedScalingOperation = False
         if self.configurations.USE_FLINK_REACTIVE:
-            desiredTaskmanagersAmount = max(maximumDesiredParallelisms.values())
+            desiredTaskmanagersAmount = max(desiredParallelisms.values())
             currentTaskmanagerAmount = max(currentParallelisms.values())
             if currentTaskmanagerAmount != desiredTaskmanagersAmount:
                 performedScalingOperation = True
-                self.__adaptFlinkReactiveTaskmanagers(desiredTaskmanagersAmount)
+                self.metricsGatherer.kubernetesManager.adaptFlinkTaskmanagersParallelism(desiredTaskmanagersAmount)
         else:
-            for operator in maximumDesiredParallelisms.keys():
-                currentParallelism = currentParallelisms[operator]
-                desiredParallelism = maximumDesiredParallelisms[operator]
-                if currentParallelism != desiredParallelism:
-                    performedScalingOperation = True
-                    self.__scaleOperator(operator, desiredParallelism)
-
+            changeInParallelism = False
+            for operator in desiredParallelisms.keys():
+                if currentParallelisms[operator] != desiredParallelisms[operator]:
+                    changeInParallelism = True
+            if changeInParallelism:
+                self._performOperatorBasedScaling(currentParallelisms, desiredParallelisms)
+                performedScalingOperation = True
         if cooldownPeriod and performedScalingOperation:
             print(f"Performed scaling operation. Entering {cooldownPeriod}s cooldown-period.")
             time.sleep(cooldownPeriod)
 
+    def _performOperatorBasedScaling(self, currentParallelisms: {str, int}, desiredParallelisms: {str, int}):
+        """
+        Perform non-reative operator-based scaling.
+        This includes the following steps
+        1. Creating and obtain a savepoint.
+        2. Scale taskmanagers to the sum of all 'desiredParallelisms'
+        3. Construct new jobmanager yaml with updated parallelisms
+        4. Delete current jobmanager
+        5. Construct new jobmanager
+        :param currentParallelisms: The current parallelisms as we know it
+        :param desiredParallelisms: The desired parallelisms that we should scale to
+        :return:
+        """
+        # Trigger savepoint and get Id
+        print("Triggering savepoint")
+        job_id = self.metricsGatherer.jobmanagerManager.getJobId()
+        trigger_id = self.metricsGatherer.jobmanagerManager.triggerSavepointAndGetTriggerId(job_id=job_id)
+        print(f"Triggered savepoint of trigger_id: {trigger_id}")
+        # Execute stop request
+        stop_request = self.metricsGatherer.jobmanagerManager.sendStopJobRequest(job_id=job_id)
+        print(stop_request.json())
 
-    # def ds2_operator_scale_operations(self):
-    #     savepoint = requests.post("http://flink-jobmanager-rest:8081/jobs/" + job_id + "/savepoints")
-    #
-    #     # sleep so savepoint can be taken
-    #     time.sleep(time_after_savepoint)
-    #     trigger_id = savepoint.json()['request-id']
-    #     savepoint_name = requests.get("http://flink-jobmanager-rest:8081/jobs/" + job_id + "/savepoints/" + trigger_id)
-    #     print(json.dumps(savepoint_name.json(), indent=4))
-    #     savepoint_path = savepoint_name.json()["operation"]["location"]
-    #     print(savepoint_path)
-    #
-    #     stop_request = requests.post("http://flink-jobmanager-rest:8081/jobs/" + job_id + "/stop")
-    #     print(stop_request)
-    #
-    #         # Job stopping is an async operation, we need to query the status before we can continue
-    #     status = SAVEPOINT_IN_PROGRESS_STATUS
-    #     while status == SAVEPOINT_IN_PROGRESS_STATUS:
-    #         r = requests.get(f'http://flink-jobmanager-rest:8081/jobs/{job_id}/savepoints/{trigger_id}')
-    #         print("REQ2 RES - CHECKING:")
-    #         print(r.json())
-    #         status = r.json()["status"]["id"]
-    #         time.sleep(1)
-    #
-    #     if status == SAVEPOINT_COMPLETED_STATUS:
-    #         # global save_point_path
-    #         print("REQ2 RES - FINAL:")
-    #         print(r.json())
-    #         save_point_path = r.json()["operation"]["location"]
-    #         print("Current save point is located at: ", save_point_path)
-    #
-    #     if query == "query-1":
-    #         p1 = suggested_parallelism['Source:_BidsSource']
-    #         p2 = suggested_parallelism['Mapper']
-    #         p3 = suggested_parallelism['LatencySink']
-    #         writeConfig(container=container,
-    #                     args=["standalone-job", "--job-classname", job, "--fromSavepoint", savepoint_path, "--p-source",str(p1),
-    #                           "--p-map",str(p2), "--p-sink",str(p3)])
-    #     if query == "query-3":
-    #         p1 = suggested_parallelism['Source:_auctionsSource']
-    #         p2 = suggested_parallelism['Source:_personSource']
-    #         p3 = suggested_parallelism['Incrementaljoin']
-    #         writeConfig(container=container,
-    #                     args=["standalone-job", "--job-classname", job, "--fromSavepoint", savepoint_path, "--p-auction-source",str(p1),
-    #                           "--p-person-source",str(p2), "--p-join",str(p3)])
-    #     if query == "query-11":
-    #         p1 = suggested_parallelism['Source:_BidsSource']
-    #         p2 = suggested_parallelism['SessionWindow____DummyLatencySink']
-    #         writeConfig(container=container,
-    #                     args=["standalone-job", "--job-classname", job, "--fromSavepoint", savepoint_path, "--p-source",str(p1),"--p-window",str(p2)])
-    #
-    #
-    #     # autenticate with kubernetes API
-    #     config.load_incluster_config()
-    #     v1 = client.AppsV1Api()
-    #
-    #     if float(previous_scaling_event) == 0 and current_number_of_taskmanagers != number_of_taskmanagers:
-    #         print("rescaling to", number_of_taskmanagers)
-    #         # scale taskmanager
-    #         new_number_of_taskmanagers = number_of_taskmanagers
-    #         body = {"spec": {"replicas": new_number_of_taskmanagers}}
-    #         api_response = v1.patch_namespaced_deployment_scale(name="flink-taskmanager", namespace="default", body=body, pretty=True)
-    #     else:
-    #         print("in cooldown")
-    #
-    #     # delete old jobmanager
-    #     v1 = client.BatchV1Api()
-    #     api_response = v1.delete_namespaced_job(name="flink-jobmanager", namespace="default", pretty=True)
-    #
-    #     time.sleep(time_after_delete_job)
-    #
-    #     # delete the remaining jobmanager pod
-    #     v1 = client.CoreV1Api()
-    #     response = v1.list_namespaced_pod(namespace="default")
-    #
-    #     # find name
-    #     jobmanager_name = None
-    #     for i in response.items:
-    #         if "jobmanager" in i.metadata.name:
-    #             print("Found jobmanager id: " + str(i.metadata.name))
-    #             jobmanager_name = i.metadata.name
-    #
-    #     # delete pod
-    #     if jobmanager_name is not None:
-    #         response = v1.delete_namespaced_pod(name=jobmanager_name, namespace="default")
-    #         print("deleted pod")
-    #     else:
-    #         print("No jobmanager pod found")
-    #
-    #     time.sleep(time_after_delete_pod)
-    #
-    #     # deploy new job file with updated parallelism
-    #     k8s_client = client.ApiClient()
-    #     yaml_file = "jobmanager_from_savepoint.yaml"
-    #     utils.create_from_yaml(k8s_client, yaml_file)
+        # Job stopping is an async operation, we need to query the status before we can continue
+        savepointCompleteStatus = "COMPLETED"
+        savepointStatus = ""
+        timeout = self.configurations.NONREACTIVE_SAVEPOINT_TIMEOUT_TIME_SECONDS
+        while savepointStatus != savepointCompleteStatus:
+            savepointStatus = self.metricsGatherer.jobmanagerManager.extractSavePointStatusFromSavePointTriggerJSON(
+                job_id=job_id, trigger_id=trigger_id
+            )
+            time.sleep(1)
+            timeout -= 1
+            print(f"Savepoint status: {savepointStatus}")
+            if timeout <= 0:
+                print("Timeout for savepoint to complete exceeded.")
+                print("Canceling scaling operation")
+                return
+
+        savepointPath = self.metricsGatherer.jobmanagerManager.extractSavePointPathFromSavePointTriggerJSON(
+            job_id=job_id, trigger_id=trigger_id
+        )
+        print(f"Savepoint Path; {savepointPath}")
+        if not savepointPath:
+            print("Canceling scaling operation, as savepoint path could not be found.")
+            return
+
+        # Create new jobmanager configurations file
+        self.__createJobmanagerConfigurationFile(desiredParallelisms, savepointPath)
+
+        # Scale taskmanagers if we need new ones
+        currentTotalTaskmanagers = sum(currentParallelisms.values())
+        desiredTaskmanagers = sum(currentParallelisms.values())
+        if currentTotalTaskmanagers != desiredTaskmanagers:
+            self.metricsGatherer.kubernetesManager.adaptFlinkTaskmanagersParallelism()(desiredTaskmanagers)
+
+        # Delete jobmanager
+        self.metricsGatherer.kubernetesManager.deleteJobManager()
+        time.sleep(self.configurations.NONREACTIVE_TIME_AFTER_DELETE_JOB_SECONDS)
+
+        # Delete jobmanager's pod
+        self.metricsGatherer.kubernetesManager.deleteJobManagerPod()
+        time.sleep(self.configurations.NONREACTIVE_TIME_AFTER_DELETE_POD_SECONDS)
+
+        # Deploy a new job with updated parallelisms
+        self.metricsGatherer.kubernetesManager.deployNewJobManager(self.nonreactiveJobmanagerSavefile)
+
+    # Write Jobmanager Configuration File
+    def __writeJobmanagerConfigurationFile(self, **kwargs):
+        templateFile = open(self.nonreactiveJobmanagerTemplate, "r")
+        template = templateFile.read()
+        print(template)
+        with open(self.nonreactiveJobmanagerSavefile, 'w+') as yfile:
+            yfile.write(template.format(**kwargs))
+
+    def __createJobmanagerConfigurationFile(self, desiredParallelisms: {str, int}, savepointPath: str):
+        args = ["standalone-job", "--job-classname", self.configurations.NONREACTIVE_JOB, "--fromSavepoint",
+                savepointPath]
+        for operator in desiredParallelisms.keys():
+            parameter = self.configurations.experimentData.getParallelismParameterOfOperator(operator)
+            if parameter:
+                args.append(parameter)
+                args.append(str(desiredParallelisms[operator]))
+        self.__writeJobmanagerConfigurationFile(container=self.configurations.NONREACTIVE_CONTAINER, args=args)
+

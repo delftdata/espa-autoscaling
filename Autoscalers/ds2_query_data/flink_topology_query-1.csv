@@ -1,4 +1,0 @@
-# operator_id1,operator_name1,total_number_of_operator_instances1,operator_id2,operator_name2,total_number_of_operator_instances2
-bids_topic,bids_topic,1,Source:_BidsSource,Source:_BidsSource,4
-Source:_BidsSource,Source:_BidsSource,4,Mapper,Mapper,4
-Mapper,Mapper,4,LatencySink,LatencySink,4

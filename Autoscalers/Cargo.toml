@@ -12,12 +12,12 @@ notify = "4.0.0"
 
 [lib]
 name = "ds2"
-path = "src/lib.rs"
+path = "resources/ds2/src/lib.rs"
 
 [[bin]]
 name = "policy"
-path = "src/bin/scaling-policy.rs"
+path = "resources/ds2/src/bin/scaling-policy.rs"
 
 [[bin]]
 name = "manager"
-path = "src/bin/manager.rs"
+path = "resources/ds2/src/bin/manager.rs"

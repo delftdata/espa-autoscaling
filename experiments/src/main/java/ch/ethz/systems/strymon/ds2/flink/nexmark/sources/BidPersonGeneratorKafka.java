@@ -498,10 +498,10 @@ public class BidPersonGeneratorKafka {
                         this.generateBidEvent(producer, "bids_topic");
                     }
                     if (personTopicEnabled) {
-                        this.generateBidEvent(producer, "person_topic");
+                        this.generatePersonEvent(producer, "person_topic");
                     }
                     if (auctionTopicEnabled) {
-                        this.generateBidEvent(producer, "auction_topic");
+                        this.generateAuctionEvent(producer, "auction_topic");
                     }
                 }
                 catch (Exception e){

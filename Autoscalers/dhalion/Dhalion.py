@@ -4,18 +4,17 @@ from abc import ABC
 import time
 
 from .DhalionConfigurations import DhalionConfigurations
-from .DhalionMetricsGatherer import DhalionMetricsGatherer
+from .DhalionApplicationManager import DhalionApplicationManager
 
 from common import ScaleManager
 from common import Autoscaler
-from kubernetes import client, config
 
 
 class Dhalion(Autoscaler, ABC):
 
     desiredParallelisms: {str, int}
     configurations: DhalionConfigurations
-    metricsGatherer: DhalionMetricsGatherer
+    metricsGatherer: DhalionApplicationManager
     scaleManager: ScaleManager
     operators: [str]
     topology: [(str, str)]
@@ -23,18 +22,12 @@ class Dhalion(Autoscaler, ABC):
 
     def __init__(self):
         self.configurations = DhalionConfigurations()
-        self.scaleManager: ScaleManager = ScaleManager(self.configurations)
-        self.metricsGatherer = DhalionMetricsGatherer(self.configurations)
-
-        if self.configurations.USE_FLINK_REACTIVE:
-            config.load_incluster_config()
-            v1 = client.AppsV1Api()
-            self.metricsGatherer.v1 = v1
-            self.scaleManager.v1 = v1
+        self.metricsGatherer = DhalionApplicationManager(self.configurations)
+        self.scaleManager: ScaleManager = ScaleManager(self.configurations, self.metricsGatherer)
 
     def setInitialMetrics(self):
-        self.operators = self.metricsGatherer.jobmanagerMetricGatherer.getOperators()
-        self.topology = self.metricsGatherer.jobmanagerMetricGatherer.getTopology()
+        self.operators = self.metricsGatherer.jobmanagerManager.getOperators()
+        self.topology = self.metricsGatherer.jobmanagerManager.getTopology()
         print(f"Found operators: '{self.operators}' with topology: '{self.topology}'")
         currentParallelism = self.metricsGatherer.fetchCurrentOperatorParallelismInformation(
             knownOperators=self.operators
