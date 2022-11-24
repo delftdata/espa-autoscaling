@@ -194,7 +194,7 @@ class JobmanagerManager:
     def triggerSavepointAndGetTriggerId(self, job_id=None):
         """
         Trigger a savepoint and get the corresponding triggerId
-        :param job_id: jo_id to trigger savepoint for
+        :param job_id: job_id to trigger savepoint for
         :return: trigger_id of triggeredSavePoint
         """
         if not job_id:
@@ -207,17 +207,13 @@ class JobmanagerManager:
     def getSavePointTriggerJSON(self, job_id=None, trigger_id=None):
         """
         Get the status of a triggered svapoint. If no trigger_id is given, invoke a savepoint and use that trigger_id
-        :param job_id: Job_id to trigger a savepoint for
-        :param trigger_id: Trigger_id if savepoint is already triggered.
+        :param job_id: Job_id of the job for which the savepoint is triggered.
+        :param trigger_id: Trigger_id of the triggered savepoint.
         :return: Json with all information regarding the trigger
         """
-        if not job_id:
-            job_id = self.getJobId()
-            trigger_id = self.triggerSavepointAndGetTriggerId(job_id=job_id)
-        if not trigger_id:
-            trigger_id = self.triggerSavepointAndGetTriggerId(job_id=job_id)
         savepoint_json = requests.get(f"http://{self.configurations.FLINK_JOBMANAGER_SERVER}/jobs/{job_id}/savepoints/{trigger_id}").json()
         return savepoint_json
+
 
     def sendStopJobRequest(self, job_id=None):
         """
@@ -230,30 +226,37 @@ class JobmanagerManager:
         stop_request = requests.post(f"http://{self.configurations.FLINK_JOBMANAGER_SERVER}/jobs/{job_id}/stop")
         return stop_request
 
-    def extractSavePointStatusFromSavePointTriggerJSON(self, job_id=None, trigger_id=None, savePointTriggerJson=None):
+    def sendStopJobRequestAndGetSavePointTriggerId(self, job_id=None):
+        """
+        Send a stop request to the jobmanager and get the response and the corresponding savepoint's triggerID.
+        :param job_id: Job_id to send a stop-request to.
+        :return: The response from the server, the savepoint's triggerID
+        """
         if not job_id:
             job_id = self.getJobId()
-            trigger_id = self.triggerSavepointAndGetTriggerId(job_id=job_id)
-            savePointTriggerJson = self.getSavePointTriggerJSON(job_id=job_id, trigger_id=trigger_id)
-        if not trigger_id:
-            trigger_id = self.triggerSavepointAndGetTriggerId(job_id=job_id)
-            savePointTriggerJson = self.getSavePointTriggerJSON(job_id=job_id, trigger_id=trigger_id)
-        if not savePointTriggerJson:
-            savePointTriggerJson = self.getSavePointTriggerJSON(job_id=job_id, trigger_id=trigger_id)
+        stop_request = self.sendStopJobRequest(job_id=job_id)
+        return stop_request, stop_request.json()["request-id"]
+
+    def extractSavePointStatusFromSavePointTriggerJSON(self, job_id=None, trigger_id=None):
+        """
+        Extract the status of the savepoint request for the designated job using the trigger_id.
+        :param job_id: The job_id of the job for which the savepoint is created.
+        :param trigger_id: Trigger_id of the triggered savepoint.
+        :return: The status of the savepointing process.
+        """
+        savePointTriggerJson = self.getSavePointTriggerJSON(job_id=job_id, trigger_id=trigger_id)
 
         status = savePointTriggerJson["status"]["id"]
         return status
 
-    def extractSavePointPathFromSavePointTriggerJSON(self, job_id=None, trigger_id=None, savePointTriggerJson=None):
-        if not job_id:
-            job_id = self.getJobId()
-            trigger_id = self.triggerSavepointAndGetTriggerId(job_id=job_id)
-            savePointTriggerJson = self.getSavePointTriggerJSON(job_id=job_id, trigger_id=trigger_id)
-        if not trigger_id:
-            trigger_id = self.triggerSavepointAndGetTriggerId(job_id=job_id)
-            savePointTriggerJson = self.getSavePointTriggerJSON(job_id=job_id, trigger_id=trigger_id)
-        if not savePointTriggerJson:
-            savePointTriggerJson = self.getSavePointTriggerJSON(job_id=job_id, trigger_id=trigger_id)
+    def extractSavePointPathFromSavePointTriggerJSON(self, job_id=None, trigger_id=None):
+        """
+        Extract the location of the stored savepoint with trigger_id for the designated job.
+        :param job_id: The job_id of the job for which the savepoint is created.
+        :param trigger_id: Trigger_id of the triggered savepoint.
+        :return: The path to the savepoint.
+        """
+        savePointTriggerJson = self.getSavePointTriggerJSON(job_id=job_id, trigger_id=trigger_id)
         operationJson = savePointTriggerJson['operation']
         if "location" in operationJson:
             location = operationJson["location"]

@@ -37,9 +37,9 @@ class ScaleManager:
         maximum is the same as the current maximum, we do not do anything.
         If we do non use Flink-reactive, we invoke the _performOperatorBasedScaling function, disabling manually
         removing the job and restarting a new one with slot-sharing disabled and parallelisms assigned by
-        desiredParallelisms. If currentParallelisms is simislar to desired parallelisms, we do not do anything.
+        desiredParallelisms. If currentParallelisms are similar to desired parallelisms, we do not do anything.
         After a scaling operation, we invoke a cooldownPeriod as defined by cooldownPeriod. When undefined, we skip
-        the cooldown period
+        the cooldown period.
         :param currentParallelisms: The per-operator current parellelisms
         :param desiredParallelisms: The per-operator desired parallelisms
         :param cooldownPeriod: Optional cooldownperiod to be invoked after a scaling operation happens.
@@ -116,13 +116,18 @@ class ScaleManager:
         # Get trigger id from stop command
         # wait for savepoint to be finished and stop command to be executed
         # continue
-        print("Triggering savepoint")
-        job_id = self.metricsGatherer.jobmanagerManager.getJobId()
-        trigger_id = self.metricsGatherer.jobmanagerManager.triggerSavepointAndGetTriggerId(job_id=job_id)
-        print(f"Triggered savepoint of trigger_id: {trigger_id}")
+
+        # print("Triggering savepoint")
+        # job_id = self.metricsGatherer.jobmanagerManager.getJobId()
+        # trigger_id = self.metricsGatherer.jobmanagerManager.triggerSavepointAndGetTriggerId(job_id=job_id)
+        # print(f"Triggered savepoint of trigger_id: {trigger_id}")
+
         # Execute stop request
-        stop_request = self.metricsGatherer.jobmanagerManager.sendStopJobRequest(job_id=job_id)
+        job_id = self.metricsGatherer.jobmanagerManager.getJobId()
+        print(f"Stopping job {job_id} with a savepoint.")
+        stop_request, trigger_id = self.metricsGatherer.jobmanagerManager.sendStopJobRequestAndGetSavePointTriggerId(job_id=job_id)
         print(stop_request.json())
+        print(f"Triggered savepoint with trigger_id: {trigger_id}")
 
         # Job stopping is an async operation, we need to query the status before we can continue
         savepointCompleteStatus = "COMPLETED"
@@ -138,6 +143,8 @@ class ScaleManager:
             if timeout <= 0:
                 print("Timeout for savepoint to complete exceeded.")
                 print("Canceling scaling operation")
+                # Do we need this? We can't really cancel the scaling operation. After we stop the job we cannot continue. 
+                # If the savepoint fails, we should cancel the job and restart from a checkpoint. This is out of scope for us, therefore we should just stop execution.
                 return
 
         savepointPath = self.metricsGatherer.jobmanagerManager.extractSavePointPathFromSavePointTriggerJSON(
@@ -145,6 +152,7 @@ class ScaleManager:
         )
         print(f"Savepoint Path; {savepointPath}")
         if not savepointPath:
+            # Here the same!
             print("Canceling scaling operation, as savepoint path could not be found.")
             return
 
