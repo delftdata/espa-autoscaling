@@ -63,4 +63,3 @@ spec:
         - name: my-pvc-nfs
           persistentVolumeClaim:
             claimName: nfs
-
