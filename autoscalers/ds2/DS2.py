@@ -11,6 +11,7 @@ from .DS2Configurations import DS2Configurations
 from .DS2ApplicationManager import DS2ApplicationManager
 from common import ScaleManager, Autoscaler
 
+
 class DS2(Autoscaler):
     """
     DS2 autoscaler.

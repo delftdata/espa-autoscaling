@@ -2,7 +2,7 @@ import time
 from pathlib import Path
 import os
 from .applications import ApplicationManager
-from .Configurations import Configurations
+from .Configuration import Configurations
 
 
 
