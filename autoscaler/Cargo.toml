@@ -1,0 +1,23 @@
+[package]
+name = "ds2"
+version = "0.1.0"
+authors = ["ioannisl <ioannis.liagouris@inf.ethz.ch>"]
+
+[dependencies]
+config = "*"
+clap = "*"
+regex = "*"
+petgraph = "*"
+notify = "4.0.0"
+
+[lib]
+name = "ds2"
+path = "resources/ds2/src/lib.rs"
+
+[[bin]]
+name = "policy"
+path = "resources/ds2/src/bin/scaling-policy.rs"
+
+[[bin]]
+name = "manager"
+path = "resources/ds2/src/bin/manager.rs"
