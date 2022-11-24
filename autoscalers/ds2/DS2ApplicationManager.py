@@ -20,7 +20,7 @@ class DS2ApplicationManager(ApplicationManager):
         operatorKafkaLag = self.gatherOperatorKafkaLag()
         topicLag = {}
         for operator, value in operatorKafkaLag.items():
-            topicName = self.getTopicFromOperatorName(operator)
+            topicName = self.configurations.experimentData.getTopicFromOperatorName(operator)
             if topicName:
                 topicLag[topicName] = float(value)
             else:

@@ -1,6 +1,7 @@
 import traceback
 from abc import abstractmethod
-from .Configurations import Configurations
+from .Configuration import Configurations
+
 
 class Autoscaler:
 

@@ -2,7 +2,7 @@ import time
 from pathlib import Path
 import os
 from .applications import ApplicationManager
-from .Configurations import Configurations
+from .Configuration import Configurations
 
 
 
@@ -102,7 +102,20 @@ class ScaleManager:
         :param desiredParallelisms: The desired parallelisms that we should scale to
         :return:
         """
+
+
+        # Idea;
+        # Trigger savepoint
+        #   Wait for savepoint
+        # Stop job
         # Trigger savepoint and get Id
+
+
+        # To do it correctly
+        # Stop jobmanager
+        # Get trigger id from stop command
+        # wait for savepoint to be finished and stop command to be executed
+        # continue
         print("Triggering savepoint")
         job_id = self.metricsGatherer.jobmanagerManager.getJobId()
         trigger_id = self.metricsGatherer.jobmanagerManager.triggerSavepointAndGetTriggerId(job_id=job_id)
