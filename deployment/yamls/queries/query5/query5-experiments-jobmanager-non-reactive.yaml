@@ -14,16 +14,6 @@ spec:
         component: jobmanager
     spec:
       restartPolicy: OnFailure
-      initContainers:
-        - name: take-data-dir-ownership
-          image: alpine:3
-          command:
-            - chmod
-            - ugo+rwx
-            - savepoints
-          volumeMounts:
-            - name: my-pvc-nfs
-              mountPath: /savepoints
       containers:
         - name: jobmanager
           image: gsiachamis/flink-nexmark-queries:1.0
