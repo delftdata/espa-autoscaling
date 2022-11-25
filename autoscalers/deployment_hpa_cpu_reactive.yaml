@@ -46,6 +46,8 @@ spec:
           value: "120"
         - name: ITERATION_PERIOD_SECONDS # 15 is default
           value: "15"
+        - name: KUBERNETES_NAMESPACE # default is default
+          value: "default"
 
           # HPA configurations
         - name: HPA_SCALE_DOWN_WINDOW_SECONDS # 300 is default

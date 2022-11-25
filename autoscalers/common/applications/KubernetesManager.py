@@ -36,8 +36,8 @@ class KubernetesManager:
     def deleteJobManager(self):
         if not self.configurations.RUN_LOCALLY:
             try:
-                _ = self.batchV1.delete_namespaced_job(name="flink-jobmanager", namespace="default",
-                                                              pretty=True)
+                _ = self.batchV1.delete_namespaced_job(name="flink-jobmanager", pretty=True,
+                                                       namespace=self.configurations.KUBERNETES_NAMESPACE)
             except:
                 print("Error: deleting jobmanager failed.")
                 traceback.print_exc()
@@ -52,7 +52,7 @@ class KubernetesManager:
             try:
                 # Delete jobmanager pod
                 # delete the remaining jobmanager pod
-                response = self.coreV1.list_namespaced_pod(namespace="default")
+                response = self.coreV1.list_namespaced_pod(namespace=self.configurations.KUBERNETES_NAMESPACE)
                 # find name
                 jobmanager_name = None
                 for i in response.items:
@@ -61,7 +61,8 @@ class KubernetesManager:
                         jobmanager_name = i.metadata.name
                 # delete pod
                 if jobmanager_name is not None:
-                    _ = self.coreV1.delete_namespaced_pod(name=jobmanager_name, namespace="default")
+                    _ = self.coreV1.delete_namespaced_pod(name=jobmanager_name,
+                                                          namespace=self.configurations.KUBERNETES_NAMESPACE)
                     print("deleted pod")
                 else:
                     print("No jobmanager pod found")
@@ -90,7 +91,7 @@ class KubernetesManager:
                 print(f"Scaling total amount of taskmanagers to {new_number_of_taskmanagers}")
                 body = {"spec": {"replicas": new_number_of_taskmanagers}}
                 _ = self.appsV1.patch_namespaced_deployment_scale(
-                    name="flink-taskmanager", namespace="default", body=body,
+                    name="flink-taskmanager", namespace=self.configurations.KUBERNETES_NAMESPACE, body=body,
                     pretty=True)
             except:
                 traceback.print_exc()
@@ -112,8 +113,9 @@ class KubernetesManager:
         if not self.configurations.RUN_LOCALLY:
             try:
                 number_of_taskmanagers = -1
-                ret = self.appsV1.list_namespaced_deployment(watch=False, namespace="default", pretty=True,
-                                                         field_selector="metadata.name=flink-taskmanager")
+                ret = self.appsV1.list_namespaced_deployment(watch=False, pretty=True,
+                                                             namespace=self.configurations.KUBERNETES_NAMESPACE,
+                                                             field_selector="metadata.name=flink-taskmanager")
                 for i in ret.items:
                     number_of_taskmanagers = int(i.spec.replicas)
                 return number_of_taskmanagers

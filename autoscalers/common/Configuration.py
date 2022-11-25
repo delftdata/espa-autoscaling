@@ -14,6 +14,8 @@ class Configurations:
     PROMETHEUS_SERVER = os.environ.get("PROMETHEUS_SERVER", "prometheus-server")
     # Address of the jobmanager server
     FLINK_JOBMANAGER_SERVER = os.environ.get("FLINK_JOBMANAGER_SERVER", "flink-jobmanager-rest:8081")
+    # Kubernetes namespace
+    KUBERNETES_NAMESPACE = os.environ.get("KUBERNETES_NAMESPACE", "default")
 
     # Range of parallelism per operator
     MAX_PARALLELISM = int(os.environ.get("MAX_PARALLELISM", 16))
@@ -43,11 +45,11 @@ class Configurations:
         print(f"\tMETRIC_AGGREGATION_PERIOD_SECONDS: {self.METRIC_AGGREGATION_PERIOD_SECONDS}")
         print(f"\tCOOLDOWN_PERIOD_SECONDS: {self.COOLDOWN_PERIOD_SECONDS}")
         print(f"\tITERATION_PERIOD_SECONDS: {self.ITERATION_PERIOD_SECONDS}")
+        print(f"\tKUBERNETES_NAMESPACE: {self.KUBERNETES_NAMESPACE}")
         print(f"\tNONREACTIVE_TIME_AFTER_DELETE_JOB: {self.NONREACTIVE_TIME_AFTER_DELETE_JOB_SECONDS}")
         print(f"\tNONREACTIVE_TIME_AFTER_DELETE_POD: {self.NONREACTIVE_TIME_AFTER_DELETE_POD_SECONDS}")
         print(f"\tNONREACTIVE_TIME_AFTER_SAVEPOINT: {self.NONREACTIVE_TIME_AFTER_SAVEPOINT_SECONDS}")
         print(f"\tNONREACTIVE_SAVEPOINT_TIMEOUT_TIME_SECONDS: {self.NONREACTIVE_SAVEPOINT_TIMEOUT_TIME_SECONDS}")
-
         print(f"\tNONREACTIVE_JOB: {self.NONREACTIVE_JOB}")
         print(f"\tNONREACTIVE_CONTAINER: {self.NONREACTIVE_CONTAINER}")
 

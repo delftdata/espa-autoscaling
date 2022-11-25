@@ -46,6 +46,8 @@ spec:
           value: "120"
         - name: ITERATION_PERIOD_SECONDS # 15 is default
           value: "15"
+        - name: KUBERNETES_NAMESPACE # default is default
+          value: "default"
 
         # Non-reactive functionality
         - name: NONREACTIVE_TIME_AFTER_DELETE_JOB_SECONDS # 4 is default
