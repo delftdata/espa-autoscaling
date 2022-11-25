@@ -2,7 +2,7 @@ import random
 import traceback
 
 from common import Configurations
-from kubernetes import client, utils
+from kubernetes import client, utils, config
 
 
 class KubernetesManager:
@@ -11,15 +11,18 @@ class KubernetesManager:
     appsV1 = None
     batchV1 = None
     coreV1 = None
+    k8s_client = None
 
 
     def __init__(self, configurations: Configurations):
         self.configurations = configurations
 
         if not self.configurations.RUN_LOCALLY:
+            config.load_incluster_config()
             self.appsV1 = client.AppsV1Api()
             self.batchV1 = client.BatchV1Api()
             self.coreV1 = client.CoreV1Api()
+            self.k8s_client = client.ApiClient()
 
     @staticmethod
     def __mockKubernetesInteraction(operation: str, command: str):
@@ -126,7 +129,8 @@ class KubernetesManager:
 
     def deployNewJobManager(self, yaml_file: str):
         if not self.configurations.RUN_LOCALLY:
-            utils.create_from_yaml(self.appsV1, yaml_file)
+
+            utils.create_from_yaml(self.k8s_client, yaml_file)
         else:
             self.__mockKubernetesInteraction(
                 operation=f"Deploying a new jobmanager from file {yaml_file}",

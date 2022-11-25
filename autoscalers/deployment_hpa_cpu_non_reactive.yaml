@@ -1,27 +1,27 @@
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  name: hpa-varga
+  name: hpa-cpu
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: hpa-varga
+      app: hpa-cpu
   template:
     metadata:
       annotations:
         prometheus.io/port: '8000'
         ververica.com/scrape_every_2s: 'true'
       labels:
-        app: hpa-varga
+        app: hpa-cpu
     spec:
       containers:
       - name: python-container
-        image: jobkanis/autoscalers:1.0
+        image: gsiachamis/autoscalers:1.0
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
-        args: ["python", "./", "hpa-varga"]
+        args: ["python", "./", "hpa-cpu"]
         env:
         # Python configurations
         - name: PYTHONUNBUFFERED
@@ -31,7 +31,7 @@ spec:
 
         # Common variables
         - name: USE_FLINK_REACTIVE  # {true, false} - false is default
-          value: "true"
+          value: "false"
         - name: PROMETHEUS_SERVER   # prometheus-server is default
           value: "prometheus-server"
         - name: FLINK_JOBMANAGER_SERVER   # flink-jobmanager-rest:8081 is default
@@ -41,22 +41,30 @@ spec:
         - name: MIN_PARALLELISM # 1 is default
           value: "1"
         - name: METRIC_AGGREGATION_PERIOD_SECONDS # 10 is default
-          value: "10"
+          value: "15"
         - name: COOLDOWN_PERIOD_SECONDS # 120 is default
-          value: "20"
-        - name: MAX_INITIALIZATION_TRIES  # 5 is default
-          value: "5"
+          value: "120"
         - name: ITERATION_PERIOD_SECONDS # 15 is default
           value: "15"
 
-        # HPA configurations
+        # Non-reactive functionality
+        - name: NONREACTIVE_TIME_AFTER_DELETE_JOB_SECONDS # 4 is default
+          value: "4"
+        - name: NONREACTIVE_TIME_AFTER_DELETE_POD_SECONDS # 4 is default
+          value: "4"
+        - name: NONREACTIVE_TIME_AFTER_SAVEPOINT_SECONDS # 4 is default
+          value: "4"
+        - name: NONREACTIVE_JOB
+          value: "ch.ethz.systems.strymon.ds2.flink.nexmark.queries.updated.Query3KafkaSource"
+        - name: NONREACTIVE_CONTAINER
+          value: "gsiachamis/flink-nexmark-queries:1.0"
+        - name: NONREACTIVE_SAVEPOINT_TIMEOUT_SECONDS # 60 is default
+          value: "60"
+
+          # HPA configurations
         - name: HPA_SCALE_DOWN_WINDOW_SECONDS # 300 is default
           value: "300"
 
-        # CPU configurations
-        - name: VARGA_UTILIZATION_TARGET_VALUE # 0.7 is default
+          # CPU configurations
+        - name: CPU_UTILIZATION_TARGET_VALUE # 0.7 is default
           value: "0.7"
-        - name: VARGA_RELATIVE_LAG_CHANGE_TARGET_VALUE # 1.0 is default
-          value: "1.0"
-
-

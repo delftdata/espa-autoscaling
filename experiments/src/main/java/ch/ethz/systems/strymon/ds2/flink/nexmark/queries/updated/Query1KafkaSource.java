@@ -79,11 +79,13 @@ public class Query1KafkaSource {
                 .setStartingOffsets(OffsetsInitializer.committedOffsets(OffsetResetStrategy.EARLIEST))
                 .setValueOnlyDeserializer(new BidDeserializationSchema())
                 .build();
+
         DataStream<Bid> bids =
                 env.fromSource(source, WatermarkStrategy.noWatermarks(), "BidsSource")
-                        .setParallelism(params.getInt("p-source", 1))
+                        .setParallelism(params.getInt("p-bids-source", 1))
                         .setMaxParallelism(max_parallelism_source)
-                        .uid("BidsSource").slotSharingGroup(sourceSSG);
+                        .uid("BidsSource")
+                        .slotSharingGroup(sourceSSG);
                         
         DataStream<Tuple4<Long, Long, Long, Long>> mapped  = bids.map(new MapFunction<Bid, Tuple4<Long, Long, Long, Long>>() {
             @Override
@@ -99,8 +101,8 @@ public class Query1KafkaSource {
         mapped.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
                 .slotSharingGroup(sinkSSG)
                 .setParallelism(params.getInt("p-sink", 1))
-        .name("LatencySink")
-        .uid("LatencySink");
+                .name("LatencySink")
+                .uid("LatencySink");
     
         // execute program
         env.execute("Nexmark Query1 with a Kafka Source");

@@ -155,7 +155,7 @@ class ScaleManager:
         currentTotalTaskmanagers = sum(currentParallelisms.values())
         desiredTaskmanagers = sum(currentParallelisms.values())
         if currentTotalTaskmanagers != desiredTaskmanagers:
-            self.metricsGatherer.kubernetesManager.adaptFlinkTaskmanagersParallelism()(desiredTaskmanagers)
+            self.metricsGatherer.kubernetesManager.adaptFlinkTaskmanagersParallelism(desiredTaskmanagers)
 
         # Delete jobmanager
         self.metricsGatherer.kubernetesManager.deleteJobManager()

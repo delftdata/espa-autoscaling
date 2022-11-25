@@ -109,7 +109,8 @@ public class Query3KafkaSource {
                 env.fromSource(auction_source, WatermarkStrategy.noWatermarks(), "auctionsSource")
                         .setParallelism(params.getInt("p-auction-source", 1))
                         .setMaxParallelism(max_parallelism_source)
-                        .uid("auctionsSource")
+                        .uid("AuctionsSource")
+                        .name("AuctionsSource")
                         .slotSharingGroup(sourceAuctionSSG);
 
         KafkaSource<Person> person_source =
@@ -122,7 +123,9 @@ public class Query3KafkaSource {
                         .setValueOnlyDeserializer(new PersonDeserializationSchema())
                         .build();
 
-        DataStream<Person> persons = env.fromSource(person_source, WatermarkStrategy.noWatermarks(), "personSource").setParallelism(params.getInt("p-person-source", 1)).setMaxParallelism(max_parallelism_source)
+        DataStream<Person> persons = env.fromSource(person_source, WatermarkStrategy.noWatermarks(), "personSource")
+                .setParallelism(params.getInt("p-person-source", 1))
+                .setMaxParallelism(max_parallelism_source)
                 .slotSharingGroup(sourcePersonSSG)
                 .filter(new FilterFunction<Person>() {
                     @Override
@@ -130,7 +133,10 @@ public class Query3KafkaSource {
                         return (person.state.equals("OR") || person.state.equals("ID") || person.state.equals("CA"));
                     }
                 })
-                .setParallelism(params.getInt("p-person-source", 1)).slotSharingGroup(filterSSG);
+                .setParallelism(params.getInt("p-person-source", 1))
+                .slotSharingGroup(filterSSG)
+                .uid("PersonSource")
+                .name("PersonSource");
 
         // SELECT Istream(P.name, P.city, P.state, A.id)
         // FROM Auction A [ROWS UNBOUNDED], Person P [ROWS UNBOUNDED]
@@ -153,11 +159,18 @@ public class Query3KafkaSource {
                 });
 
         DataStream<Tuple4<String, String, String, Long>> joined = keyedAuctions.connect(keyedPersons)
-                .flatMap(new JoinPersonsWithAuctions()).name("Incrementaljoin").setParallelism(params.getInt("p-join", 1)).slotSharingGroup(coFlatMapSSG);
+                .flatMap(new JoinPersonsWithAuctions())
+                .name("IncrementalJoin")
+                .uid("IncrementalJoin")
+                .setParallelism(params.getInt("p-join", 1))
+                .slotSharingGroup(coFlatMapSSG);
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         joined.transform("Sink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
-                .setParallelism(params.getInt("p-join", 1)).slotSharingGroup(sinkSSG);
+                .setParallelism(params.getInt("p-sink", 1))
+                .slotSharingGroup(sinkSSG)
+                .name("LatencySink")
+                .uid("LatencySink");
 
         // execute program
         env.execute("Nexmark Query3 with a Kafka Source");

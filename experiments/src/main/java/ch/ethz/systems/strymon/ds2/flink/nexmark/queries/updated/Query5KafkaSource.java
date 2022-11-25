@@ -86,7 +86,7 @@ public class Query5KafkaSource {
 
         DataStream<Bid> bids = env.fromSource(source, WatermarkStrategy.noWatermarks(), "BidsSource")
                 .slotSharingGroup(sourceSSG)
-                .setParallelism(params.getInt("p-bid-source", 1))
+                .setParallelism(params.getInt("p-bids-source", 1))
                 .setMaxParallelism(max_parallelism_source)
                 .assignTimestampsAndWatermarks(new TimestampAssigner())
                 .slotSharingGroup(sourceSSG)
@@ -102,14 +102,17 @@ public class Query5KafkaSource {
             }
         }).timeWindow(Time.minutes(60), Time.minutes(1))
                 .aggregate(new CountBids())
-                .name("Sliding Window")
+                .name("SlidingWindow")
+                .uid("SlidingWindow")
                 .setParallelism(params.getInt("p-window", 1))
                 .slotSharingGroup(windowSSG);
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         windowed.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
-                .setParallelism(params.getInt("p-window", 1))
-                .slotSharingGroup(sinkSSG);
+                .setParallelism(params.getInt("p-sink", 1))
+                .slotSharingGroup(sinkSSG)
+                .name("LatencySink")
+                .uid("LatencySink");
 
         // execute program
         env.execute("Nexmark Query5 with a Kafka Source");

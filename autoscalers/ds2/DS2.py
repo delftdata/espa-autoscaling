@@ -272,7 +272,8 @@ class DS2(Autoscaler):
         useful_output = []
         for val in output_text_values:
             if "topic" not in val:
-                substringsToRemove = [" ", "NodeIndex", "(0)", "(1)", "(2)", "(3)", "(4)", "\""]
+                substringsToRemove = [" ", "NodeIndex", "(0)", "(1)", "(2)", "(3)", "(4)", "(5)", "(6)", "(7)", "(8)",
+                                      "(9)", "\""]
                 for substringToRemove in substringsToRemove:
                     val = val.replace(substringToRemove, "")
                 useful_output.append(val)

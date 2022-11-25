@@ -20,7 +20,7 @@ class DS2ApplicationManager(ApplicationManager):
         operatorKafkaLag = self.gatherOperatorKafkaLag()
         topicLag = {}
         for operator, value in operatorKafkaLag.items():
-            topicName = self.configurations.experimentData.getTopicFromOperatorName(operator)
+            topicName = self.configurations.experimentData.getTopicFromOperatorName(operator, printError=False)
             if topicName:
                 topicLag[topicName] = float(value)
             else:
@@ -43,7 +43,10 @@ class DS2ApplicationManager(ApplicationManager):
             if subtask in subtaskBusyTimes:
                 subtaskInputRate = subtaskInputRates[subtask]
                 subtaskBusyTime = subtaskBusyTimes[subtask]
-                subtaskTrueProcessingRate = (subtaskInputRate / subtaskBusyTime)
+                if subtaskBusyTime != 0:
+                    subtaskTrueProcessingRate = (subtaskInputRate / subtaskBusyTime)
+                else:
+                    subtaskTrueProcessingRate = 0
                 subtaskTrueProcessingRates[subtask] = subtaskTrueProcessingRate
             else:
                 print(f"Error: subtask {subtask} of subtaskInputRates '{subtaskInputRates}' not found in "

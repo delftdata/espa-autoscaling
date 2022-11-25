@@ -25,9 +25,9 @@ def getAutoscaler(autoscaler: str) -> Autoscaler:
 
 def setAutoscalerDeveloperConfigurations(autoscaler: Autoscaler):
     autoscaler.configurations.RUN_LOCALLY = True
-    autoscaler.configurations.USE_FLINK_REACTIVE = True
-    autoscaler.configurations.PROMETHEUS_SERVER = "34.91.9.87:9090"
-    autoscaler.configurations.FLINK_JOBMANAGER_SERVER = "34.90.90.121:8081"
+    autoscaler.configurations.USE_FLINK_REACTIVE = False
+    autoscaler.configurations.PROMETHEUS_SERVER = "34.91.248.224" + ":9090"
+    autoscaler.configurations.FLINK_JOBMANAGER_SERVER = "35.204.243.153" + ":8081"
     autoscaler.configurations.ITERATION_PERIOD_SECONDS = 10
 
 

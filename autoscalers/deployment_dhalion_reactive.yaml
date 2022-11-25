@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: python-container
-        image: jobkanis/autoscalers:1.0
+        image: gsiachamis/autoscalers:1.0
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
@@ -41,11 +41,9 @@ spec:
         - name: MIN_PARALLELISM # 1 is default
           value: "1"
         - name: METRIC_AGGREGATION_PERIOD_SECONDS # 10 is default
-          value: "10"
+          value: "15"
         - name: COOLDOWN_PERIOD_SECONDS # 120 is default
-          value: "20"
-        - name: MAX_INITIALIZATION_TRIES  # 5 is default
-          value: "5"
+          value: "120"
         - name: ITERATION_PERIOD_SECONDS # 15 is default
           value: "15"
 
