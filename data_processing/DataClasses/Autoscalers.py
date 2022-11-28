@@ -3,7 +3,7 @@ class Autoscalers:
     Helperclass containing all possible autoscalers with their corresponding variables used by the experiments.
     """
     DHALION = "dhalion"
-    DHALION_VARIABLES = ["1", "5", "10"]
+    DHALION_VARIABLES = ["1", "5", "10", "r-200-150", "r-300-225", "r-400-300", "r-600-450"]
     DS2_ORIGINAL = "ds2-original"
     DS2_ORIGINAL_VARIABLES = ["0", "33", "66"]
     DS2_UPDATED = "ds2-updated"

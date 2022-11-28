@@ -461,8 +461,12 @@ public class BidPersonGeneratorKafka {
         int amountOfTopics = (bidsTopicEnabled ? 1 : 0) + (personTopicEnabled ? 1 : 0 + (auctionTopicEnabled ? 1 : 0));
         if (amountOfTopics < 1) {
             bidsTopicEnabled = true;
+            amountOfTopics = 1;
             System.out.println("Warning: No topics are enabled. Bids topic is enabled by default.");
         }
+        System.out.println("The following topics are enabled:" + (bidsTopicEnabled ? " bids-topic": "")
+                + (personTopicEnabled ? " person-topic": "")  + (auctionTopicEnabled ? " auction-topic": "")
+        );
 
         String kafka_server = params.get("kafka-server", "kafka-service:9092");
 
@@ -492,6 +496,8 @@ public class BidPersonGeneratorKafka {
             long emitStartTime = System.currentTimeMillis();
 
             int current_rate = getExperimentRate(start_time, loadPattern);
+            System.out.println("At time " + (emitStartTime - start_time)/1000 + "s, we generate " + current_rate +
+                    " records per second" );
             for (int i = 0; i < current_rate; i += amountOfTopics) {
                 try {
                     if (bidsTopicEnabled) {
@@ -507,13 +513,11 @@ public class BidPersonGeneratorKafka {
                 catch (Exception e){
                     e.printStackTrace();
                 }
-
-
-                // Sleep for the rest of timeslice if needed
-                long emitTime = System.currentTimeMillis() - emitStartTime;
-                if (emitTime < 1000) {
-                    Thread.sleep(1000 - emitTime);
-                }
+            }
+            // Sleep for the rest of timeslice if needed
+            long emitTime = System.currentTimeMillis() - emitStartTime;
+            if (emitTime < 1000) {
+                Thread.sleep(1000 - emitTime);
             }
         }
     }
