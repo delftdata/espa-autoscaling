@@ -47,7 +47,7 @@ spec:
         - name: ITERATION_PERIOD_SECONDS # 15 is default
           value: "15"
         - name: KUBERNETES_NAMESPACE # default is default
-          value: "default"
+          value: "jkanis-space"
 
         # Non-reactive functionality
         - name: NONREACTIVE_TIME_AFTER_DELETE_JOB_SECONDS # 4 is default
@@ -57,7 +57,7 @@ spec:
         - name: NONREACTIVE_TIME_AFTER_SAVEPOINT_SECONDS # 4 is default
           value: "4"
         - name: NONREACTIVE_JOB
-          value: "ch.ethz.systems.strymon.ds2.flink.nexmark.queries.updated.Query3KafkaSource"
+          value: "ch.ethz.systems.strymon.ds2.flink.nexmark.queries.updated.Query${QUERY}KafkaSource"
         - name: NONREACTIVE_CONTAINER
           value: "gsiachamis/flink-nexmark-queries:1.0"
         - name: NONREACTIVE_SAVEPOINT_TIMEOUT_SECONDS # 60 is default
