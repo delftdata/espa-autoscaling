@@ -37,7 +37,7 @@ class ScaleManager:
         :return: The per-operator desired parallelisms as a dictionary adapted to the maximum available operators.
         """
         minimum_parallelism = len(desiredParallelisms.keys())
-        adaptationFactor = (self.configurations.MAX_PARALLELISM - minimum_parallelism)/(sum(desiredParallelisms.values()) - minimum_parallelism)
+        adaptationFactor = (self.configurations.AVAILABLE_TASKMANAGERS - minimum_parallelism)/(sum(desiredParallelisms.values()) - minimum_parallelism)
         max_parallelism = 0
         max_operator = ""
         for operator, parallelism in desiredParallelisms.items():
@@ -45,9 +45,9 @@ class ScaleManager:
                 max_parallelism = parallelism
                 max_operator = operator
             desiredParallelisms[operator] = 1 + round(adaptationFactor * (parallelism - 1))
-        if sum(desiredParallelisms.values()) > self.configurations.MAX_PARALLELISM:
+        if sum(desiredParallelisms.values()) > self.configurations.AVAILABLE_TASKMANAGERS:
             desiredParallelisms[max_operator] -= 1 
-        if sum(desiredParallelisms.values()) < self.configurations.MAX_PARALLELISM:
+        if sum(desiredParallelisms.values()) < self.configurations.AVAILABLE_TASKMANAGERS:
             desiredParallelisms[max_operator] += 1
         return desiredParallelisms
 
@@ -58,7 +58,7 @@ class ScaleManager:
         :param desiredParallelisms: The per-operator desired parallelisms as a dictionary.
         :return: True if there are enough TaskManagers for the desired parallelisms, else False.
         """
-        totalAvailableTaskManagers = self.configurations.MAX_PARALLELISM
+        totalAvailableTaskManagers = self.configurations.AVAILABLE_TASKMANAGERS
         if flinkReactive:
             if max(desiredParallelisms.values()) > totalAvailableTaskManagers:
                 print("Insufficient resources for the desired parallelisms.")
@@ -83,8 +83,6 @@ class ScaleManager:
             if parallelism < 1:
                 desiredParallelisms[operator] = 1
 
-
-
     # Scaling operation
     def performScaleOperations(self, currentParallelisms: {str, int}, desiredParallelisms: {str, int},
                                cooldownPeriod: int = None):
@@ -102,33 +100,11 @@ class ScaleManager:
         :param cooldownPeriod: Optional cooldownperiod to be invoked after a scaling operation happens.
         :return: None
         """
-
-        # Scale if current parallelism is different from desired parallelism
-        # Todo, make shorter using intersection
-        if len(currentParallelisms) != len(desiredParallelisms):
-            print(f"Lenght of currentParallelisms {currentParallelisms} is not the same as desiredParallelisms"
-                  f" {desiredParallelisms}.")
-            print(f"Canceling scaling operation")
-            # Here we can cancel. But maybe we should fail?
-            return
-
-        for key in currentParallelisms.keys():
-            if key not in desiredParallelisms:
-                print(
-                    f"Key {key} found in  currentParallelisms {currentParallelisms} does not exist in "
-                    f"desiredParallelisms {desiredParallelisms}.")
-                print(f"Canceling scaling operation")
-                # Same
-                return
-
-        for key in desiredParallelisms.keys():
-            if key not in currentParallelisms:
-                print(
-                    f"Key {key} found in desiredParallelisms {desiredParallelisms} does not exist in "
-                    f"currentParallelisms {currentParallelisms}.")
-                print(f"Canceling scaling operation")
-                # Same
-                break
+        parallelismIntersection = [key for key in currentParallelisms if key in desiredParallelisms]
+        if not (len(parallelismIntersection) == len(desiredParallelisms) == len(currentParallelisms)):
+            raise Exception(f"Parallelism keys do not match: Length of desiredParallelism {desiredParallelisms}, "
+                            f"currentParallelisms {currentParallelisms} differ and their intersection: "
+                            f"{ parallelismIntersection}")
 
         self._enforceMinimumParallelismCondition(desiredParallelisms)
 
@@ -137,7 +113,7 @@ class ScaleManager:
             desiredTaskmanagersAmount = max(desiredParallelisms.values())
             currentTaskmanagerAmount = max(currentParallelisms.values())
             if not self._checkForSufficientResources(True, desiredParallelisms):
-                desiredTaskmanagersAmount = self.configurations.MAX_PARALLELISM
+                desiredTaskmanagersAmount = self.configurations.AVAILABLE_TASKMANAGERS
             if currentTaskmanagerAmount != desiredTaskmanagersAmount:
                 performedScalingOperation = True
                 self.metricsGatherer.kubernetesManager.adaptFlinkTaskmanagersParallelism(desiredTaskmanagersAmount)
