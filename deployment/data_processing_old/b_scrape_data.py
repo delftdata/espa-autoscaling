@@ -41,4 +41,3 @@ def scrape_data(prometheus_host_ip, query_being_run, autoscaler, cpu_percentage,
         path = "./experiment_data/individual_data/" + query_being_run + "/" + load_pattern + "/" + autoscaler + "/" + cpu_percentage
         if not os.path.exists(path):
             os.makedirs(path)
-        metric_df.to_csv(path + "/" + metric + ".csv")

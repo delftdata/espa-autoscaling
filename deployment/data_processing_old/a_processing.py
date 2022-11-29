@@ -1,4 +1,4 @@
-from PrometheusManager import scrape_data
+from b_scrape_data import scrape_data
 from c_combine_all_metrics import combine_all_metrics
 from d_plot_experiments import plot_experiments
 from e_plot_detailed_plot import plot_detailed_plot
@@ -22,6 +22,3 @@ def process_data(prometheus_ip, query, autoscaler, load_pattern, metric):
 
     # Calculate the evaluation metrics
     calulate_evaluation_metrics(query, autoscaler, metric, load_pattern)
-
-
-
