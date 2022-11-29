@@ -113,8 +113,7 @@ class Dhalion(Autoscaler, ABC):
                 desiredParallelism = math.ceil(parallelism * scaling_factor)
             else:
                 desiredParallelism = math.floor(parallelism * scaling_factor)
-            desiredParallelism = min(desiredParallelism, self.configurations.MAX_PARALLELISM)
-            desiredParallelism = max(desiredParallelism, self.configurations.MIN_PARALLELISM)
+            desiredParallelism = max(desiredParallelism, 1)
             return desiredParallelism
         else:
             print(f"Error: {operator} not found in parallelism: {currentParallelisms}")
