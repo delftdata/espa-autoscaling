@@ -175,31 +175,23 @@ class ScaleManager:
         print(f"Triggered savepoint with trigger_id: {trigger_id}")
 
         # Job stopping is an async operation, we need to query the status before we can continue
-        savepointCompleteStatus = "COMPLETED"
         savepointStatus = ""
-        timeout = self.configurations.NONREACTIVE_SAVEPOINT_TIMEOUT_TIME_SECONDS
-        while savepointStatus != savepointCompleteStatus:
+        while savepointStatus not in ["COMPLETED", "FAILED"]:
             savepointStatus = self.metricsGatherer.jobmanagerManager.extractSavePointStatusFromSavePointTriggerJSON(
                 job_id=job_id, trigger_id=trigger_id
             )
             time.sleep(1)
-            timeout -= 1
             print(f"Savepoint status: {savepointStatus}")
-            if timeout <= 0:
-                print("Timeout for savepoint to complete exceeded.")
-                print("Canceling scaling operation")
-                # Do we need this? We can't really cancel the scaling operation. After we stop the job we cannot continue. 
-                # If the savepoint fails, we should cancel the job and restart from a checkpoint. This is out of scope for us, therefore we should just stop execution.
-                return
+
+        if savepointStatus == "FAILED":
+            raise Exception("Creating a savepoint failed.")
 
         savepointPath = self.metricsGatherer.jobmanagerManager.extractSavePointPathFromSavePointTriggerJSON(
             job_id=job_id, trigger_id=trigger_id
         )
-        print(f"Savepoint Path; {savepointPath}")
         if not savepointPath:
-            # Here the same!
-            print("Canceling scaling operation, as savepoint path could not be found.")
-            return
+            raise Exception("Unable to fetch path of savepoint.")
+        print(f"Savepoint is saved at {savepointPath}")
 
         # Create new jobmanager configurations file
         self.__createJobmanagerConfigurationFile(desiredParallelisms, savepointPath)

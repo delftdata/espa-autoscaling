@@ -29,7 +29,6 @@ class Configurations:
     NONREACTIVE_JOB = os.environ.get("NONREACTIVE_JOB",
                                      "ch.ethz.systems.strymon.ds2.flink.nexmark.queries.updated.Query1KafkaSource")
     NONREACTIVE_CONTAINER = os.environ.get("NONREACTIVE_CONTAINER", "gsiachamis/flink-nexmark-queries:1.0")
-    NONREACTIVE_SAVEPOINT_TIMEOUT_TIME_SECONDS = int(os.environ.get("NONREACTIVE_SAVEPOINT_TIMEOUT_TIME_SECONDS", "60"))
     RUN_LOCALLY = False
 
     def printConfigurations(self):
