@@ -30,11 +30,11 @@ class ScaleManager:
                 print(f"Added directory {directory}.")
 
 
-    def _adaptScalingToExistingResources(self, desiredParallelisms: dict[str, int]):
+    def _adaptScalingToExistingResources(self, desiredParallelisms: dict[str, int]) -> dict[str, int]:
         """
         Adapt the desired parallelisms to the available resources.
         :param desiredParallelisms: The per-operator desired parallelisms as a dictionary.
-        :return: True if there are enough TaskManagers for the desired parallelisms, else False.
+        :return: The per-operator desired parallelisms as a dictionary adapted to the maximum available operators.
         """
         minimum_parallelism = len(desiredParallelisms.keys())
         adaptationFactor = (self.configurations.MAX_PARALLELISM - minimum_parallelism)/(sum(desiredParallelisms.values()) - minimum_parallelism)
@@ -64,7 +64,7 @@ class ScaleManager:
                 print("Insufficient resources for the desired parallelisms.")
                 return False
             else:
-                 True
+                return True
         else:
             if sum(desiredParallelisms.values()) > totalAvailableTaskManagers:
                 print("Insufficient resources for the desired parallelisms.")
@@ -144,7 +144,7 @@ class ScaleManager:
         else:
             if not self._checkForSufficientResources:
                 if self.adaptationMode:
-                    desiredParallelisms = self._adaptScalingToExistingResources()  # TODO implement this
+                    desiredParallelisms = self._adaptScalingToExistingResources(desiredParallelisms)
                     changeInParallelism = False
                     for operator in desiredParallelisms.keys():
                         if currentParallelisms[operator] != desiredParallelisms[operator]:

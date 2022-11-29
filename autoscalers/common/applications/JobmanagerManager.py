@@ -204,9 +204,9 @@ class JobmanagerManager:
         trigger_id = savePoint.json()['request-id']
         return trigger_id
 
-    def getSavePointTriggerJSON(self, job_id=None, trigger_id=None):
+    def getSavePointTriggerJSON(self, job_id, trigger_id):
         """
-        Get the status of a triggered svapoint. If no trigger_id is given, invoke a savepoint and use that trigger_id
+        Get the status of a triggered savpoint. If no trigger_id is given, invoke a savepoint and use that trigger_id
         :param job_id: Job_id of the job for which the savepoint is triggered.
         :param trigger_id: Trigger_id of the triggered savepoint.
         :return: Json with all information regarding the trigger
@@ -237,7 +237,7 @@ class JobmanagerManager:
         stop_request = self.sendStopJobRequest(job_id=job_id)
         return stop_request, stop_request.json()["request-id"]
 
-    def extractSavePointStatusFromSavePointTriggerJSON(self, job_id=None, trigger_id=None):
+    def extractSavePointStatusFromSavePointTriggerJSON(self, job_id, trigger_id):
         """
         Extract the status of the savepoint request for the designated job using the trigger_id.
         :param job_id: The job_id of the job for which the savepoint is created.
@@ -249,7 +249,7 @@ class JobmanagerManager:
         status = savePointTriggerJson["status"]["id"]
         return status
 
-    def extractSavePointPathFromSavePointTriggerJSON(self, job_id=None, trigger_id=None):
+    def extractSavePointPathFromSavePointTriggerJSON(self, job_id, trigger_id):
         """
         Extract the location of the stored savepoint with trigger_id for the designated job.
         :param job_id: The job_id of the job for which the savepoint is created.
