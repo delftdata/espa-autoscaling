@@ -18,6 +18,7 @@ class ScaleManager:
         :param metricsGatherer:
         """
         self.configurations = configurations
+        self.adaptationMode = True          # We should provide this as a configuration option 
         self.desiredParallelisms = {}
         self.metricsGatherer = metricsGatherer
         self.nonreactiveJobmanagerTemplate = "resources/templates/non-reactive-jobmanager-template.yaml"
@@ -28,6 +29,60 @@ class ScaleManager:
                 os.makedirs(directory)
                 print(f"Added directory {directory}.")
 
+
+    def _adaptScalingToExistingResources(self, desiredParallelisms: dict[str, int]) -> dict[str, int]:
+        """
+        Adapt the desired parallelisms to the available resources.
+        :param desiredParallelisms: The per-operator desired parallelisms as a dictionary.
+        :return: The per-operator desired parallelisms as a dictionary adapted to the maximum available operators.
+        """
+        minimum_parallelism = len(desiredParallelisms.keys())
+        adaptationFactor = (self.configurations.AVAILABLE_TASKMANAGERS - minimum_parallelism)/(sum(desiredParallelisms.values()) - minimum_parallelism)
+        max_parallelism = 0
+        max_operator = ""
+        for operator, parallelism in desiredParallelisms.items():
+            if max_parallelism < parallelism:
+                max_parallelism = parallelism
+                max_operator = operator
+            desiredParallelisms[operator] = 1 + round(adaptationFactor * (parallelism - 1))
+        if sum(desiredParallelisms.values()) > self.configurations.AVAILABLE_TASKMANAGERS:
+            desiredParallelisms[max_operator] -= 1 
+        if sum(desiredParallelisms.values()) < self.configurations.AVAILABLE_TASKMANAGERS:
+            desiredParallelisms[max_operator] += 1
+        return desiredParallelisms
+
+    def _checkForSufficientResources(self, flinkReactive: bool, desiredParallelisms: dict[str, int]):
+        """
+        Check if there are enough TaskManagers to reach the desired parallelism.
+        :param flinkReactive: If true, signals that flink is running in reactive mode. False for non-reactive.
+        :param desiredParallelisms: The per-operator desired parallelisms as a dictionary.
+        :return: True if there are enough TaskManagers for the desired parallelisms, else False.
+        """
+        totalAvailableTaskManagers = self.configurations.AVAILABLE_TASKMANAGERS
+        if flinkReactive:
+            if max(desiredParallelisms.values()) > totalAvailableTaskManagers:
+                print("Insufficient resources for the desired parallelisms.")
+                return False
+            else:
+                return True
+        else:
+            if sum(desiredParallelisms.values()) > totalAvailableTaskManagers:
+                print("Insufficient resources for the desired parallelisms.")
+                return False
+            else:
+                return True
+
+    
+    def _enforceMinimumParallelismCondition(self, desiredParallelisms: dict[str, int]):
+        """
+        Enforce the condition that each operator must use at least one TaskManager.
+        :param desiredParallelisms: The per-operator desired parallelisms as a dictionary.
+        :return: None. Dictionaries are mutable in python and changes happen in-place.
+        """
+        for operator, parallelism in desiredParallelisms.items():
+            if parallelism < 1:
+                desiredParallelisms[operator] = 1
+
     # Scaling operation
     def performScaleOperations(self, currentParallelisms: {str, int}, desiredParallelisms: {str, int},
                                cooldownPeriod: int = None):
@@ -37,61 +92,51 @@ class ScaleManager:
         maximum is the same as the current maximum, we do not do anything.
         If we do non use Flink-reactive, we invoke the _performOperatorBasedScaling function, disabling manually
         removing the job and restarting a new one with slot-sharing disabled and parallelisms assigned by
-        desiredParallelisms. If currentParallelisms is simislar to desired parallelisms, we do not do anything.
+        desiredParallelisms. If currentParallelisms are similar to desired parallelisms, we do not do anything.
         After a scaling operation, we invoke a cooldownPeriod as defined by cooldownPeriod. When undefined, we skip
-        the cooldown period
+        the cooldown period.
         :param currentParallelisms: The per-operator current parellelisms
         :param desiredParallelisms: The per-operator desired parallelisms
         :param cooldownPeriod: Optional cooldownperiod to be invoked after a scaling operation happens.
         :return: None
         """
+        parallelismIntersection = [key for key in currentParallelisms if key in desiredParallelisms]
+        if not (len(parallelismIntersection) == len(desiredParallelisms) == len(currentParallelisms)):
+            raise Exception(f"Parallelism keys do not match: Length of desiredParallelism {desiredParallelisms}, "
+                            f"currentParallelisms {currentParallelisms} differ and their intersection: "
+                            f"{ parallelismIntersection}")
 
-        # Scale if current parallelism is different from desired parallelism
-        # Todo, make shorter using intersection
-        if len(currentParallelisms) != len(desiredParallelisms):
-            print(f"Lenght of currentParallelisms {currentParallelisms} is not the same as desiredParallelisms"
-                  f" {desiredParallelisms}.")
-            print(f"Canceling scaling operation")
-            return
-
-        for key in currentParallelisms.keys():
-            if key not in desiredParallelisms:
-                print(
-                    f"Key {key} found in  currentParallelisms {currentParallelisms} does not exist in "
-                    f"desiredParallelisms {desiredParallelisms}.")
-                print(f"Canceling scaling operation")
-                return
-
-        for key in desiredParallelisms.keys():
-            if key not in currentParallelisms:
-                print(
-                    f"Key {key} found in desiredParallelisms {desiredParallelisms} does not exist in "
-                    f"currentParallelisms {currentParallelisms}.")
-                print(f"Canceling scaling operation")
-                break
+        self._enforceMinimumParallelismCondition(desiredParallelisms)
 
         performedScalingOperation = False
         if self.configurations.USE_FLINK_REACTIVE:
             desiredTaskmanagersAmount = max(desiredParallelisms.values())
             currentTaskmanagerAmount = max(currentParallelisms.values())
+            if not self._checkForSufficientResources(True, desiredParallelisms):
+                desiredTaskmanagersAmount = self.configurations.AVAILABLE_TASKMANAGERS
             if currentTaskmanagerAmount != desiredTaskmanagersAmount:
                 performedScalingOperation = True
                 self.metricsGatherer.kubernetesManager.adaptFlinkTaskmanagersParallelism(desiredTaskmanagersAmount)
         else:
-            changeInParallelism = False
-            for operator in desiredParallelisms.keys():
-                if currentParallelisms[operator] != desiredParallelisms[operator]:
-                    changeInParallelism = True
-            if changeInParallelism:
-                self._performOperatorBasedScaling(currentParallelisms, desiredParallelisms)
-                performedScalingOperation = True
+            if not self._checkForSufficientResources:
+                if self.adaptationMode:
+                    desiredParallelisms = self._adaptScalingToExistingResources(desiredParallelisms)
+                    changeInParallelism = False
+                    for operator in desiredParallelisms.keys():
+                        if currentParallelisms[operator] != desiredParallelisms[operator]:
+                            changeInParallelism = True
+                    if changeInParallelism:
+                        self._performOperatorBasedScaling(currentParallelisms, desiredParallelisms)
+                        performedScalingOperation = True
+                else:
+                    print("Scaling decision ignored due to insufficient TaskManagers.")
         if cooldownPeriod and performedScalingOperation:
             print(f"Performed scaling operation. Entering {cooldownPeriod}s cooldown-period.")
             time.sleep(cooldownPeriod)
 
     def _performOperatorBasedScaling(self, currentParallelisms: {str, int}, desiredParallelisms: {str, int}):
         """
-        Perform non-reative operator-based scaling.
+        Perform non-reactive operator-based scaling.
         This includes the following steps
         1. Creating and obtain a savepoint.
         2. Scale taskmanagers to the sum of all 'desiredParallelisms'
@@ -116,37 +161,37 @@ class ScaleManager:
         # Get trigger id from stop command
         # wait for savepoint to be finished and stop command to be executed
         # continue
-        print("Triggering savepoint")
-        job_id = self.metricsGatherer.jobmanagerManager.getJobId()
-        trigger_id = self.metricsGatherer.jobmanagerManager.triggerSavepointAndGetTriggerId(job_id=job_id)
-        print(f"Triggered savepoint of trigger_id: {trigger_id}")
+
+        # print("Triggering savepoint")
+        # job_id = self.metricsGatherer.jobmanagerManager.getJobId()
+        # trigger_id = self.metricsGatherer.jobmanagerManager.triggerSavepointAndGetTriggerId(job_id=job_id)
+        # print(f"Triggered savepoint of trigger_id: {trigger_id}")
+
         # Execute stop request
-        stop_request = self.metricsGatherer.jobmanagerManager.sendStopJobRequest(job_id=job_id)
+        job_id = self.metricsGatherer.jobmanagerManager.getJobId()
+        print(f"Stopping job {job_id} with a savepoint.")
+        stop_request, trigger_id = self.metricsGatherer.jobmanagerManager.sendStopJobRequestAndGetSavePointTriggerId(job_id=job_id)
         print(stop_request.json())
+        print(f"Triggered savepoint with trigger_id: {trigger_id}")
 
         # Job stopping is an async operation, we need to query the status before we can continue
-        savepointCompleteStatus = "COMPLETED"
         savepointStatus = ""
-        timeout = self.configurations.NONREACTIVE_SAVEPOINT_TIMEOUT_TIME_SECONDS
-        while savepointStatus != savepointCompleteStatus:
+        while savepointStatus not in ["COMPLETED", "FAILED"]:
             savepointStatus = self.metricsGatherer.jobmanagerManager.extractSavePointStatusFromSavePointTriggerJSON(
                 job_id=job_id, trigger_id=trigger_id
             )
             time.sleep(1)
-            timeout -= 1
             print(f"Savepoint status: {savepointStatus}")
-            if timeout <= 0:
-                print("Timeout for savepoint to complete exceeded.")
-                print("Canceling scaling operation")
-                return
+
+        if savepointStatus == "FAILED":
+            raise Exception("Creating a savepoint failed.")
 
         savepointPath = self.metricsGatherer.jobmanagerManager.extractSavePointPathFromSavePointTriggerJSON(
             job_id=job_id, trigger_id=trigger_id
         )
-        print(f"Savepoint Path; {savepointPath}")
         if not savepointPath:
-            print("Canceling scaling operation, as savepoint path could not be found.")
-            return
+            raise Exception("Unable to fetch path of savepoint.")
+        print(f"Savepoint is saved at {savepointPath}")
 
         # Create new jobmanager configurations file
         self.__createJobmanagerConfigurationFile(desiredParallelisms, savepointPath)
