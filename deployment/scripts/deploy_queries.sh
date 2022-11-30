@@ -96,5 +96,13 @@ case $QUERY in
     kubectl apply -f ../yamls/queries/query11/query11-workbench-deployment.yaml
 
   ;;
+
+  # Only deploy workbench with all topics enabled
+  workbench)
+    kubectl exec kafka-2 -- /opt/kafka/bin/kafka-topics.sh --create -zookeeper zoo1:2181  --replication-factor 1 --partitions 24 --topic bids_topic
+    kubectl exec kafka-2 -- /opt/kafka/bin/kafka-topics.sh --create -zookeeper zoo1:2181  --replication-factor 1 --partitions 24 --topic auction_topic
+    kubectl exec kafka-2 -- /opt/kafka/bin/kafka-topics.sh --create -zookeeper zoo1:2181  --replication-factor 1 --partitions 24 --topic person_topic
+    kubectl apply -f ../new-workbench-deployment.yaml
+  ;;
   *)
 esac

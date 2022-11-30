@@ -19,19 +19,28 @@ public abstract class GeneratorFunction {
 
     long epochStartTimeMs;
     final long epochDurationMs;
-    long eventsPerEpoch;
+    public long eventsPerEpoch;
     long firstEpochEvent;
     long eventsCountSoFar;
+    final int ownProportion;
+    final int totalProportion;
 
+    public GeneratorFunction(ObjectMapper objectMapper,
+                             Producer<String, byte[]> producer,
+                             GeneratorConfig generatorConfig,
+                             String kafkaTopic,
+                             long epochDurationMs,
+                             int ownProportion,
+                             int totalProportion){
 
-    public GeneratorFunction(ObjectMapper objectMapper, GeneratorConfig generatorConfig,
-                             Producer<String, byte[]> producer, String kafkaTopic,
-                             long epochDurationMs){
         this.objectMapper = objectMapper;
         this.generatorConfig = generatorConfig;
 
         this.producer = producer;
         this.kafkaTopic = kafkaTopic;
+
+        this.ownProportion = ownProportion;
+        this.totalProportion = totalProportion;
 
         this.epochDurationMs = epochDurationMs;
         this.epochStartTimeMs = 0;
@@ -72,6 +81,10 @@ public abstract class GeneratorFunction {
         return epochStartTimeUs + eventEpochOffsetUs;
     }
 
+    public Long getTimestampsMsforEvent(long eventNumber) {
+        long timestampUs = this.getTimestampUsforEvent(eventNumber);
+        return timestampUs / 1000L;
+    }
 
     public Long getTimestampUsforEvent(long eventNumber){
         return this.getTimestampUsforEvent(
@@ -89,23 +102,26 @@ public abstract class GeneratorFunction {
      * * Set the eventsAfterEpoch to the next amount of epochs we'll generate
      * @param eventsPerEpoch Amount of events this epoch will generate.
      */
-    public void setNextEpochSettings(long eventsPerEpoch) {
+    public void setNextEpochSettings(long totalEpochEvents) {
         if (this.eventsCountSoFar != 0) {
             this.epochStartTimeMs += this.epochDurationMs;
             this.firstEpochEvent = this.firstEpochEvent + this.eventsPerEpoch;
             this.eventsCountSoFar = this.firstEpochEvent;
         }
-        this.eventsPerEpoch = eventsPerEpoch;
-    }
+        if (ownProportion > 0) {
+            double percentage = (double) this.ownProportion / (double) this.totalProportion;
+            this.eventsPerEpoch = (long) Math.ceil(totalEpochEvents * percentage);
+        }
+     }
 
     public void generateEvent() throws JsonProcessingException {
         this.generateEvent(false);
     }
 
     public void generateEvent(boolean skipEventProduction) throws JsonProcessingException {
-        long eventNumber = this.getNextEventId();
+        long eventNumber = this.getNextEventId() + this.generatorConfig.firstEventId;
         Random rnd = new Random(eventNumber);
-        long eventTimestampUs = this.getTimestampUsforEvent(eventNumber);
+        long eventTimestampUs = this.getTimestampsMsforEvent(eventNumber) + this.generatorConfig.baseTime;
         if (!skipEventProduction){
             this.produceEvent(eventNumber, rnd, eventTimestampUs);
         } else {
@@ -113,5 +129,5 @@ public abstract class GeneratorFunction {
                     eventNumber, eventTimestampUs);
         }
     }
-    public abstract void produceEvent(long eventNumber, Random rnd, long eventTimestampUs) throws JsonProcessingException;
+    public abstract void produceEvent(long eventNumber, Random rnd, long eventTimestampMs) throws JsonProcessingException;
 }

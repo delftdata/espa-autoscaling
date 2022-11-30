@@ -1,6 +1,7 @@
 import ch.ethz.systems.strymon.ds2.flink.nexmark.sources.GeneratorFunctions.AuctionGeneratorFunction;
 import ch.ethz.systems.strymon.ds2.flink.nexmark.sources.GeneratorFunctions.BidGeneratorFunction;
 import ch.ethz.systems.strymon.ds2.flink.nexmark.sources.GeneratorFunctions.GeneratorFunction;
+import ch.ethz.systems.strymon.ds2.flink.nexmark.sources.GeneratorFunctions.PersonGenerationFunction;
 import org.junit.Test;
 
 import java.util.*;
@@ -8,11 +9,11 @@ import java.util.*;
 import static org.junit.Assert.*;
 
 public class TestBidPersonGeneratorKafka {
-    private GeneratorFunction timestampUsTestGeneratorFunction;
+    private final GeneratorFunction timestampUsTestGeneratorFunction;
 
     public TestBidPersonGeneratorKafka() {
         this.timestampUsTestGeneratorFunction = new BidGeneratorFunction(null, null, null,
-                "bids_topic", 1000);
+                "bids_topic", 1000, 1, 1);
     }
 
 
@@ -184,7 +185,7 @@ public class TestBidPersonGeneratorKafka {
          * Check whether the timestamp difference is indeed decreasing when we increase the input rate per epoch.
          */
         int epochDurationMs = 10;
-        GeneratorFunction generatorFunction = new BidGeneratorFunction(null, null, null, "test-topic", epochDurationMs);
+        GeneratorFunction generatorFunction = new AuctionGeneratorFunction(null, null, null,"test-topic", epochDurationMs, 1, 1);
         List<Long> eventNumbers = new ArrayList<>();
         List<Long> timestamps = new ArrayList<>();
         for (int epoch = 0; epoch < 100; epoch++) {
@@ -208,8 +209,8 @@ public class TestBidPersonGeneratorKafka {
          * Check whether the timestamp difference is indeed increasing when we decrease the input rate per epoch.
          */
         int epochDurationMs = 10;
-        GeneratorFunction generatorFunction = new BidGeneratorFunction(null, null, null, "test-topic",
-                epochDurationMs);
+        GeneratorFunction generatorFunction = new BidGeneratorFunction(null, null, null,"test-topic", epochDurationMs, 1, 1);
+
         List<Long> eventNumbers = new ArrayList<>();
         List<Long> timestamps = new ArrayList<>();
         for (int epoch = 0; epoch < 100; epoch++) {
@@ -234,7 +235,7 @@ public class TestBidPersonGeneratorKafka {
          * 1,000,000 records. In this case, every timestamp should differ exactly 1us from each other.
          */
         int epochDurationMs = 10;
-        GeneratorFunction generatorFunction = new AuctionGeneratorFunction(null, null, null, "test-topic", epochDurationMs);
+        GeneratorFunction generatorFunction = new AuctionGeneratorFunction(null, null, null, "test-topic", epochDurationMs, 1, 1);
         List<Long> eventNumbers = new ArrayList<>();
         List<Long> timestamps = new ArrayList<>();
         for (int epoch = 0; epoch < 100; epoch++) {
@@ -261,7 +262,7 @@ public class TestBidPersonGeneratorKafka {
          * event ID's should remain the same.
          */
         int epochDurationMs = 10;
-        GeneratorFunction generatorFunction = new AuctionGeneratorFunction(null, null, null, "test-topic", epochDurationMs);
+        GeneratorFunction generatorFunction = new PersonGenerationFunction(null, null, null,"test-topic", epochDurationMs, 1, 1);
         List<Long> eventNumbers = new ArrayList<>();
         List<Long> timestamps = new ArrayList<>();
         for (int epoch = 0; epoch < 100; epoch++) {
@@ -290,7 +291,7 @@ public class TestBidPersonGeneratorKafka {
          * in the next epoch.
          */
         int epochDurationMs = 10;
-        GeneratorFunction generatorFunction = new AuctionGeneratorFunction(null, null, null, "test-topic", epochDurationMs);
+        GeneratorFunction generatorFunction = new AuctionGeneratorFunction(null, null, null, "test-topic", epochDurationMs, 1, 1);
         List<Long> eventNumbers = new ArrayList<>();
         List<Long> timestamps = new ArrayList<>();
         for (int epoch = 0; epoch < 100; epoch++) {
@@ -307,6 +308,38 @@ public class TestBidPersonGeneratorKafka {
         this.testListContainsNoDuplicates(eventNumbers);
         this.testValueIncreaseIsInList(eventNumbers, new ArrayList<Long> (Arrays.asList(1L, 51L)));
         this.testValueIncreaseIsInList(timestamps, new ArrayList<Long> (Arrays.asList(100L, 5100L)));
+    }
 
+    @Test
+    public void testGenerationProportions() {
+        /**
+         * Test what happens if only half the input-rate is acutally generated.
+         * Expected: increase is normal until end of epoch is reached. Then the input rate and timestamps are set to 0
+         * in the next epoch.
+         */
+        int epochDurationMs = 10;
+        GeneratorFunction generatorFunction1 = new AuctionGeneratorFunction(null, null, null, "test-topic", epochDurationMs, 3, 12);
+        generatorFunction1.setNextEpochSettings(100);
+        assertEquals(generatorFunction1.eventsPerEpoch, 25);
+        generatorFunction1.setNextEpochSettings(39);
+        assertEquals(generatorFunction1.eventsPerEpoch, 10);
+        generatorFunction1.setNextEpochSettings(3);
+        assertEquals(generatorFunction1.eventsPerEpoch, 1);
+        generatorFunction1.setNextEpochSettings(0);
+        assertEquals(generatorFunction1.eventsPerEpoch, 0);
+
+        GeneratorFunction generatorFunction2 = new AuctionGeneratorFunction(null, null, null,"test-topic", epochDurationMs, 1, 50);
+        generatorFunction2.setNextEpochSettings(0);
+        assertEquals(generatorFunction2.eventsPerEpoch, 0);
+        generatorFunction2.setNextEpochSettings(1);
+        assertEquals(generatorFunction2.eventsPerEpoch, 1);
+        generatorFunction2.setNextEpochSettings(50);
+        assertEquals(generatorFunction2.eventsPerEpoch, 1);
+        generatorFunction2.setNextEpochSettings(99);
+        assertEquals(generatorFunction2.eventsPerEpoch, 2);
+        generatorFunction2.setNextEpochSettings(100);
+        assertEquals(generatorFunction2.eventsPerEpoch, 2);
+        generatorFunction2.setNextEpochSettings(101);
+        assertEquals(generatorFunction2.eventsPerEpoch, 3);
     }
 }

@@ -12,18 +12,19 @@ import java.util.Random;
 
 public class PersonGenerationFunction extends GeneratorFunction {
 
-    public PersonGenerationFunction(ObjectMapper objectMapper, GeneratorConfig generatorConfig, Producer<String, byte[]> producer, String kafkaTopic, long epochDurationMs) {
-        super(objectMapper, generatorConfig, producer, kafkaTopic, epochDurationMs);
+
+    public PersonGenerationFunction(ObjectMapper objectMapper, Producer<String, byte[]> producer, GeneratorConfig generatorConfig, String kafkaTopic, long epochDurationMs, int ownProportion, int totalProportion) {
+        super(objectMapper, producer, generatorConfig, kafkaTopic, epochDurationMs, ownProportion, totalProportion);
     }
 
     @Override
-    public void produceEvent(long eventNumber, Random rnd, long eventTimestampUs) throws JsonProcessingException {
+    public void produceEvent(long eventNumber, Random rnd, long eventTimestampMs) throws JsonProcessingException {
         this.producer.send(new ProducerRecord<String, byte[]>(
                 this.kafkaTopic,
                 this.objectMapper.writeValueAsBytes(PersonGenerator.nextPerson(
                         eventNumber,
                         rnd,
-                        eventTimestampUs,
+                        eventTimestampMs,
                         this.generatorConfig)
                 )
         ));
