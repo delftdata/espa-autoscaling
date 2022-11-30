@@ -11,25 +11,16 @@ import java.util.Random;
 
 
 public class BidGeneratorFunction extends GeneratorFunction{
-
+    public boolean testRun = false;
 
     public BidGeneratorFunction(ObjectMapper objectMapper, GeneratorConfig generatorConfig, Producer<String, byte[]> producer, String kafkaTopic, long epochDurationMs) {
         super(objectMapper, generatorConfig, producer, kafkaTopic, epochDurationMs);
     }
 
+
+
     @Override
-    public void generateEvent() throws JsonProcessingException {
-        long eventNumber = this.getNextEventId();
-        Random rnd = new Random(eventNumber);
-
-        long eventTimestampUs = this.getTimestampUsforEvent(
-                this.epochStartTimeMs,
-                this.epochDurationMs,
-                this.eventsPerEpoch,
-                this.firstEpochEvent,
-                eventNumber
-        );
-
+    public void produceEvent(long eventNumber, Random rnd, long eventTimestampUs) throws JsonProcessingException{
         this.producer.send(new ProducerRecord<String, byte[]>(
                 this.kafkaTopic,
                 objectMapper.writeValueAsBytes(BidGenerator.nextBid(
@@ -40,4 +31,7 @@ public class BidGeneratorFunction extends GeneratorFunction{
                 )
         ));
     }
+
+
+
 }

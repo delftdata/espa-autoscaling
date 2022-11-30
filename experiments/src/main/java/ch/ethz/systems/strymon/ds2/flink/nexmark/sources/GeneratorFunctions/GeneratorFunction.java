@@ -44,7 +44,7 @@ public abstract class GeneratorFunction {
      * Get the next event ID
      * @return the next event Id
      */
-    long getNextEventId(){
+    public long getNextEventId(){
         return this.eventsCountSoFar++;
     }
 
@@ -72,6 +72,16 @@ public abstract class GeneratorFunction {
         return epochStartTimeUs + eventEpochOffsetUs;
     }
 
+
+    public Long getTimestampUsforEvent(long eventNumber){
+        return this.getTimestampUsforEvent(
+                this.epochStartTimeMs,
+                this.epochDurationMs,
+                this.eventsPerEpoch,
+                this.firstEpochEvent,
+                eventNumber
+        );
+    }
     /**
      * Make generator ready for the next epoch generation.
      * * This adds the epochDurationMS to epochStartTimeMs,
@@ -88,6 +98,20 @@ public abstract class GeneratorFunction {
         this.eventsPerEpoch = eventsPerEpoch;
     }
 
-    public abstract void generateEvent() throws JsonProcessingException;
+    public void generateEvent() throws JsonProcessingException {
+        this.generateEvent(false);
+    }
 
+    public void generateEvent(boolean skipEventProduction) throws JsonProcessingException {
+        long eventNumber = this.getNextEventId();
+        Random rnd = new Random(eventNumber);
+        long eventTimestampUs = this.getTimestampUsforEvent(eventNumber);
+        if (!skipEventProduction){
+            this.produceEvent(eventNumber, rnd, eventTimestampUs);
+        } else {
+            System.out.printf("Producing '%s' event with eventNumber %d and timestampUs %d", this.kafkaTopic,
+                    eventNumber, eventTimestampUs);
+        }
+    }
+    public abstract void produceEvent(long eventNumber, Random rnd, long eventTimestampUs) throws JsonProcessingException;
 }

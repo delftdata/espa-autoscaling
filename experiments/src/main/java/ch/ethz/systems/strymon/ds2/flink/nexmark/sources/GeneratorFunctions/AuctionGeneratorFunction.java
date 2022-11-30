@@ -1,6 +1,7 @@
 package ch.ethz.systems.strymon.ds2.flink.nexmark.sources.GeneratorFunctions;
 
 import org.apache.beam.sdk.nexmark.sources.generator.model.AuctionGenerator;
+import org.apache.beam.sdk.nexmark.sources.generator.model.BidGenerator;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 
@@ -19,18 +20,7 @@ public class AuctionGeneratorFunction extends GeneratorFunction{
     }
 
     @Override
-    public void generateEvent() throws JsonProcessingException {
-        long eventNumber = this.getNextEventId();
-        Random rnd = new Random(eventNumber);
-
-        long eventTimestampUs = this.getTimestampUsforEvent(
-                this.epochStartTimeMs,
-                this.epochDurationMs,
-                this.eventsPerEpoch,
-                this.firstEpochEvent,
-                eventNumber
-        );
-
+    public void produceEvent(long eventNumber, Random rnd, long eventTimestampUs) throws JsonProcessingException{
         this.producer.send(new ProducerRecord<String, byte[]>(
                 this.kafkaTopic,
                 objectMapper.writeValueAsBytes(AuctionGenerator.nextAuction(

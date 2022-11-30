@@ -17,18 +17,7 @@ public class PersonGenerationFunction extends GeneratorFunction {
     }
 
     @Override
-    public void generateEvent() throws JsonProcessingException {
-        long eventNumber = this.getNextEventId();
-        Random rnd = new Random(eventNumber);
-
-        long eventTimestampUs = this.getTimestampUsforEvent(
-                this.epochStartTimeMs,
-                this.epochDurationMs,
-                this.eventsPerEpoch,
-                this.firstEpochEvent,
-                eventNumber
-        );
-
+    public void produceEvent(long eventNumber, Random rnd, long eventTimestampUs) throws JsonProcessingException {
         this.producer.send(new ProducerRecord<String, byte[]>(
                 this.kafkaTopic,
                 this.objectMapper.writeValueAsBytes(PersonGenerator.nextPerson(
@@ -40,5 +29,4 @@ public class PersonGenerationFunction extends GeneratorFunction {
         ));
     }
 }
-
 
