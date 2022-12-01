@@ -18,16 +18,9 @@
 
 package ch.ethz.systems.strymon.ds2.flink.nexmark.sources;
 
-import ch.ethz.systems.strymon.ds2.flink.nexmark.sources.GeneratorFunctions.AuctionGeneratorFunction;
-import ch.ethz.systems.strymon.ds2.flink.nexmark.sources.GeneratorFunctions.BidGeneratorFunction;
-import ch.ethz.systems.strymon.ds2.flink.nexmark.sources.GeneratorFunctions.GeneratorFunction;
-import ch.ethz.systems.strymon.ds2.flink.nexmark.sources.GeneratorFunctions.PersonGenerationFunction;
 import ch.ethz.systems.strymon.ds2.flink.nexmark.sources.LoadPattern.*;
-import org.apache.beam.sdk.nexmark.NexmarkConfiguration;
-import org.apache.beam.sdk.nexmark.sources.generator.GeneratorConfig;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.flink.api.java.utils.ParameterTool;
-import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import java.text.ParseException;
@@ -403,42 +396,11 @@ public class BidPersonGeneratorKafka {
         props.put("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
         Producer<String, byte[]> producer = new KafkaProducer<>(props);
 
-        // Creating object mapper
-        ObjectMapper objectMapper = new ObjectMapper();
+        BidPersonAuctionSourceFunction sourceFunction = new BidPersonAuctionSourceFunction(producer, epochDurationMs);
 
-        // ConfigGenerator
-        GeneratorConfig generatorConfig = new GeneratorConfig(
-                NexmarkConfiguration.DEFAULT,
-                1,
-                1000L,
-                0,
-                1
-        );
+        System.out.println("Starting generation");
 
-        // Setting event proportions
-        int personProportion = personTopicEnabled ? GeneratorConfig.PERSON_PROPORTION: 0; // 1
-        int auctionProportion = auctionTopicEnabled ? GeneratorConfig.AUCTION_PROPORTION: 0; // 3
-        int bidProportion = bidsTopicEnabled ?
-                GeneratorConfig.PROPORTION_DENOMINATOR - GeneratorConfig.AUCTION_PROPORTION - GeneratorConfig.PERSON_PROPORTION: 0; // 46
-        int totalProportion = bidProportion + personProportion + auctionProportion;
-
-        // Creating generators
-        //      BID_PROPORTION is private in GeneratorConfig. But we can get it by subracting auction and person
-        //      proportion from the total.
-        GeneratorFunction personGenerationFunction = new PersonGenerationFunction(
-                objectMapper, producer, generatorConfig, "person_topic", epochDurationMs, personProportion, totalProportion
-        );
-        GeneratorFunction auctionGeneratorFunction = new AuctionGeneratorFunction(
-                objectMapper, producer, generatorConfig, "auction_topic", epochDurationMs, auctionProportion, totalProportion
-        );
-        GeneratorFunction bidGeneratorFunction = new BidGeneratorFunction(
-                objectMapper, producer, generatorConfig, "bids_topic", epochDurationMs, bidProportion, totalProportion
-        );
-
-        System.out.println("Found the following input proportions: person[" + personProportion + "] auction[" +
-                auctionProportion + "] bidProportion[" + bidProportion + "] totalProportion[" + totalProportion + "]");
         // Starting iteration
-
         long start_time = System.currentTimeMillis();
         // While the loadPatternPeriod is not over
         while (((System.currentTimeMillis() - start_time) / 60000) < loadPatternConfiguration.getLoadPatternPeriod()) {
@@ -447,33 +409,10 @@ public class BidPersonGeneratorKafka {
             // Determine epoch input rate
             int inputRatePerSecond = getExperimentRate(start_time, loadPattern);
             int epochInputRate =  (int) (( (double) inputRatePerSecond / 1000 ) * (double) epochDurationMs);
+            System.out.println("Generating " + epochInputRate + " in this epoch");
 
-            // Setting epoch input rate proportional per epoch
-            bidGeneratorFunction.setNextEpochSettings(epochInputRate);
-            auctionGeneratorFunction.setNextEpochSettings(epochInputRate);
-            auctionGeneratorFunction.setNextEpochSettings(epochInputRate);
+            sourceFunction.generateEpochEvents(epochInputRate);
 
-            // We generate {epochInputRate} events.
-            // Per {totalProportion events:
-            //      We first generate the personProportion events, then the auction events, then the bid events
-            int iteration = 0;
-            System.out.println("Entering next iteraton with inputRatePerSecond[" + inputRatePerSecond + "] epochInputRate[" + epochInputRate + "], iteration[" + iteration + "]");
-            for (int i = 0; i < epochInputRate; i++) {
-                try {
-                    iteration++;
-                    if (iteration <= personProportion) {
-                        personGenerationFunction.generateEvent();
-                    } else if (iteration <= personProportion + auctionProportion) {
-                        auctionGeneratorFunction.generateEvent();
-                    } else if (iteration <= bidProportion + auctionProportion + personProportion) {
-                        bidGeneratorFunction.generateEvent();
-                    } else {
-                        iteration = 0;
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
             long emitTime = System.currentTimeMillis() - emitStartTime;
             if (emitTime < epochDurationMs) {
                 Thread.sleep(epochDurationMs - emitTime);
