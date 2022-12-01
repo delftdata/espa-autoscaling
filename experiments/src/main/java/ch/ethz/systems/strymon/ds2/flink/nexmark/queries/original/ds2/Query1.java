@@ -19,7 +19,7 @@
 package ch.ethz.systems.strymon.ds2.flink.nexmark.queries.original.ds2;
 
 import ch.ethz.systems.strymon.ds2.flink.nexmark.sinks.DummyLatencyCountingSink;
-import ch.ethz.systems.strymon.ds2.flink.nexmark.sources.BidSourceFunction;
+import ch.ethz.systems.strymon.ds2.flink.nexmark.sources.DS2.BidSourceFunction;
 import org.apache.beam.sdk.nexmark.model.Bid;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.tuple.Tuple4;

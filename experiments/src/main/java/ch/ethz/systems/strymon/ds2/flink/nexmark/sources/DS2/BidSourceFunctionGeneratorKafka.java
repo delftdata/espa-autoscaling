@@ -16,11 +16,10 @@
  * limitations under the License.
  */
 
-package ch.ethz.systems.strymon.ds2.flink.nexmark.sources;
+package ch.ethz.systems.strymon.ds2.flink.nexmark.sources.DS2;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.beam.sdk.nexmark.NexmarkConfiguration;
-import org.apache.beam.sdk.nexmark.model.Bid;
 import org.apache.beam.sdk.nexmark.sources.generator.GeneratorConfig;
 import org.apache.beam.sdk.nexmark.sources.generator.model.BidGenerator;
 import org.apache.kafka.clients.producer.KafkaProducer;

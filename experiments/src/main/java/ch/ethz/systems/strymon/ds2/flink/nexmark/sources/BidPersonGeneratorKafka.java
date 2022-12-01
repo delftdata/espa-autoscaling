@@ -396,7 +396,8 @@ public class BidPersonGeneratorKafka {
         props.put("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
         Producer<String, byte[]> producer = new KafkaProducer<>(props);
 
-        BidPersonAuctionSourceFunction sourceFunction = new BidPersonAuctionSourceFunction(producer, epochDurationMs);
+        BidPersonAuctionSourceFunction sourceFunction = new BidPersonAuctionSourceFunction(producer, epochDurationMs,
+                personTopicEnabled, auctionTopicEnabled, bidsTopicEnabled);
 
         System.out.println("Starting generation");
 

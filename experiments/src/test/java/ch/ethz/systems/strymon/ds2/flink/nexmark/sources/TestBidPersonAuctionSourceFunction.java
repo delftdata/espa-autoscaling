@@ -9,7 +9,8 @@ public class TestBidPersonAuctionSourceFunction {
     private final BidPersonAuctionSourceFunction timestampUsTestBidPersonAuctionSourceFunction;
 
     public TestBidPersonAuctionSourceFunction() {
-        this.timestampUsTestBidPersonAuctionSourceFunction = new BidPersonAuctionSourceFunction(null, 1000);
+        this.timestampUsTestBidPersonAuctionSourceFunction = new BidPersonAuctionSourceFunction(null,
+                1000, true, true, true);
     }
 
 
@@ -181,7 +182,7 @@ public class TestBidPersonAuctionSourceFunction {
          * Check whether the timestamp difference is indeed decreasing when we increase the input rate per epoch.
          */
         int epochDurationMs = 10;
-        BidPersonAuctionSourceFunction bidPersonAuctionSourceFunction = new BidPersonAuctionSourceFunction(null, epochDurationMs);
+        BidPersonAuctionSourceFunction bidPersonAuctionSourceFunction = new BidPersonAuctionSourceFunction(null, epochDurationMs, true, true, true);
         List<Long> eventNumbers = new ArrayList<>();
         List<Long> timestamps = new ArrayList<>();
         for (int epoch = 0; epoch < 100; epoch++) {
@@ -205,7 +206,7 @@ public class TestBidPersonAuctionSourceFunction {
          * Check whether the timestamp difference is indeed increasing when we decrease the input rate per epoch.
          */
         int epochDurationMs = 10;
-        BidPersonAuctionSourceFunction bidPersonAuctionSourceFunction = new BidPersonAuctionSourceFunction(null, epochDurationMs);
+        BidPersonAuctionSourceFunction bidPersonAuctionSourceFunction = new BidPersonAuctionSourceFunction(null, epochDurationMs, true, true, true);
 
         List<Long> eventNumbers = new ArrayList<>();
         List<Long> timestamps = new ArrayList<>();
@@ -231,7 +232,7 @@ public class TestBidPersonAuctionSourceFunction {
          * 1,000,000 records. In this case, every timestamp should differ exactly 1us from each other.
          */
         int epochDurationMs = 10;
-        BidPersonAuctionSourceFunction bidPersonAuctionSourceFunction = new BidPersonAuctionSourceFunction(null, epochDurationMs);
+        BidPersonAuctionSourceFunction bidPersonAuctionSourceFunction = new BidPersonAuctionSourceFunction(null, epochDurationMs, true, true, true);
         List<Long> eventNumbers = new ArrayList<>();
         List<Long> timestamps = new ArrayList<>();
         for (int epoch = 0; epoch < 100; epoch++) {
@@ -258,7 +259,7 @@ public class TestBidPersonAuctionSourceFunction {
          * event ID's should remain the same.
          */
         int epochDurationMs = 10;
-        BidPersonAuctionSourceFunction bidPersonAuctionSourceFunction = new BidPersonAuctionSourceFunction(null, epochDurationMs);
+        BidPersonAuctionSourceFunction bidPersonAuctionSourceFunction = new BidPersonAuctionSourceFunction(null, epochDurationMs, true, true, true);
         List<Long> eventNumbers = new ArrayList<>();
         List<Long> timestamps = new ArrayList<>();
         for (int epoch = 0; epoch < 100; epoch++) {
@@ -287,7 +288,7 @@ public class TestBidPersonAuctionSourceFunction {
          * in the next epoch.
          */
         int epochDurationMs = 10;
-        BidPersonAuctionSourceFunction bidPersonAuctionSourceFunction = new BidPersonAuctionSourceFunction(null, epochDurationMs);
+        BidPersonAuctionSourceFunction bidPersonAuctionSourceFunction = new BidPersonAuctionSourceFunction(null, epochDurationMs, true, true, true);
         List<Long> eventNumbers = new ArrayList<>();
         List<Long> timestamps = new ArrayList<>();
         for (int epoch = 0; epoch < 100; epoch++) {

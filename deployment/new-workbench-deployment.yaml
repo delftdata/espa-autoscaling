@@ -24,4 +24,4 @@ spec:
             cpu: 2500m
             memory: 2500Mi
         env:
-        args: ["mvn", "exec:java", "-Dexec.mainClass=ch.ethz.systems.strymon.ds2.flink.nexmark.sources.BidPersonGeneratorKafka", "-Dexec.args= --enable-bids-topic true --enable-auction-topic true --enable-person-topic true --load-pattern 'random' --use-default-configuration false --initial-input-rate 50 --min-divergence 0 --max-divergence 0"]
+        args: ["mvn", "exec:java", "-Dexec.mainClass=ch.ethz.systems.strymon.ds2.flink.nexmark.sources.BidPersonGeneratorKafka", "-Dexec.args= --enable-bids-topic true --enable-auction-topic true --enable-person-topic true --load-pattern 'random' --use-default-configuration false --initial-input-rate 1000000 --min-divergence 0 --max-divergence 0"]
