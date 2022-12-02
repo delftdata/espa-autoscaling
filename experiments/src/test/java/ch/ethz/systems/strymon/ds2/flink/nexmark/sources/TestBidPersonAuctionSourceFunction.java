@@ -306,4 +306,41 @@ public class TestBidPersonAuctionSourceFunction {
         this.testValueIncreaseIsInList(eventNumbers, new ArrayList<Long> (Arrays.asList(1L, 51L)));
         this.testValueIncreaseIsInList(timestamps, new ArrayList<Long> (Arrays.asList(100L, 5100L)));
     }
+
+    /**
+     * Test the getTotalProportion function. The function should return the total proportion of enabled topics.
+     * This test assumes personProportion = 1, auctionProportion = 3, Bidproportion = 46.
+     */
+    @Test
+    public void testGetTotalProportion() {
+        assertEquals(new BidPersonAuctionSourceFunction(null, 0, true, false, false).getTotalProportion(), 1);
+        assertEquals(new BidPersonAuctionSourceFunction(null, 0, false, true, false).getTotalProportion(), 3);
+        assertEquals(new BidPersonAuctionSourceFunction(null, 0, false, false, true).getTotalProportion(), 46);
+        assertEquals(new BidPersonAuctionSourceFunction(null, 0, true, true, false).getTotalProportion(), 4);
+        assertEquals(new BidPersonAuctionSourceFunction(null, 0, false, true, true).getTotalProportion(), 49);
+        assertEquals(new BidPersonAuctionSourceFunction(null, 0, true, false, true).getTotalProportion(), 47);
+        assertEquals(new BidPersonAuctionSourceFunction(null, 0, true, true, true).getTotalProportion(), 50);
+    }
+
+    /**
+     * Test the getTotalIdIncrease function, which determines the total increase of the ID given an amount of events.
+     * Based on the total proportion of events that is enabled to generate, the function returns the total ID increase.
+     * This test assumes personProportion = 1, auctionProportion = 3, Bidproportion = 46.
+     */
+    @Test
+    public void testGetTotalIdIncrease() {
+        // Simple
+        assertEquals(new BidPersonAuctionSourceFunction(null, 0, true, false, false).getTotalIdIncrease(50), 2500);
+        assertEquals(new BidPersonAuctionSourceFunction(null, 0, false, true, false).getTotalIdIncrease(30), 500);
+        assertEquals(new BidPersonAuctionSourceFunction(null, 0, false, false, true).getTotalIdIncrease(47), 100);
+
+        // Complex
+        assertEquals(new BidPersonAuctionSourceFunction(null, 0, false, true, false).getTotalIdIncrease(1034), 17250);
+        assertEquals(new BidPersonAuctionSourceFunction(null, 0, false, false, true).getTotalIdIncrease(74963), 81500);
+
+        // Rounding check
+        assertEquals(new BidPersonAuctionSourceFunction(null, 0, true, true, true).getTotalIdIncrease(499), 500);
+        assertEquals(new BidPersonAuctionSourceFunction(null, 0, true, true, true).getTotalIdIncrease(500), 500);
+        assertEquals(new BidPersonAuctionSourceFunction(null, 0, true, true, true).getTotalIdIncrease(501), 550);
+    }
 }

@@ -150,13 +150,42 @@ public class BidPersonAuctionSourceFunction {
         this.eventsPerEpoch = totalEpochEvents;
      }
 
+     public int getTotalProportion() {
+        int eventsPerEpoch = 0;
+        if (this.enablePersonTopic) {
+            eventsPerEpoch += GeneratorConfig.PERSON_PROPORTION;
+        }
+        if (this.enableAuctionTopic) {
+            eventsPerEpoch += GeneratorConfig.AUCTION_PROPORTION;
+        }
+        if (this.enableBidTopic) {
+            int bidsProportion = GeneratorConfig.PROPORTION_DENOMINATOR
+                    - GeneratorConfig.PERSON_PROPORTION - GeneratorConfig.AUCTION_PROPORTION;
+            eventsPerEpoch += bidsProportion;
+        }
+        return eventsPerEpoch;
+     }
+
+    /**
+     * Given the total amount of events that have to be genenerated, how much will the ID grow by at the end of
+     * the epoch.
+     * @param amountOfEvents Amount of events to generate this epoch
+     * @return The increase of eventID after generating the provided amount of events
+     */
+     public int getTotalIdIncrease(long amountOfEvents) {
+        double usedProportion = this.getTotalProportion();
+        int epochs = (int) Math.ceil((double) amountOfEvents / usedProportion);
+        return epochs * GeneratorConfig.PROPORTION_DENOMINATOR;
+     }
+
     /**
      * Generate all events for the upcomming epoch.
      * @param totalEpochEvents Events to produce in this epoch.
      * @throws JsonProcessingException Processing error thrown by event generation.
      */
     public void generateEpochEvents(long totalEpochEvents) throws JsonProcessingException {
-        this.setNextEpochSettings(totalEpochEvents);
+        int idIncrease = this.getTotalIdIncrease(totalEpochEvents);
+        this.setNextEpochSettings(idIncrease);
 
         long remainingEpochEvents = totalEpochEvents;
         while (remainingEpochEvents > 0){
