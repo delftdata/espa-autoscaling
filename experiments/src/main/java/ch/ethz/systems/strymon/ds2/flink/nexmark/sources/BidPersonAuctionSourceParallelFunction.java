@@ -17,8 +17,8 @@ public class BidPersonAuctionSourceParallelFunction extends BidPersonAuctionSour
     private int amountOfEpochs;
     private int totalEventsPerEpoch;
 
-    public BidPersonAuctionSourceParallelFunction(Producer<String, byte[]> producer, long epochDurationMs, boolean enablePersonTopic, boolean enableAuctionTopic, boolean enableBidTopic, int parallelism, int parallelismIndex) {
-        super(producer, epochDurationMs, enablePersonTopic, enableAuctionTopic, enableBidTopic);
+    public BidPersonAuctionSourceParallelFunction(String kafkaServer, long epochDurationMs, boolean enablePersonTopic, boolean enableAuctionTopic, boolean enableBidTopic, int parallelism, int parallelismIndex) {
+        super(kafkaServer, epochDurationMs, enablePersonTopic, enableAuctionTopic, enableBidTopic);
         this.parallelism = parallelism;
         this.parallelismIndex = parallelismIndex;
     }

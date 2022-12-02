@@ -11,7 +11,7 @@ public class BidPersonAuctionSourceParallelManager {
     long epochDurationMs;
     List<BidPersonAuctionSourceParallelFunction> sourceFunctions;
 
-    public BidPersonAuctionSourceParallelManager(Producer<String, byte[]> producer,
+    public BidPersonAuctionSourceParallelManager(String kafkaServer,
                                                  long epochDurationMs,
                                                  boolean enablePersonTopic,
                                                  boolean enableAuctionTopic,
@@ -21,7 +21,7 @@ public class BidPersonAuctionSourceParallelManager {
         this.epochDurationMs = epochDurationMs;
         this.sourceFunctions = new ArrayList<>();
         for (int i = 0; i < this.parallelism; i++) {
-            this.sourceFunctions.add(new BidPersonAuctionSourceParallelFunction(producer, epochDurationMs,
+            this.sourceFunctions.add(new BidPersonAuctionSourceParallelFunction(kafkaServer, epochDurationMs,
                     enablePersonTopic, enableAuctionTopic, enableBidTopic, parallelism, i));
         }
     }

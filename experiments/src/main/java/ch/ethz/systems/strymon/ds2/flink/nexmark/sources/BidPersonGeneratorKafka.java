@@ -352,7 +352,7 @@ public class BidPersonGeneratorKafka {
         List<Integer> loadPattern = loadPatternConfiguration.getLoadPattern().f1;
         if (this.debuggingEnabled) { loadPatternConfiguration.plotLoadPattern(); }
 
-        String kafka_server = params.get("kafka-server", "kafka-service:9092");
+        String kafkaServer = params.get("kafka-server", "kafka-service:9092");
 
         boolean bidsTopicEnabled = params.getBoolean("enable-bids-topic", false);
         boolean personTopicEnabled = params.getBoolean("enable-person-topic", false);
@@ -384,18 +384,8 @@ public class BidPersonGeneratorKafka {
          * Beginning event generation
          */
         // Creating producer
-        Properties props = new Properties();
-        props.put("bootstrap.servers", kafka_server);
-        props.put("acks", "1");
-        props.put("retries", "0");
-        props.put("linger.ms", "10");
-        props.put("compression.type", "lz4");
-        props.put("batch.size", "50000");
-        props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-        props.put("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
-        Producer<String, byte[]> producer = new KafkaProducer<>(props);
 
-        BidPersonAuctionSourceParallelManager sourceManager = new BidPersonAuctionSourceParallelManager(producer,
+        BidPersonAuctionSourceParallelManager sourceManager = new BidPersonAuctionSourceParallelManager(kafkaServer,
                 epochDurationMs, personTopicEnabled, auctionTopicEnabled, bidsTopicEnabled, generatorParallelism);
 
         // Starting iteration

@@ -7,9 +7,11 @@ import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.core.JsonProcessin
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.apache.beam.sdk.nexmark.sources.generator.model.BidGenerator;
+import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 
+import java.util.Properties;
 import java.util.Random;
 
 public class BidPersonAuctionSourceFunction extends Thread {
@@ -34,13 +36,27 @@ public class BidPersonAuctionSourceFunction extends Thread {
 
 
 
-    public BidPersonAuctionSourceFunction(Producer<String, byte[]> producer,
+    public BidPersonAuctionSourceFunction(String kafkaServer,
                                           long epochDurationMs,
                                           boolean enablePersonTopic,
                                           boolean enableAuctionTopic,
                                           boolean enableBidTopic){
-        // Set producer
-        this.producer = producer;
+        // Create producer
+        if (kafkaServer != null) {
+            // Not in testing environment
+            Properties props = new Properties();
+            props.put("bootstrap.servers", kafkaServer);
+            props.put("acks", "1");
+            props.put("retries", "0");
+            props.put("linger.ms", "10");
+            props.put("compression.type", "lz4");
+            props.put("batch.size", "50000");
+            props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+            props.put("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
+            this.producer = new KafkaProducer<>(props);
+        }
+
+
         // Creating object mapper
         this.objectMapper = new ObjectMapper();
         // ConfigGenerator
@@ -51,6 +67,7 @@ public class BidPersonAuctionSourceFunction extends Thread {
                 0,
                 0
         );
+
 
         // Topics to generate
         this.enablePersonTopic = enablePersonTopic;
