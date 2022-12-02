@@ -101,11 +101,19 @@ import java.util.*;
  *                Generate person topic events. Default value: false
  *          enable-auction-topic (false): BOOLEAN
  *                Generate auction topic events. Default value: false
- *          epoch-duration-ms (1000): Int
- *                Duration of an epoch in ms. Should not be larger than 1000ms. Default value: 1000ms.
- *     Optional parameters
+ *      Optional parameters
  *          kafka-server: STRING ("kafka-service:9092")
  *                Kafka server location. Default value: "kafka-service:9092"
+ *
+ *   Generator setup
+ *          iteration-duration-ms (60000): Int
+ *                Duration of an iteration in ms. An iteration is the period in which a specific input rate from the
+ *                load pattern is being generated. Default value: 60_000ms.
+ *          epoch-duration-ms (1000): Int
+ *                Duration of an epoch in ms. iteration_duration_ms should be dividable by epoch-duration-ms for the
+ *                best generator-performance.
+ *          generatorParallelism (1): Int
+ *                Amount of threads that running simultaneously while generating data. Default value: 1.
  *
  *    Other
  *      Optional parameters
@@ -135,14 +143,8 @@ public class BidPersonGeneratorKafka {
         }
     }
 
-    public int getExperimentRate(long startTime, List<Integer> loadPattern){
-        int elapsed_minutes = (int)Math.floor((double) ((System.currentTimeMillis() - startTime) / 60000));
-        // Repeat the pattern if the experiment is not stopped yet.
-        elapsed_minutes  = elapsed_minutes % loadPattern.size();
-        return loadPattern.get(elapsed_minutes);
-    }
-
-    public LoadPattern getCosineLoadPattern(int query, int experimentLength, boolean useDefaultConfigurations, ParameterTool params) {
+    public LoadPattern getCosineLoadPattern(int query, int experimentLength, boolean useDefaultConfigurations,
+                                            ParameterTool params) {
         /**
          * Custom paramters:
          *   cosine-period: INT
@@ -228,6 +230,7 @@ public class BidPersonGeneratorKafka {
             return new RandomLoadPattern(query, experimentLength, initialInputRate, minDivergence, maxDivergence);
         }
     }
+
     public LoadPattern getIncreaseLoadPattern(int query, int experimentLength, boolean useDefaultConfigurations) {
         /**
          * Custom paramters:
@@ -255,11 +258,13 @@ public class BidPersonGeneratorKafka {
     public LoadPattern getTestRun_ScaleUp() {
         return new TestrunLoadPattern(true);
     }
+
     public LoadPattern getTestRun_ScaleDown() {
         return new TestrunLoadPattern(false);
     }
 
-    public LoadPattern getTestRun(int query, int experimentLength, boolean useDefaultConfigurations, ParameterTool params)  {
+    public LoadPattern getTestRun(int query, int experimentLength, boolean useDefaultConfigurations,
+                                  ParameterTool params)  {
         /**
          * Custom paramters:
          * - inputrate0: int
@@ -277,7 +282,6 @@ public class BidPersonGeneratorKafka {
             return new TestrunLoadPattern(query, experimentLength, inputrate0, inputrate1, inputrate2);
         }
     }
-
 
     /**
      * Get a loadpattern based on paramters provided by params
@@ -350,36 +354,31 @@ public class BidPersonGeneratorKafka {
 
         String kafka_server = params.get("kafka-server", "kafka-service:9092");
 
-        /**
-         * Run workbench
-         */
-        // Create generators
-
-        /***
-         * Kafka configuration
-         */
         boolean bidsTopicEnabled = params.getBoolean("enable-bids-topic", false);
         boolean personTopicEnabled = params.getBoolean("enable-person-topic", false);
         boolean auctionTopicEnabled = params.getBoolean("enable-auction-topic", false);
-        int amountOfTopics = (bidsTopicEnabled ? 1 : 0) + (personTopicEnabled ? 1 : 0 + (auctionTopicEnabled ? 1 : 0));
-        if (amountOfTopics < 1) {
+
+        if (!bidsTopicEnabled && !personTopicEnabled && !auctionTopicEnabled) {
             bidsTopicEnabled = true;
             System.out.println("Warning: No topics are enabled. Bids topic is enabled by default.");
         }
 
         int epochDurationMs = params.getInt("epoch-duration-ms", 100);
-        if (epochDurationMs > 1000) {
-            System.out.println("Warning: epoch-duration-ms should be smaller than 1000ms (1s), but is "
-                    + epochDurationMs + ". Setting it to 1000 ms.");
-            epochDurationMs = 1000;
+        int iterationDurationMs = params.getInt("iteration-duration-ms", 60_000);
+        if (iterationDurationMs % epochDurationMs != 0) {
+            System.out.println("Warning: for most accurate performance, iterationDurationMs (" + iterationDurationMs +
+                    "ms) should be dividable by epoch-duration-ms (" + epochDurationMs + "ms)");
         }
+
+        int generatorParallelism = params.getInt("generator-parallelism", 1);
 
         Set<String> remainingParameters = params.getUnrequestedParameters();
         if (remainingParameters.size() > 0) {
             System.out.println("Warning: did not recognize the following parameters: " + String.join(",", remainingParameters));
         }
 
-        System.out.println("Instantiating generators");
+        System.out.println("Instantiating generators with parallelism[" + generatorParallelism + "] iterationtime[" +
+                iterationDurationMs + "ms] epochduration[" + epochDurationMs + "ms]." );
 
         /**
          * Beginning event generation
@@ -396,29 +395,21 @@ public class BidPersonGeneratorKafka {
         props.put("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
         Producer<String, byte[]> producer = new KafkaProducer<>(props);
 
-        BidPersonAuctionSourceFunction sourceFunction = new BidPersonAuctionSourceFunction(producer, epochDurationMs,
-                personTopicEnabled, auctionTopicEnabled, bidsTopicEnabled);
-
-        System.out.println("Starting generation");
+        BidPersonAuctionSourceParallelManager sourceManager = new BidPersonAuctionSourceParallelManager(producer,
+                epochDurationMs, personTopicEnabled, auctionTopicEnabled, bidsTopicEnabled, generatorParallelism);
 
         // Starting iteration
         long start_time = System.currentTimeMillis();
+
         // While the loadPatternPeriod is not over
-        while (((System.currentTimeMillis() - start_time) / 60000) < loadPatternConfiguration.getLoadPatternPeriod()) {
-            long emitStartTime = System.currentTimeMillis();
-
-            // Determine epoch input rate
-            int inputRatePerSecond = getExperimentRate(start_time, loadPattern);
-            int epochInputRate =  (int) (( (double) inputRatePerSecond / 1000 ) * (double) epochDurationMs);
-            System.out.println("Generating " + epochInputRate + " in this epoch");
-
-            sourceFunction.generateEpochEvents(epochInputRate);
-
-            long emitTime = System.currentTimeMillis() - emitStartTime;
-            if (emitTime < epochDurationMs) {
-                Thread.sleep(epochDurationMs - emitTime);
-            }
+        for (int iteration = 0; iteration < loadPatternConfiguration.getLoadPatternPeriod(); iteration++) {
+            int iterationInputRatePerSecond = loadPattern.get(iteration);
+            System.out.println("Starting iteration " + iteration + " with " + iterationInputRatePerSecond + "r/s after " +
+                    (System.currentTimeMillis() - start_time) / 1000 + "s");
+            sourceManager.runGeneratorsForPeriod(iterationInputRatePerSecond, iterationDurationMs);
         }
+        System.out.println("Finished workbench execution after " +  (System.currentTimeMillis() - start_time) / 1000 +
+                " at time "+ System.currentTimeMillis() / 1000 + "s");
     }
 
     public static void main(String[] args){

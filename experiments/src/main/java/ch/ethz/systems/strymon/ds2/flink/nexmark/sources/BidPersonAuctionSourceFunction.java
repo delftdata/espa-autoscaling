@@ -12,7 +12,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 
 import java.util.Random;
 
-public class BidPersonAuctionSourceFunction {
+public class BidPersonAuctionSourceFunction extends Thread {
     String PERSON_TOPIC = "person_topic";
     String BID_TOPIC = "bids_topic";
     String AUCTION_TOPIC = "auction_topic";
@@ -32,11 +32,13 @@ public class BidPersonAuctionSourceFunction {
     boolean enableAuctionTopic;
     boolean enableBidTopic;
 
+
+
     public BidPersonAuctionSourceFunction(Producer<String, byte[]> producer,
                                           long epochDurationMs,
                                           boolean enablePersonTopic,
                                           boolean enableAuctionTopic,
-                                          boolean enableBidTopic) {
+                                          boolean enableBidTopic){
         // Set producer
         this.producer = producer;
         // Creating object mapper
@@ -179,14 +181,38 @@ public class BidPersonAuctionSourceFunction {
      }
 
     /**
+     * Generate all events of the epoch.
+     * @param totalEpochEvents Amount of events to be generated in this epoch.
+     * @throws JsonProcessingException Generator error.
+     */
+    public void generateAllEpochEvents(long totalEpochEvents) throws JsonProcessingException {
+        this.generatePortionOfEpochEvents(totalEpochEvents, 0, totalEpochEvents);
+    }
+
+    /**
+     * Generate a portion of all the epoch events.
+     * The portion that is generated is on index firstEventIndex - firstEventIndex + eventsToGenerate.
+     * @param totalEpochEvents Total events generated in this epoch. Used for ensuring correct ID's.
+     * @param firstEventIndex The index of the first event it has to generate.
+     * @param eventsToGenerate The amount of events that have to be generated.
+     * @throws JsonProcessingException Generator error.
+     */
+     public void generatePortionOfEpochEvents(long totalEpochEvents, long firstEventIndex, long eventsToGenerate) throws JsonProcessingException {
+         int totalIdIncrease = this.getTotalIdIncrease(totalEpochEvents);
+         this.setNextEpochSettings(totalIdIncrease);
+
+         int beforeIdIncrease = this.getTotalIdIncrease(firstEventIndex);
+         this.incrementEventNumber(beforeIdIncrease);
+
+         this.generateEvents(eventsToGenerate);
+     }
+
+    /**
      * Generate all events for the upcomming epoch.
      * @param totalEpochEvents Events to produce in this epoch.
      * @throws JsonProcessingException Processing error thrown by event generation.
      */
-    public void generateEpochEvents(long totalEpochEvents) throws JsonProcessingException {
-        int idIncrease = this.getTotalIdIncrease(totalEpochEvents);
-        this.setNextEpochSettings(idIncrease);
-
+    private void generateEvents(long totalEpochEvents) throws JsonProcessingException {
         long remainingEpochEvents = totalEpochEvents;
         while (remainingEpochEvents > 0){
             long eventNumber = getNextEventNumber();
@@ -233,6 +259,7 @@ public class BidPersonAuctionSourceFunction {
             }
         }
     }
+
 
     /**
      * Produce a person event
@@ -291,4 +318,5 @@ public class BidPersonAuctionSourceFunction {
                 )
         ));
     }
+
 }
