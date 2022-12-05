@@ -98,11 +98,12 @@ public class Query11KafkaSource {
         DataStream<Bid> bids =
                 env.fromSource(source, WatermarkStrategy.noWatermarks(), "BidsSource")
                         .slotSharingGroup(sourceSSG)
-                        .setParallelism(params.getInt("p-source", 1))
+                        .setParallelism(params.getInt("p-bid-source", 1))
                         .setMaxParallelism(max_parallelism_source)
                         .assignTimestampsAndWatermarks(new Query11KafkaSource.BidTimestampAssigner())
                         .slotSharingGroup(sourceSSG)
-                        .uid("BidsSource");
+                        .uid("BidsSource")
+                        .name("BidsSource");
 
         DataStream<Tuple2<Long, Long>> windowed = bids.keyBy(new KeySelector<Bid, Long>() {
             @Override
@@ -113,11 +114,16 @@ public class Query11KafkaSource {
                 .window(EventTimeSessionWindows.withGap(Time.seconds(10)))
                 .trigger(new MaxLogEventsTrigger())
                 .aggregate(new CountBidsPerSession()).setParallelism(params.getInt("p-window", 1))
-                .name("SessionWindow").slotSharingGroup(windowSSG);
+                .name("SessionWindow")
+                .uid("SessionWindow")
+                .slotSharingGroup(windowSSG);
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         windowed.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
-                .setParallelism(params.getInt("p-window", 1)).slotSharingGroup(sinkSSG);
+                .setParallelism(params.getInt("p-sink", 1))
+                .slotSharingGroup(sinkSSG)
+                .uid("LatencySink")
+                .uid("LatencySink");
 
 
         // execute program

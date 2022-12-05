@@ -81,8 +81,9 @@ public class Query2KafkaSource {
         
         DataStream<Bid> bids = env.fromSource(source, WatermarkStrategy.noWatermarks(), "BidsSource")
                                     .slotSharingGroup(sourceSSG)
-                                    .setParallelism(params.getInt("p-source", 1))
+                                    .setParallelism(params.getInt("p-bids-source", 1))
                                     .setMaxParallelism(max_parallelism_source)
+                                    .name("BidsSource")
                                     .uid("BidsSource");
 
         // SELECT Rstream(auction, price)
@@ -97,11 +98,17 @@ public class Query2KafkaSource {
                             out.collect(new Tuple2<>(bid.auction, bid.price));
                         }
                     }
-                }).setParallelism(params.getInt("p-flatMap", 1)).slotSharingGroup(filterSSG);
+                }).setParallelism(params.getInt("p-flatMap", 1))
+                .slotSharingGroup(filterSSG)
+                .name("Flatmap")
+                .uid("Flatmap");;
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         converted.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
-                .setParallelism(params.getInt("p-flatMap", 1)).slotSharingGroup(sinkSSG);
+                .setParallelism(params.getInt("p-sink", 1))
+                .slotSharingGroup(sinkSSG)
+                .name("LatencySink")
+                .uid("LatencySink");
 
         // execute program
         env.execute("Nexmark Query2 with a Kafka Source");

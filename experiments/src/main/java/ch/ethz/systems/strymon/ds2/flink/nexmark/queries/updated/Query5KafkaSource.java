@@ -90,6 +90,7 @@ public class Query5KafkaSource {
                 .setMaxParallelism(max_parallelism_source)
                 .assignTimestampsAndWatermarks(new TimestampAssigner())
                 .slotSharingGroup(sourceSSG)
+                .name("BidsSource")
                 .uid("BidsSource");
 
         // SELECT B1.auction, count(*) AS num
@@ -104,12 +105,16 @@ public class Query5KafkaSource {
                 .aggregate(new CountBids())
                 .name("Sliding Window")
                 .setParallelism(params.getInt("p-window", 1))
-                .slotSharingGroup(windowSSG);
+                .slotSharingGroup(windowSSG)
+                .name("WindowCount")
+                .uid("WindowCount");
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         windowed.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
-                .setParallelism(params.getInt("p-window", 1))
-                .slotSharingGroup(sinkSSG);
+                .setParallelism(params.getInt("p-sink", 1))
+                .slotSharingGroup(sinkSSG)
+                .name("LatencySink")
+                .uid("LatencySink");
 
         // execute program
         env.execute("Nexmark Query5 with a Kafka Source");

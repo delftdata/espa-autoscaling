@@ -1,6 +1,42 @@
 # Initial experiments
 
 
+# Query setup
+
+## Query 1
+| BidsSource | p-bids-source | Source: BidsSource |
+| Mapper | p-map | Mapper |
+| LatencySink | p-sink | LatencySink | 
+
+## Query 2
+| BidsSource | p-bids-source | TODO |
+| Flatmap | p-flatMap | TODO |
+| LatencySink | p-sink | TODO |
+
+
+## Query 3
+| AuctionSource | p-auction-source | TODO |
+| PersonSource | p-person-source | TODO |
+| IncrementalJoin | p-join | TODO |
+| LatencySink | p-sink | TODO |
+
+## Query 5
+| BidsSource | p-bid-source | TODO|
+| WindowCount | p-window | TODO |
+| LatencySink | p-wink | TODO |
+
+## Query 8
+| PersonSource | p-person-source | TODO |
+| AuctionSource | p-auction-source | TODO |
+| TODO | p-window | TODO |
+| LatencySink | p-sink | TODO |
+
+## Query 11
+| BidsSource | p-bid-source | TODO|
+| SessionWindow | p-window | TODO |
+| LatencySink | p-wink | TODO |
+
+
 # Benchmarks
 
 ## Workbench resources benchmark

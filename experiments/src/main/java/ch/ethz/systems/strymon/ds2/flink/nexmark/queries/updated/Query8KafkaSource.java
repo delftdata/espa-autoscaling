@@ -99,7 +99,9 @@ public class Query8KafkaSource {
                 .setParallelism(params.getInt("p-person-source", 1))
                 .setMaxParallelism(max_parallelism_source)
                 .assignTimestampsAndWatermarks(new PersonTimestampAssigner())
-                .slotSharingGroup(sourcePersonSSG);
+                .slotSharingGroup(sourcePersonSSG)
+                .uid("PersonSource")
+                .name("PersonSource");
 
 
         KafkaSource<Auction> auction_source =
@@ -117,7 +119,9 @@ public class Query8KafkaSource {
                 .setParallelism(params.getInt("p-auction-source", 1))
                 .setMaxParallelism(max_parallelism_source)
                 .assignTimestampsAndWatermarks(new AuctionTimestampAssigner())
-                .slotSharingGroup(sourceAuctionSSG);
+                .slotSharingGroup(sourceAuctionSSG)
+                .uid("AuctionSource")
+                .name("AuctionSource");
 
         // SELECT Rstream(P.id, P.name, A.reserve)
         // FROM Person [RANGE 1 HOUR] P, Auction [RANGE 1 HOUR] A
@@ -146,7 +150,10 @@ public class Query8KafkaSource {
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         joined.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
-                .setParallelism(params.getInt("p-window", 1)).slotSharingGroup(sinkSSG);
+                .setParallelism(params.getInt("p-sink", 1))
+                .slotSharingGroup(sinkSSG)
+                .uid("LatencySink")
+                .name("LatencySink");
 
         // execute program
         env.execute("Nexmark Query8 with a Kafka Source");
