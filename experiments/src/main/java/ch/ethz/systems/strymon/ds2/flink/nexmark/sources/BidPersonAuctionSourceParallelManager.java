@@ -26,23 +26,6 @@ public class BidPersonAuctionSourceParallelManager {
         }
     }
 
-    public void synchroniseGenerators() {
-        long highestEventCountSoFar = 0;
-        long correspondingEpochStartTimeMs = 0;
-        for (BidPersonAuctionSourceParallelFunction sourceFunction: this.sourceFunctions) {
-            if (sourceFunction.eventsCountSoFar > highestEventCountSoFar) {
-                highestEventCountSoFar = sourceFunction.eventsCountSoFar;
-                correspondingEpochStartTimeMs = sourceFunction.epochStartTimeMs;
-            }
-        }
-        System.out.println("Synchronising generators with event-count=" + highestEventCountSoFar + " and " +
-                "epochStartTime=" + correspondingEpochStartTimeMs);
-        for (BidPersonAuctionSourceParallelFunction sourceFunction: this.sourceFunctions) {
-            sourceFunction.eventsCountSoFar = highestEventCountSoFar;
-            sourceFunction.epochStartTimeMs = correspondingEpochStartTimeMs;
-        }
-    }
-
     public int getRatePerEpoch(int totalRatePerSecond) {
         double epochsPerSecond = 1000d / this.epochDurationMs;
         return (int) Math.ceil(totalRatePerSecond / epochsPerSecond);
@@ -55,7 +38,6 @@ public class BidPersonAuctionSourceParallelManager {
     public void runGeneratorsForPeriod(int totalRatePerSecond, int periodDurationMs) throws InterruptedException {
         int ratePerEpoch = this.getRatePerEpoch(totalRatePerSecond);
         int amountOfEpochs = this.getAmountOfEpochs(periodDurationMs);
-        this.synchroniseGenerators();
         for (BidPersonAuctionSourceParallelFunction sourceFunction: this.sourceFunctions) {
             sourceFunction.startNewThread(ratePerEpoch, amountOfEpochs);
         }
