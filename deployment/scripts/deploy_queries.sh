@@ -1,7 +1,9 @@
 #!/bin/bash
 
-QUERY=$1 #{1, 2, 3, 5, 8, 11}
-MODE=$2 #{reactive, non-reactive}
+QUERY=$1                      #{1, 2, 3, 5, 8, 11}
+MODE=$2                       #{reactive, non-reactive}
+INPUT_RATE_MEAN=$3            # Mean of Cosinus pattern
+INPUT_RATE_MAX_DIVERGENCE=$4  # Maximum divergence from Cosinus pattern
 echo "Deploying query $QUERY with $MODE mode."
 
 # Deploy flink
@@ -38,8 +40,8 @@ else
 fi
 
 # Deploy workbench
-export INPUT_RATE_MEAN=100000
-export INPUT_RATE_MAX_DIVERGENCE=50000
+export INPUT_RATE_MEAN=$INPUT_RATE_MEAN
+export INPUT_RATE_MAX_DIVERGENCE=$INPUT_RATE_MAX_DIVERGENCE
 if [ "$QUERY" == "3" ] || [ "$QUERY" == "8" ]
 then
   kubectl exec kafka-2 -- /opt/kafka/bin/kafka-topics.sh --create -zookeeper zoo1:2181  --replication-factor 1 --partitions 24 --topic auction_topic
