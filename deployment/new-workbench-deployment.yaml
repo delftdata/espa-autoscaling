@@ -14,14 +14,14 @@ spec:
     spec:
       containers:
       - name: workbench-container
-        image: gsiachamis/workbench:2.0
+        image: gsiachamis/workbench:3.0
         imagePullPolicy: Always
         resources:
           requests:
-            cpu: 2000m
-            memory: 2000Mi
+            cpu: 8000m
+            memory: 4000Mi
           limits:
-            cpu: 2500m
-            memory: 2500Mi
+            cpu: 8000m
+            memory: 4000Mi
         env:
-        args: ["mvn", "exec:java", "-Dexec.mainClass=ch.ethz.systems.strymon.ds2.flink.nexmark.sources.BidPersonGeneratorKafka", "-Dexec.args= --enable-auction-topic true --enable-person-topic true --load-pattern 'cosine' --query 3"]
+        args: ["mvn", "exec:java", "-Dexec.mainClass=ch.ethz.systems.strymon.ds2.flink.nexmark.sources.BidPersonGeneratorKafka", "-Dexec.args= --enable-bids-topic true --enable-auction-topic false --enable-person-topic false --load-pattern 'random' --use-default-configuration false --generator-parallelism 16 --epoch-duration-ms 100 --iteration-duration-ms 60000 --initial-input-rate 10000000 --min-divergence 0 --max-divergence 0"]

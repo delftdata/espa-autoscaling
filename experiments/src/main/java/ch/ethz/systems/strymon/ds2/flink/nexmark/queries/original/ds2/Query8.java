@@ -19,8 +19,8 @@
 package ch.ethz.systems.strymon.ds2.flink.nexmark.queries.original.ds2;
 
 import ch.ethz.systems.strymon.ds2.flink.nexmark.sinks.DummyLatencyCountingSink;
-import ch.ethz.systems.strymon.ds2.flink.nexmark.sources.AuctionSourceFunction;
-import ch.ethz.systems.strymon.ds2.flink.nexmark.sources.PersonSourceFunction;
+import ch.ethz.systems.strymon.ds2.flink.nexmark.sources.DS2.AuctionSourceFunction;
+import ch.ethz.systems.strymon.ds2.flink.nexmark.sources.DS2.PersonSourceFunction;
 import org.apache.beam.sdk.nexmark.model.Auction;
 import org.apache.beam.sdk.nexmark.model.Person;
 import org.apache.flink.api.common.functions.FlatJoinFunction;

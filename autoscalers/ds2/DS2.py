@@ -283,8 +283,7 @@ class DS2(Autoscaler):
             if len(useful_output) > i + 1:
                 operator = useful_output[i]
                 desiredParallelism = math.ceil(float(useful_output[i + 1]))
-                desiredParallelism = min(desiredParallelism, self.configurations.MAX_PARALLELISM)
-                desiredParallelism = max(desiredParallelism, self.configurations.MIN_PARALLELISM)
+                desiredParallelism = max(desiredParallelism, 1)
                 desiredParallelisms[operator] = desiredParallelism
             else:
                 print(f"Error: useful_output {useful_output} is not large enough to process the next desiredParallelism"

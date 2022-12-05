@@ -96,8 +96,7 @@ class HPA(Autoscaler, ABC):
         :return: desired parallelism of operator
         """
         new_desired_parallelism = math.ceil(current_parallelism * scale_factor)
-        new_desired_parallelism = min(new_desired_parallelism, self.configurations.MAX_PARALLELISM)
-        new_desired_parallelism = max(new_desired_parallelism, self.configurations.MIN_PARALLELISM)
+        new_desired_parallelism = max(new_desired_parallelism, 1)
         return new_desired_parallelism
 
     @abstractmethod

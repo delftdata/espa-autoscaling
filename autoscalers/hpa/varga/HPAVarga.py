@@ -6,6 +6,7 @@ from .HPAVargaApplicationManager import HPAVargaApplicationManager
 from hpa.HPA import HPA
 from common import ScaleManager
 
+
 class HPAVarga(HPA, ABC):
     configurations: HPAVargaConfigurations
     metricsGatherer: HPAVargaApplicationManager
@@ -82,4 +83,3 @@ class HPAVarga(HPA, ABC):
             allMaximumDesiredParallelisms,
             cooldownPeriod=self.configurations.COOLDOWN_PERIOD_SECONDS
         )
-

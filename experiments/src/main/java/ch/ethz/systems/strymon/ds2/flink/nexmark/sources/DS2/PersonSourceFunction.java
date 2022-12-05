@@ -16,37 +16,36 @@
  * limitations under the License.
  */
 
-package ch.ethz.systems.strymon.ds2.flink.nexmark.sources;
+package ch.ethz.systems.strymon.ds2.flink.nexmark.sources.DS2;
 
 import org.apache.beam.sdk.nexmark.NexmarkConfiguration;
-import org.apache.beam.sdk.nexmark.model.Bid;
+import org.apache.beam.sdk.nexmark.model.Person;
 import org.apache.beam.sdk.nexmark.sources.generator.GeneratorConfig;
-import org.apache.beam.sdk.nexmark.sources.generator.model.BidGenerator;
+import org.apache.beam.sdk.nexmark.sources.generator.model.PersonGenerator;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
 
 import java.util.Random;
 
 /**
- * A ParallelSourceFunction that generates Nexmark Bid data
+ * A ParallelSourceFunction that generates Nexmark Person data
  */
-public class BidSourceFunction extends RichParallelSourceFunction<Bid> {
+public class PersonSourceFunction extends RichParallelSourceFunction<Person> {
 
     private volatile boolean running = true;
     private final GeneratorConfig config = new GeneratorConfig(NexmarkConfiguration.DEFAULT, 1, 1000L, 0, 1);
     private long eventsCountSoFar = 0;
     private final int rate;
 
-    public BidSourceFunction(int srcRate) {
+    public PersonSourceFunction(int srcRate) {
         this.rate = srcRate;
     }
 
     @Override
-    public void run(SourceContext<Bid> ctx) throws Exception {
-        while (running && eventsCountSoFar < 20_000_000) {
+    public void run(SourceContext<Person> ctx) throws Exception {
+        while (running && eventsCountSoFar < 40_000_000) {
             long emitStartTime = System.currentTimeMillis();
 
             for (int i = 0; i < rate; i++) {
-
                 long nextId = nextId();
                 Random rnd = new Random(nextId);
 
@@ -55,7 +54,7 @@ public class BidSourceFunction extends RichParallelSourceFunction<Bid> {
                         config.timestampAndInterEventDelayUsForEvent(
                                 config.nextEventNumber(eventsCountSoFar)).getKey();
 
-                ctx.collect(BidGenerator.nextBid(nextId, rnd, eventTimestamp, config));
+                ctx.collect(PersonGenerator.nextPerson(nextId, rnd, eventTimestamp, config));
                 eventsCountSoFar++;
             }
 
@@ -64,6 +63,7 @@ public class BidSourceFunction extends RichParallelSourceFunction<Bid> {
             if (emitTime < 1000) {
                 Thread.sleep(1000 - emitTime);
             }
+
         }
     }
 

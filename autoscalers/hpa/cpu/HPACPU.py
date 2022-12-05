@@ -1,5 +1,4 @@
 import statistics
-import traceback
 import time
 
 from .HPACPUConfigurations import HPACPUConfigurations

@@ -16,36 +16,37 @@
  * limitations under the License.
  */
 
-package ch.ethz.systems.strymon.ds2.flink.nexmark.sources;
+package ch.ethz.systems.strymon.ds2.flink.nexmark.sources.DS2;
 
 import org.apache.beam.sdk.nexmark.NexmarkConfiguration;
-import org.apache.beam.sdk.nexmark.model.Auction;
+import org.apache.beam.sdk.nexmark.model.Bid;
 import org.apache.beam.sdk.nexmark.sources.generator.GeneratorConfig;
-import org.apache.beam.sdk.nexmark.sources.generator.model.AuctionGenerator;
+import org.apache.beam.sdk.nexmark.sources.generator.model.BidGenerator;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
 
 import java.util.Random;
 
 /**
- * A ParallelSourceFunction that generates Nexmark Person data
+ * A ParallelSourceFunction that generates Nexmark Bid data
  */
-public class AuctionSourceFunction extends RichParallelSourceFunction<Auction> {
+public class BidSourceFunction extends RichParallelSourceFunction<Bid> {
 
     private volatile boolean running = true;
     private final GeneratorConfig config = new GeneratorConfig(NexmarkConfiguration.DEFAULT, 1, 1000L, 0, 1);
     private long eventsCountSoFar = 0;
     private final int rate;
 
-    public AuctionSourceFunction(int srcRate) {
+    public BidSourceFunction(int srcRate) {
         this.rate = srcRate;
     }
 
     @Override
-    public void run(SourceContext<Auction> ctx) throws Exception {
-        while (running && eventsCountSoFar < 70_000_000) {
+    public void run(SourceContext<Bid> ctx) throws Exception {
+        while (running && eventsCountSoFar < 20_000_000) {
             long emitStartTime = System.currentTimeMillis();
 
             for (int i = 0; i < rate; i++) {
+
                 long nextId = nextId();
                 Random rnd = new Random(nextId);
 
@@ -54,7 +55,7 @@ public class AuctionSourceFunction extends RichParallelSourceFunction<Auction> {
                         config.timestampAndInterEventDelayUsForEvent(
                                 config.nextEventNumber(eventsCountSoFar)).getKey();
 
-                ctx.collect(AuctionGenerator.nextAuction(eventsCountSoFar, nextId, rnd, eventTimestamp, config));
+                ctx.collect(BidGenerator.nextBid(nextId, rnd, eventTimestamp, config));
                 eventsCountSoFar++;
             }
 
