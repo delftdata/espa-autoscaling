@@ -11,7 +11,8 @@ public class BidPersonAuctionSourceParallelFunction extends BidPersonAuctionSour
 
     // Thread status
     Thread thread;
-    boolean running = false;
+    // private int stoppedIterationNumber is defined in BidPersonAuctionSourceFunction
+    private int currentIterationNumber;
 
     // Epoch status
     private int amountOfEpochs;
@@ -21,6 +22,9 @@ public class BidPersonAuctionSourceParallelFunction extends BidPersonAuctionSour
         super(kafkaServer, epochDurationMs, enablePersonTopic, enableAuctionTopic, enableBidTopic);
         this.parallelism = parallelism;
         this.parallelismIndex = parallelismIndex;
+
+        this.currentIterationNumber = 0;
+        this.stoppedIterationNumber = 0;
     }
 
     /**
@@ -40,12 +44,12 @@ public class BidPersonAuctionSourceParallelFunction extends BidPersonAuctionSour
      * @param amountOfEpochs Amount of epochs to generate events for
      */
     public void startNewThread(int totalEventsPerEpoch, int amountOfEpochs) {
-        if (!running) {
+        if (this.currentIterationNumber == this.stoppedIterationNumber) {
+            this.currentIterationNumber += 1;
             int amountOfEpochsOffset = amountOfEpochs % this.parallelism;
             this.totalEventsPerEpoch = totalEventsPerEpoch + amountOfEpochsOffset;
             this.amountOfEpochs = amountOfEpochs;
 
-            this.running = true;
             this.thread = new Thread(this);
             this.thread.start();
         } else {
@@ -59,8 +63,8 @@ public class BidPersonAuctionSourceParallelFunction extends BidPersonAuctionSour
      * As precondition, a thread should be running.
      */
     public void stopThread() {
-        if (this.running) {
-            this.running = false;
+        if (this.currentIterationNumber != this.stoppedIterationNumber) {
+            this.stoppedIterationNumber = this.currentIterationNumber;
             this.thread.interrupt();
             System.out.println("Shutting down generator[" + this.parallelismIndex + "]");
         } else {
@@ -94,7 +98,9 @@ public class BidPersonAuctionSourceParallelFunction extends BidPersonAuctionSour
      * event it should start generating ((total / parallelism) * index).
      */
     public void run() {
-        for (int i = 0; (i < this.amountOfEpochs); i++) {
+        int iteration = this.currentIterationNumber;
+        System.out.println("Starting iteration " + iteration + " on generator[" + this.parallelismIndex + "].");
+        for (int i = 0; (i < this.amountOfEpochs && iteration > this.stoppedIterationNumber); i++) {
             long epochStartTime = System.currentTimeMillis();
             int eventChunkSize = this.getEpochEventChunkSize(this.totalEventsPerEpoch);
             int firstEventIndex = this.getFirstEventIndex(this.totalEventsPerEpoch);
@@ -102,7 +108,8 @@ public class BidPersonAuctionSourceParallelFunction extends BidPersonAuctionSour
                 this.generatePortionOfEpochEvents(
                         this.totalEventsPerEpoch,
                         firstEventIndex,
-                        eventChunkSize);
+                        eventChunkSize,
+                        iteration);
             }  catch (Exception e){
                 e.printStackTrace();
             }
@@ -116,6 +123,10 @@ public class BidPersonAuctionSourceParallelFunction extends BidPersonAuctionSour
                 }
             }
         }
-        System.out.println("Generator[" + this.parallelismIndex + "] finished");
+        if (iteration > this.stoppedIterationNumber) {
+            System.out.println("Generator[" + this.parallelismIndex + "] finished iteration " + iteration + ".");
+        } else {
+            System.out.println("Generator[" + this.parallelismIndex + "]'s iteration " + iteration + "was stopped.");
+        }
     }
 }

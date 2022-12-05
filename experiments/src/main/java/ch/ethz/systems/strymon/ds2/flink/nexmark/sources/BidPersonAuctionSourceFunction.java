@@ -29,12 +29,11 @@ public class BidPersonAuctionSourceFunction extends Thread {
     long firstEpochEvent;
     long eventsCountSoFar;
 
-
     boolean enablePersonTopic;
     boolean enableAuctionTopic;
     boolean enableBidTopic;
 
-
+    int stoppedIterationNumber;
 
     public BidPersonAuctionSourceFunction(String kafkaServer,
                                           long epochDurationMs,
@@ -80,6 +79,9 @@ public class BidPersonAuctionSourceFunction extends Thread {
         this.eventsPerEpoch = 0;
         this.firstEpochEvent = 0;
         this.eventsCountSoFar = 0;
+
+        // Highest iteration number that is stopped
+        this.stoppedIterationNumber = 0;
     }
 
     /**
@@ -144,8 +146,8 @@ public class BidPersonAuctionSourceFunction extends Thread {
         long epochDurationUs = epochDurationMs * 1000;
         long n = eventNumber - firstEventCurrentEpoch;
         if (n < 0) {
-            System.out.println("Error: eventNumber" + eventNumber + " is from a previous epoch (n=" + n + "). " +
-                    "Setting n=0.");
+            // Something went wrong: n is eventNumber is from a previous epoch. Using smallest timestamp from current
+            // epoch.
             n=0;
         }
         double interEventDelayUs = (double) epochDurationUs / (double) eventsPerEpoch;
@@ -202,8 +204,8 @@ public class BidPersonAuctionSourceFunction extends Thread {
      * @param totalEpochEvents Amount of events to be generated in this epoch.
      * @throws JsonProcessingException Generator error.
      */
-    public void generateAllEpochEvents(long totalEpochEvents) throws JsonProcessingException {
-        this.generatePortionOfEpochEvents(totalEpochEvents, 0, totalEpochEvents);
+    public void generateAllEpochEvents(long totalEpochEvents, int currentIterationNumber) throws JsonProcessingException {
+        this.generatePortionOfEpochEvents(totalEpochEvents, 0, totalEpochEvents , currentIterationNumber);
     }
 
     /**
@@ -214,24 +216,28 @@ public class BidPersonAuctionSourceFunction extends Thread {
      * @param eventsToGenerate The amount of events that have to be generated.
      * @throws JsonProcessingException Generator error.
      */
-     public void generatePortionOfEpochEvents(long totalEpochEvents, long firstEventIndex, long eventsToGenerate) throws JsonProcessingException {
+     public void generatePortionOfEpochEvents(long totalEpochEvents, long firstEventIndex, long eventsToGenerate,
+                                              int currentIterationNumber) throws JsonProcessingException {
          int totalIdIncrease = this.getTotalIdIncrease(totalEpochEvents);
          this.setNextEpochSettings(totalIdIncrease);
 
          int beforeIdIncrease = this.getTotalIdIncrease(firstEventIndex);
          this.incrementEventNumber(beforeIdIncrease);
 
-         this.generateEvents(eventsToGenerate);
+         this.generateEvents(eventsToGenerate, currentIterationNumber);
      }
 
     /**
      * Generate all events for the upcomming epoch.
      * @param totalEpochEvents Events to produce in this epoch.
+     * @param currentIterationNumber The number of the iteration the generator is currently generating events for.
+     *                               The generator is only allowed to generate iterations when the currentIterationNumber
+     *                               is larger than the stoppedIterationNumber
      * @throws JsonProcessingException Processing error thrown by event generation.
      */
-    private void generateEvents(long totalEpochEvents) throws JsonProcessingException {
+    private void generateEvents(long totalEpochEvents, int currentIterationNumber) throws JsonProcessingException {
         long remainingEpochEvents = totalEpochEvents;
-        while (remainingEpochEvents > 0){
+        while (remainingEpochEvents > 0 && currentIterationNumber > this.stoppedIterationNumber){
             long eventNumber = getNextEventNumber();
             long timestampMs = getTimestampsMsforEvent(eventNumber);
             long eventId = eventNumber + this.generatorConfig.firstEventId;
@@ -275,6 +281,7 @@ public class BidPersonAuctionSourceFunction extends Thread {
                 e.printStackTrace();
             }
         }
+
     }
 
 
