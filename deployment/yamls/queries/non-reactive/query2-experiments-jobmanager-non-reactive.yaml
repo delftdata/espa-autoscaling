@@ -18,22 +18,18 @@ spec:
         - name: take-data-dir-ownership
           image: alpine:3
           command:
-          - chmod
-          - ugo+rwx
-          - savepoints
+            - chmod
+            - ugo+rwx
+            - savepoints
           volumeMounts:
-          - name: my-pvc-nfs
-            mountPath: /savepoints
+            - name: my-pvc-nfs
+              mountPath: /savepoints
       containers:
         - name: jobmanager
           image: gsiachamis/flink-nexmark-queries:1.0
           imagePullPolicy: Always
-          securityContext:
-            runAsUser: 0
           env:
-          args: ["standalone-job", "--job-classname", "ch.ethz.systems.strymon.ds2.flink.nexmark.queries.updated.Query3KafkaSource", "--source-max-parallelism", "20", "--slot-sharing", "false" ]
-          # args: ["standalone-job", "--job-classname", "org.apache.flink.DemoJob", "--fromSavepoint", "/opt/flink/savepoints/savepoint-ache.flink.DemoJob", "--fromSavepoint", "/opt/flink/savepoints/savepoint-340664-9060d916d03f", "--topic", "topic", "--bootstrap.servers", "kafka-service:9092", "--group.id", "yolo", "--p1", "1", "--p2", "2", --p3, "1"]
-          # args: ["standalone-job", "--job-classname", "org.apache.flink.DemoJob", "--topic", "topic", "--bootstrap.servers", "kafka-service:9092", "--group.id", "yolo"]
+          args: ["standalone-job", "--job-classname", "ch.ethz.systems.strymon.ds2.flink.nexmark.queries.updated.Query2KafkaSource", "--slot-sharing", "true", "--p-bids-source", "4", "--p-flatMap", "4", "--p-sink", "4"]
           ports:
             - containerPort: 6123
               name: rpc
@@ -50,7 +46,9 @@ spec:
             - name: flink-config-volume
               mountPath: /opt/flink/conf
             - name: my-pvc-nfs
-              mountPath: /opt/flink/savepoints   
+              mountPath: /opt/flink/savepoints
+          securityContext:
+            runAsUser: 0  # refers to user _flink_ from official flink image, change if necessary
       securityContext:
         fsGroup: 1000
       volumes:
@@ -64,5 +62,4 @@ spec:
                 path: log4j-console.properties
         - name: my-pvc-nfs
           persistentVolumeClaim:
-            claimName: nfs   
-        
+            claimName: nfs 

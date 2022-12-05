@@ -13,7 +13,6 @@
 | Flatmap | p-flatMap | TODO |
 | LatencySink | p-sink | TODO |
 
-
 ## Query 3
 | AuctionSource | p-auction-source | TODO |
 | PersonSource | p-person-source | TODO |
@@ -21,9 +20,9 @@
 | LatencySink | p-sink | TODO |
 
 ## Query 5
-| BidsSource | p-bid-source | TODO|
+| BidsSource | p-bids-source | TODO|
 | WindowCount | p-window | TODO |
-| LatencySink | p-wink | TODO |
+| LatencySink | p-sink | TODO |
 
 ## Query 8
 | PersonSource | p-person-source | TODO |
@@ -32,9 +31,9 @@
 | LatencySink | p-sink | TODO |
 
 ## Query 11
-| BidsSource | p-bid-source | TODO|
+| BidsSource | p-bids-source | TODO|
 | SessionWindow | p-window | TODO |
-| LatencySink | p-wink | TODO |
+| LatencySink | p-sink | TODO |
 
 
 # Benchmarks
