@@ -83,6 +83,7 @@ public class Query2KafkaSource {
                                     .slotSharingGroup(sourceSSG)
                                     .setParallelism(params.getInt("p-bids-source", 1))
                                     .setMaxParallelism(max_parallelism_source)
+                                    .name("BidsSource")
                                     .uid("BidsSource");
 
         // SELECT Rstream(auction, price)
@@ -99,8 +100,8 @@ public class Query2KafkaSource {
                     }
                 }).setParallelism(params.getInt("p-flatMap", 1))
                 .slotSharingGroup(filterSSG)
-                .name("FlatMapFilter")
-                .uid("FlatMapFilter");
+                .name("Flatmap")
+                .uid("Flatmap");
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         converted.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))

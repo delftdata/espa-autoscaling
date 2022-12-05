@@ -84,6 +84,7 @@ public class Query1KafkaSource {
                 env.fromSource(source, WatermarkStrategy.noWatermarks(), "BidsSource")
                         .setParallelism(params.getInt("p-bids-source", 1))
                         .setMaxParallelism(max_parallelism_source)
+                        .name("BidsSource")
                         .uid("BidsSource")
                         .slotSharingGroup(sourceSSG);
                         

@@ -109,8 +109,13 @@ public class Query3KafkaSource {
                 env.fromSource(auction_source, WatermarkStrategy.noWatermarks(), "auctionsSource")
                         .setParallelism(params.getInt("p-auction-source", 1))
                         .setMaxParallelism(max_parallelism_source)
+<<<<<<< HEAD
                         .uid("AuctionsSource")
                         .name("AuctionsSource")
+=======
+                        .name("AuctionSource")
+                        .uid("AuctionSource")
+>>>>>>> query-fix
                         .slotSharingGroup(sourceAuctionSSG);
 
         KafkaSource<Person> person_source =
@@ -134,9 +139,9 @@ public class Query3KafkaSource {
                     }
                 })
                 .setParallelism(params.getInt("p-person-source", 1))
-                .slotSharingGroup(filterSSG)
+                .name("PersonSource")
                 .uid("PersonSource")
-                .name("PersonSource");
+                .slotSharingGroup(filterSSG);
 
         // SELECT Istream(P.name, P.city, P.state, A.id)
         // FROM Auction A [ROWS UNBOUNDED], Person P [ROWS UNBOUNDED]
