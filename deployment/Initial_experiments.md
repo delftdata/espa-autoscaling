@@ -21,21 +21,20 @@
 | LatencySink | p-sink | LatencySink |
 
 ## Query 5
-| BidsSource | p-bids-source | Source: BidsSource |
-| BidsTimestampAssigner | p-bids-source  | BidsTimestampAssigner |
+| BidsSource | p-bids-source | Source: BidsSource -> BidsTimestampAssigner |
 | WindowCount | p-window | WindowCount |
 | LatencySink | p-sink | LatencySink |
 
 ## Query 8
-| PersonSource | p-person-source | TODO |
-| AuctionSource | p-auction-source | TODO |
-| TODO | p-window | TODO |
-| LatencySink | p-sink | TODO |
+| PersonSource | p-person-source | Source: personSource -> PersonTimestampAssigner -> Map |
+| AuctionSource | p-auction-source | Source: auctionsSource -> auctionsSource -> Map |
+| Window | p-window | Window(TumblingEventTimeWindows(10000), EventTimeTrigger, CoGroupWindowFunction) |
+| LatencySink | p-sink | LatencySink |
 
 ## Query 11
-| BidsSource | p-bids-source | TODO|
-| SessionWindow | p-window | TODO |
-| LatencySink | p-sink | TODO |
+| BidsSource | p-bids-source | Source: BidsSource -> BidsTimestampAssigner|
+| SessionWindow | p-window | SessionWindow |
+| LatencySink | p-sink | LatencySink |
 
 
 # Benchmarks

@@ -69,45 +69,46 @@ public class Query5KafkaSource {
 
         env.getConfig().setAutoWatermarkInterval(1000);
 
-        env.disableOperatorChaining();
+        // enable latency tracking
+        // env.getConfig().setLatencyTrackingInterval(5000);
 
         KafkaSource<Bid> source =
-            KafkaSource.<Bid>builder()
-                .setBootstrapServers("kafka-service:9092")
-                .setTopics("bids_topic")
-                .setGroupId("consumer_group")
-                .setProperty("fetch.min.bytes", "1000")
-                .setStartingOffsets(OffsetsInitializer.committedOffsets(OffsetResetStrategy.EARLIEST))
-                .setValueOnlyDeserializer(new BidDeserializationSchema())
-                .build();
+                KafkaSource.<Bid>builder()
+                        .setBootstrapServers("kafka-service:9092")
+                        .setTopics("bids_topic")
+                        .setGroupId("consumer_group")
+                        .setProperty("fetch.min.bytes", "1000")
+                        .setStartingOffsets(OffsetsInitializer.committedOffsets(OffsetResetStrategy.EARLIEST))
+                        .setValueOnlyDeserializer(new BidDeserializationSchema())
+                        .build();
 
         DataStream<Bid> bids = env.fromSource(source, WatermarkStrategy.noWatermarks(), "BidsSource")
-                .assignTimestampsAndWatermarks(new TimestampAssigner())
                 .slotSharingGroup(sourceSSG)
                 .setParallelism(params.getInt("p-bids-source", 1))
-                .name("BidsSource")
-                .uid("BidsSource");
-
+                .assignTimestampsAndWatermarks(new TimestampAssigner())
+                .slotSharingGroup(sourceSSG)
+                .uid("BidsSource")
+                .name("BidsTimestampAssigner");
 
         // SELECT B1.auction, count(*) AS num
         // FROM Bid [RANGE 60 MINUTE SLIDE 1 MINUTE] B1
         // GROUP BY B1.auction
         DataStream<Tuple2<Long, Long>> windowed = bids.keyBy(new KeySelector<Bid, Long>() {
-            @Override
-            public Long getKey(Bid bid) throws Exception {
-                return bid.auction;
-            }
-        }).timeWindow(Time.minutes(60), Time.minutes(1))
+                    @Override
+                    public Long getKey(Bid bid) throws Exception {
+                        return bid.auction;
+                    }
+                }).timeWindow(Time.minutes(60), Time.minutes(1))
                 .aggregate(new CountBids())
-                .slotSharingGroup(windowSSG)
-                .setParallelism(params.getInt("p-window", 1))
                 .name("WindowCount")
-                .uid("WindowCount");
+                .uid("WindowCount")
+                .setParallelism(params.getInt("p-window", 1))
+                .slotSharingGroup(windowSSG);
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         windowed.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
-                .slotSharingGroup(sinkSSG)
                 .setParallelism(params.getInt("p-sink", 1))
+                .slotSharingGroup(sinkSSG)
                 .name("LatencySink")
                 .uid("LatencySink");
 
