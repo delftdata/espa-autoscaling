@@ -45,8 +45,6 @@ public class Query1KafkaSource {
 
         final float exchangeRate = params.getFloat("exchange-rate", 0.82F);
 
-        final int max_parallelism_source = params.getInt("source-max-parallelism", 20);
-
         final String sourceSSG;
         final String sinkSSG;
         final String mapSSG;
@@ -82,18 +80,19 @@ public class Query1KafkaSource {
 
         DataStream<Bid> bids =
                 env.fromSource(source, WatermarkStrategy.noWatermarks(), "BidsSource")
+                        .slotSharingGroup(sourceSSG)
                         .setParallelism(params.getInt("p-bids-source", 1))
-                        .setMaxParallelism(max_parallelism_source)
                         .name("BidsSource")
-                        .uid("BidsSource")
-                        .slotSharingGroup(sourceSSG);
-                        
+                        .uid("BidsSource");
+
         DataStream<Tuple4<Long, Long, Long, Long>> mapped  = bids.map(new MapFunction<Bid, Tuple4<Long, Long, Long, Long>>() {
             @Override
             public Tuple4<Long, Long, Long, Long> map(Bid bid) throws Exception {
                 return new Tuple4<>(bid.auction, dollarToEuro(bid.price, exchangeRate), bid.bidder, bid.dateTime);
             }
-        }).slotSharingGroup(mapSSG).setParallelism(params.getInt("p-map", 1))
+        })
+                .slotSharingGroup(mapSSG)
+                .setParallelism(params.getInt("p-map", 1))
                 .name("Mapper")
                 .uid("Mapper");
 

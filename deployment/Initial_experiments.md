@@ -9,13 +9,14 @@
 | LatencySink | p-sink | LatencySink | 
 
 ## Query 2
-| BidsSource | p-bids-source | TODO |
-| Flatmap | p-flatMap | TODO |
-| LatencySink | p-sink | TODO |
+| BidsSource | p-bids-source | Source: BidsSource |
+| Flatmap | p-flatMap | Flatmap |
+| LatencySink | p-sink | LatencySink |
 
 ## Query 3
 | AuctionSource | p-auction-source | TODO |
 | PersonSource | p-person-source | TODO |
+| PersonFilter | p-filter | TODO |
 | IncrementalJoin | p-join | TODO |
 | LatencySink | p-sink | TODO |
 

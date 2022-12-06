@@ -2,10 +2,18 @@
 
 run_local=true
 
+# Minikube profiles to run the experiments in
+ns0="autoscaling-q1"
+ns1="autoscaling-q2"
+ns2="autoscaling-q3"
+
 # Experiment configurations to run the experiments in
 file0=../experiments/query_1_experiments.txt
+file1=../experiments/query_3_experiments.txt
+file2=../experiments/query_11_experiments.txt
 
 # input
+namespace=""
 line=""
 # generates
 query=""
@@ -38,38 +46,72 @@ function parseLine() {
 function deployExperiment() {
     parseLine
     echo "Deploying experiment with namespace=$namespace query=$query autoscaler=$autoscaler metric=$metric mode=$mode"
+    minikube profile "$namespace"
     source ./deploy_experiment.sh "$query" "$autoscaler" "$metric" "$mode"
 }
 
 function fetchExperiments() {
     parseLine
     echo "Fetching data from namespace=$namespace query=$query autoscaler=$autoscaler metric=$metric"
+
+    minikube profile "$namespace"
     source ./fetch_prometheus_results.sh "$query" "$autoscaler" "$metric" "$run_local"
 }
 
 function undeployExperiments() {
   parseLine
   echo "Undeploying experiment with namespace=$namespace query=$query autoscaler=$autoscaler mode=$mode"
+
+  minikube profile "$namespace"
   source ./undeploy_experiment.sh "$query" "$autoscaler" "$mode"
 }
 
-paste -d@ $file0 | while IFS="@" read -r e0
+paste -d@ $file0 $file1 $file2  | while IFS="@" read -r e0 e1 e2
 do
+  echo "Starting deploying all containers"
+  namespace="$ns0"
   line="$e0"
-
-  echo "Deploying all containers"
   deployExperiment
+
+  namespace="$ns1"
+  line="$e1"
+  deployExperiment
+
+  namespace="$ns2"
+  line="$e2"
+  deployExperiment
+
   echo "Finished deploying all containers"
 
   sleep 140m
 
-  echo "Collect all data"
+  echo "Starting to collect all data"
+  namespace="$ns0"
+  line="$e0"
   fetchExperiments
-  echo "Finished collecting all data."
+
+  namespace="$ns1"
+  line="$e1"
+  fetchExperiments
+
+  namespace="$ns2"
+  line="$e2"
+  fetchExperiments
+  echo "Finished collecting all data"
 
   sleep 30s
 
-  echo "Undeploying all containers"
+  echo "Starting undeploying all containers"
+  namespace="$ns0"
+  line="$e0"
+  undeployExperiments
+
+  namespace="$ns1"
+  line="$e1"
+  undeployExperiments
+
+  namespace="$ns2"
+  line="$e2"
   undeployExperiments
   echo "Finished undeploying all containers"
 

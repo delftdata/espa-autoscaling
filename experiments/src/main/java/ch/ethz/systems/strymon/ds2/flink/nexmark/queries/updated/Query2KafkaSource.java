@@ -67,8 +67,6 @@ public class Query2KafkaSource {
         // enable latency tracking
         // env.getConfig().setLatencyTrackingInterval(5000);
 
-        final int max_parallelism_source = params.getInt("source-max-parallelism", 20);
-
         KafkaSource<Bid> source =
                 KafkaSource.<Bid>builder()
                         .setBootstrapServers("kafka-service:9092")
@@ -82,7 +80,6 @@ public class Query2KafkaSource {
         DataStream<Bid> bids = env.fromSource(source, WatermarkStrategy.noWatermarks(), "BidsSource")
                                     .slotSharingGroup(sourceSSG)
                                     .setParallelism(params.getInt("p-bids-source", 1))
-                                    .setMaxParallelism(max_parallelism_source)
                                     .name("BidsSource")
                                     .uid("BidsSource");
 
@@ -98,15 +95,16 @@ public class Query2KafkaSource {
                             out.collect(new Tuple2<>(bid.auction, bid.price));
                         }
                     }
-                }).setParallelism(params.getInt("p-flatMap", 1))
+                })
                 .slotSharingGroup(filterSSG)
+                .setParallelism(params.getInt("p-flatMap", 1))
                 .name("Flatmap")
                 .uid("Flatmap");
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         converted.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
-                .setParallelism(params.getInt("p-sink", 1))
                 .slotSharingGroup(sinkSSG)
+                .setParallelism(params.getInt("p-sink", 1))
                 .name("LatencySink")
                 .uid("LatencySink");
 

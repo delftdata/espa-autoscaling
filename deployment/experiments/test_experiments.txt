@@ -1,2 +1,0 @@
-1;hpa-cpu;reactive;400000;200000
-1;dhalion;reactive;500000;250000

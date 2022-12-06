@@ -69,10 +69,7 @@ public class Query5KafkaSource {
 
         env.getConfig().setAutoWatermarkInterval(1000);
 
-        // enable latency tracking
-        // env.getConfig().setLatencyTrackingInterval(5000);
-
-        final int max_parallelism_source = params.getInt("source-max-parallelism", 20);
+        env.disableOperatorChaining();
 
         KafkaSource<Bid> source =
             KafkaSource.<Bid>builder()
@@ -87,11 +84,15 @@ public class Query5KafkaSource {
         DataStream<Bid> bids = env.fromSource(source, WatermarkStrategy.noWatermarks(), "BidsSource")
                 .slotSharingGroup(sourceSSG)
                 .setParallelism(params.getInt("p-bids-source", 1))
-                .setMaxParallelism(max_parallelism_source)
+                .name("BidsSource")
+                .uid("BidsSource")
+
                 .assignTimestampsAndWatermarks(new TimestampAssigner())
                 .slotSharingGroup(sourceSSG)
-                .name("BidsSource")
-                .uid("BidsSource");
+                .setParallelism(params.getInt("p-bids-source", 1))
+                .name("BidsTimestampAssigner")
+                .uid("BidsTimestampAssigner");
+
 
         // SELECT B1.auction, count(*) AS num
         // FROM Bid [RANGE 60 MINUTE SLIDE 1 MINUTE] B1
@@ -103,17 +104,15 @@ public class Query5KafkaSource {
             }
         }).timeWindow(Time.minutes(60), Time.minutes(1))
                 .aggregate(new CountBids())
-                .name("SlidingWindow")
-                .uid("SlidingWindow")
-                .setParallelism(params.getInt("p-window", 1))
                 .slotSharingGroup(windowSSG)
+                .setParallelism(params.getInt("p-window", 1))
                 .name("WindowCount")
                 .uid("WindowCount");
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         windowed.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
-                .setParallelism(params.getInt("p-sink", 1))
                 .slotSharingGroup(sinkSSG)
+                .setParallelism(params.getInt("p-sink", 1))
                 .name("LatencySink")
                 .uid("LatencySink");
 

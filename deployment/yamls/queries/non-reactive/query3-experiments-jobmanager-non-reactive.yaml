@@ -29,7 +29,7 @@ spec:
           image: gsiachamis/flink-nexmark-queries:1.0
           imagePullPolicy: Always
           env:
-          args: ["standalone-job", "--job-classname", "ch.ethz.systems.strymon.ds2.flink.nexmark.queries.updated.Query3KafkaSource", "--slot-sharing", "true", "--p-auction-source", "4", "--p-person-source", "4", "--p-join", "4", "--p-sink", "4"]
+          args: ["standalone-job", "--job-classname", "ch.ethz.systems.strymon.ds2.flink.nexmark.queries.updated.Query3KafkaSource", "--slot-sharing", "true", "--p-auction-source", "4", "--p-person-source", "4", "--p-filter", "4", "--p-join", "4", "--p-sink", "4"]
           ports:
             - containerPort: 6123
               name: rpc

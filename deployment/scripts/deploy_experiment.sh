@@ -1,12 +1,13 @@
 #!/bin/bash
 
-query=$1
-autoscaler=$2
-metric=$3
-mode=$4
+QUERY=$1                      #{1, 2, 3, 5, 8, 11}
+MODE=$2                       #{reactive, non-reactive}
+AUTOSCALER=$3
+INPUT_RATE_MEAN=$4            # Mean of Cosinus pattern
+INPUT_RATE_MAX_DIVERGENCE=$5
 
-echo "Deploying experiment with: Query=$query autoscaler=$autoscaler metric=$metric"
+echo "Deploying experiment with: Query=$QUERY MODE=$MODE AUTOSCALER=$AUTOSCALER INPUT_RATE_MEAN=$INPUT_RATE_MEAN INPUT_RATE_MAX_DIVERGENCE=$INPUT_RATE_MAX_DIVERGENCE"
 source ./deploy_nfs.sh
-source ./deploy_queries.sh $query $mode
-source ./deploy_autoscaler.sh $autoscaler $metric $query $mode
+source ./deploy_queries.sh $QUERY $MODE $INPUT_RATE_MEAN $INPUT_RATE_MAX_DIVERGENCE
+source ./deploy_autoscaler.sh $MODE $AUTOSCALER
 echo "Finished deployment"
