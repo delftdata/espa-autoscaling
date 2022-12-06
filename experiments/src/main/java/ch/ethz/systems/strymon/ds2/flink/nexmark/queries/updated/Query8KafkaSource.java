@@ -93,16 +93,11 @@ public class Query8KafkaSource {
 
 
         DataStream<Person> persons = env.fromSource(person_source, WatermarkStrategy.noWatermarks(), "personSource")
-                .slotSharingGroup(sourcePersonSSG)
-                .setParallelism(params.getInt("p-person-source", 1))
-                .uid("PersonSource")
-                .name("PersonSource")
-
                 .assignTimestampsAndWatermarks(new PersonTimestampAssigner())
                 .slotSharingGroup(sourcePersonSSG)
                 .setParallelism(params.getInt("p-person-source", 1))
-                .uid("PersonTimestampAssigner")
-                .name("PersonTimestampAssigner");
+                .uid("PersonSource")
+                .name("PersonSource");
 
 
         KafkaSource<Auction> auction_source =
@@ -116,11 +111,8 @@ public class Query8KafkaSource {
                 .build();
 
         DataStream<Auction> auctions = env.fromSource(auction_source, WatermarkStrategy.noWatermarks(), "auctionsSource")
-                .slotSharingGroup(sourceAuctionSSG)
-                .setParallelism(params.getInt("p-auction-source", 1))
                 .uid("AuctionSource")
                 .name("AuctionSource")
-
                 .assignTimestampsAndWatermarks(new AuctionTimestampAssigner())
                 .slotSharingGroup(sourceAuctionSSG)
                 .setParallelism(params.getInt("p-auction-source", 1))
@@ -137,7 +129,8 @@ public class Query8KafkaSource {
                     public Long getKey(Person p) {
                         return p.id;
                     }
-                }).equalTo(new KeySelector<Auction, Long>() {
+                }).equalTo(
+                        new KeySelector<Auction, Long>() {
                             @Override
                             public Long getKey(Auction a) {
                                 return a.seller;

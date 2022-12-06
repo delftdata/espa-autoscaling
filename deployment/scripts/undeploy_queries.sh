@@ -41,8 +41,8 @@ else
 fi
 
 # Wait for all pods to be removed
-while kubectl get pods | grep -i 'Terminating' | awk '{print $1}' > /dev/null;
+while kubectl get pods | grep -i 'Terminating' > /dev/null;
 do
-    sleep 1
+    sleep 5
     echo "Waiting for terminating pods to be removed..."
 done

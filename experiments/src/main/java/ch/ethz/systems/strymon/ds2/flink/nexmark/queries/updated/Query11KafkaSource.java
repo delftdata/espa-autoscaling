@@ -95,16 +95,11 @@ public class Query11KafkaSource {
 
         DataStream<Bid> bids =
                 env.fromSource(source, WatermarkStrategy.noWatermarks(), "BidsSource")
-                        .slotSharingGroup(sourceSSG)
-                        .setParallelism(params.getInt("p-bids-source", 1))
-                        .name("BidsSource")
-                        .uid("BidsSource")
-
                         .assignTimestampsAndWatermarks(new Query11KafkaSource.BidTimestampAssigner())
                         .slotSharingGroup(sourceSSG)
                         .setParallelism(params.getInt("p-bids-source", 1))
-                        .name("BidsTimestampAssigner")
-                        .uid("BidsTimestampAssigner");
+                        .name("BidsSource")
+                        .uid("BidsSource");
 
         DataStream<Tuple2<Long, Long>> windowed = bids.keyBy(new KeySelector<Bid, Long>() {
             @Override

@@ -82,16 +82,11 @@ public class Query5KafkaSource {
                 .build();
 
         DataStream<Bid> bids = env.fromSource(source, WatermarkStrategy.noWatermarks(), "BidsSource")
-                .slotSharingGroup(sourceSSG)
-                .setParallelism(params.getInt("p-bids-source", 1))
-                .name("BidsSource")
-                .uid("BidsSource")
-
                 .assignTimestampsAndWatermarks(new TimestampAssigner())
                 .slotSharingGroup(sourceSSG)
                 .setParallelism(params.getInt("p-bids-source", 1))
-                .name("BidsTimestampAssigner")
-                .uid("BidsTimestampAssigner");
+                .name("BidsSource")
+                .uid("BidsSource");
 
 
         // SELECT B1.auction, count(*) AS num

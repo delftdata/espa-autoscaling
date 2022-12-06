@@ -14,16 +14,17 @@
 | LatencySink | p-sink | LatencySink |
 
 ## Query 3
-| AuctionSource | p-auction-source | TODO |
-| PersonSource | p-person-source | TODO |
-| PersonFilter | p-filter | TODO |
-| IncrementalJoin | p-join | TODO |
-| LatencySink | p-sink | TODO |
+| AuctionSource | p-auction-source | Source: AuctionSource |
+| PersonSource | p-person-source | Source: PersonSource |
+| PersonFilter | p-filter | PersonFilter |
+| IncrementalJoin | p-join | IncrementalJoin |
+| LatencySink | p-sink | LatencySink |
 
 ## Query 5
-| BidsSource | p-bids-source | TODO|
-| WindowCount | p-window | TODO |
-| LatencySink | p-sink | TODO |
+| BidsSource | p-bids-source | Source: BidsSource |
+| BidsTimestampAssigner | p-bids-source  | BidsTimestampAssigner |
+| WindowCount | p-window | WindowCount |
+| LatencySink | p-sink | LatencySink |
 
 ## Query 8
 | PersonSource | p-person-source | TODO |
