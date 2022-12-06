@@ -24,19 +24,26 @@ class ExperimentData:
     operator_to_parallelism_mapping = {
         # Sources
         "BidsSource": "--p-bids-source",
+        "Source: BidsSource -> BidsTimestampAssigner": "--p-bids-source",
+
         "AuctionsSource": "--p-auction-source",
+        "Source: auctionsSource -> auctionsSource -> Map": "--p-auction-source",
+
         "PersonSource": "--p-person-source",
+        "Source: personSource -> PersonTimestampAssigner -> Map": "--p-person-source",
 
         # Query 1
         "Mapper": "--p-map",
         # Query 2
-        "FlatMapFilter": "--p-flatMap",
+        "Flatmap": "--p-flatMap",
         # Query 3
+        "PersonFilter": "--p-filter",
         "IncrementalJoin": "--p-join",
         # Query 5
-        "SlidingWindow": "--p-window",
+        "WindowCount": "--p-window",
         # Query 8
         # Todo: undefined
+        "Window(TumblingEventTimeWindows(10000), EventTimeTrigger, CoGroupWindowFunction)": "--p-window",
         # Query 11
         "SessionWindow": "--p-window",
 
