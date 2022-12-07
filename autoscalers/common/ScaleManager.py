@@ -249,9 +249,6 @@ class ScaleManager:
         # Wait until jobmanager pod is terminated
         self.metricsGatherer.kubernetesManager.waitUntilAllJobmanagerPodsAreRemoved()
 
-        # Wait a bit longer before creating a new jobmanager
-        time.sleep(self.configurations.NONREACTIVE_WAIT_TIME_AFTER_JOBMANAGER_DELETION_SECONDS)
-
         # Deploy a new job with updated parallelisms
         self.metricsGatherer.kubernetesManager.deployNewJobManager(self.nonreactiveJobmanagerSavefile)
 

@@ -51,8 +51,6 @@ spec:
           value: "jkanis-space"
 
         # Non-reactive functionality
-        - name: NONREACTIVE_WAIT_TIME_AFTER_JOBMANAGER_DELETION_SECONDS # 5 is default
-          value: "0"
         - name: NONREACTIVE_TIME_AFTER_SAVEPOINT_SECONDS # 4 is default
           value: "4"
         - name: NONREACTIVE_JOB
