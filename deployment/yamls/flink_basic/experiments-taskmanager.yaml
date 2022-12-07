@@ -1,9 +1,11 @@
+# Requires: TASKMANAGER_PARALLELISM
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: flink-taskmanager
 spec:
-  replicas: 12 # here, we configure the scale
+  replicas: ${TASKMANAGER_PARALLELISM} # here, we configure the scale
   selector:
     matchLabels:
       app: flink

@@ -1,3 +1,4 @@
+# Requires: OPERATOR_PARALLELISM
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -29,7 +30,7 @@ spec:
           image: gsiachamis/flink-nexmark-queries:1.0
           imagePullPolicy: Always
           env:
-          args: ["standalone-job", "--job-classname", "ch.ethz.systems.strymon.ds2.flink.nexmark.queries.updated.Query11KafkaSource", "--slot-sharing", "true", "--p-bids-source", "4", "--p-window", "4", "--p-sink", "4"]
+          args: ["standalone-job", "--job-classname", "ch.ethz.systems.strymon.ds2.flink.nexmark.queries.updated.Query11KafkaSource", "--slot-sharing", "true", "--p-bids-source", "${OPERATOR_PARALLELISM}", "--p-window", "${OPERATOR_PARALLELISM}", "--p-sink", "${OPERATOR_PARALLELISM}"]
           ports:
             - containerPort: 6123
               name: rpc

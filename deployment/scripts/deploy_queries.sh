@@ -2,21 +2,42 @@
 
 QUERY=$1                      # {1, 2, 3, 5, 8, 11}
 MODE=$2                       # {reactive, non-reactive}
-INPUT_RATE_MEAN=$3            # Mean of Cosinus pattern
-INPUT_RATE_MAX_DIVERGENCE=$4  # Maximum divergence from Cosinus pattern
+INITIAL_PARALLELISM=$3        # Parallelism of topology (per operator for non-reactive, #taskmanagers for reactive)
+INPUT_RATE_MEAN=$4            # Mean of Cosinus pattern
+INPUT_RATE_MAX_DIVERGENCE=$5  # Maximum divergence from Cosinus pattern
 
 echo "Deploying query $QUERY with $MODE mode."
 
-# Deploy flink
+# Deploy flink configuration
 if [ "$MODE" == "reactive" ]
-then 
+then
   kubectl apply -f ../yamls/flink_basic/flink-configuration-configmap.yaml
 else
   kubectl apply -f ../yamls/flink_basic/flink-configuration-configmap-non-reactive.yaml
 fi
 kubectl apply -f ../yamls/flink_basic/jobmanager-rest-service.yaml
 kubectl apply -f ../yamls/flink_basic/jobmanager-service.yaml
-kubectl apply -f ../yamls/flink_basic/experiments-taskmanager.yaml
+
+# Deploy taskmanagers
+if [ "$MODE" == "reactive" ]
+then
+  TASKMANAGER_PARALLELISM="$INITIAL_PARALLELISM"
+else
+  if [ "$QUERY" == "1" ] || [ "$QUERY" == "2" ] || [ "$QUERY" == "5" ] || [ "$QUERY" == "11" ]
+  then
+    TASKMANAGER_PARALLELISM=$(("$INITIAL_PARALLELISM" * 3))
+  elif [ "$QUERY" == "8" ]
+  then
+    TASKMANAGER_PARALLELISM=$(("$INITIAL_PARALLELISM" * 4))
+  elif [ "$QUERY" == "3" ]
+  then
+    TASKMANAGER_PARALLELISM=$(("$INITIAL_PARALLELISM" * 5))
+  else
+    echo "Query $QUERY is not recognized. Failed setting TASKMANAGER_PARALLELISM."
+  fi
+fi
+export TASKMANAGER_PARALLELISM=$TASKMANAGER_PARALLELISM
+envsubst < ../yamls/flink_basic/experiments-taskmanager.yaml| kubectl apply -f -
 
 # Deploy kafka
 kubectl apply -f ../yamls/kafka/zookeeper-service.yaml
@@ -37,7 +58,8 @@ then
   export QUERY=$QUERY
   envsubst < ../yamls/queries/reactive/experiments-jobmanager-reactive.yaml| kubectl apply -f -
 else
-  kubectl apply -f ../yamls/queries/non-reactive/query"${QUERY}"-experiments-jobmanager-non-reactive.yaml
+  export OPERATOR_PARALLELISM=$INITIAL_PARALLELISM
+  envsubst < ../yamls/queries/non-reactive/query"${QUERY}"-experiments-jobmanager-non-reactive.yaml | kubectl apply -f -
 fi
 
 # Deploy workbench
