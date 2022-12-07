@@ -38,14 +38,16 @@ spec:
           value: "flink-jobmanager-rest:8081"
         - name: AVAILABLE_TASKMANAGERS # 16 is default
           value: "16"
-        - name: METRIC_AGGREGATION_PERIOD_SECONDS # 10 is default
+        - name: OVERPROVISIONING_FACTOR # 1.0 is default
+          value: "1.0"
+        - name: METRIC_AGGREGATION_PERIOD_SECONDS # 60 is default
           value: "15"
         - name: COOLDOWN_PERIOD_SECONDS # 120 is default
           value: "120"
         - name: ITERATION_PERIOD_SECONDS # 15 is default
           value: "15"
         - name: KUBERNETES_NAMESPACE # default is default
-          value: "default"
+          value: "jkanis-space"
 
         # Dhalion configurations
         - name: DHALION_SCALE_DOWN_FACTOR # 0.8 is default
