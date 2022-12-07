@@ -1,19 +1,20 @@
+# Requires: AVAILABLE_TASKMANAGERS, QUERY
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  name: dhalion
+  name: ds2
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: dhalion
+      app: ds2
   template:
     metadata:
       annotations:
         prometheus.io/port: '8000'
         ververica.com/scrape_every_2s: 'true'
       labels:
-        app: dhalion
+        app: ds2
     spec:
       containers:
       - name: python-container
@@ -21,7 +22,7 @@ spec:
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
-        args: ["python", "./", "dhalion"]
+        args: ["python", "./", "ds2"]
         env:
         # Python configurations
         - name: PYTHONUNBUFFERED
@@ -31,16 +32,16 @@ spec:
 
         # Common variables
         - name: USE_FLINK_REACTIVE  # {true, false} - false is default
-          value: "${USE_FLINK_REACTIVE}"
+          value: "false"
         - name: PROMETHEUS_SERVER   # prometheus-server is default
           value: "prometheus-server"
         - name: FLINK_JOBMANAGER_SERVER   # flink-jobmanager-rest:8081 is default
           value: "flink-jobmanager-rest:8081"
-        - name: MAX_PARALLELISM # 16 is default
-          value: "16"
-        - name: MIN_PARALLELISM # 1 is default
-          value: "1"
-        - name: METRIC_AGGREGATION_PERIOD_SECONDS # 10 is default
+        - name: AVAILABLE_TASKMANAGERS # 16 is default
+          value: "${AVAILABLE_TASKMANAGERS}"
+        - name: OVERPROVISIONING_FACTOR # 1.0 is default
+          value: "1.0"
+        - name: METRIC_AGGREGATION_PERIOD_SECONDS # 60 is default
           value: "15"
         - name: COOLDOWN_PERIOD_SECONDS # 120 is default
           value: "120"
@@ -62,9 +63,5 @@ spec:
           value: "gsiachamis/flink-nexmark-queries:1.0"
         - name: NONREACTIVE_SAVEPOINT_TIMEOUT_SECONDS # 60 is default
           value: "60"
-
-        # Dhalion configurations
-        - name: DHALION_SCALE_DOWN_FACTOR # 0.8 is default
-          value: "0.8"
-        - name: DHALION_BUFFER_USAGE_CLOSE_TO_ZERO_THRESHOLD # 0.1 is default
-          value: "0.1"
+        - name: NONREACTIVE_ADJUST_ON_INSUFFICIENT_RESOURCES # true is default
+          value: "true"

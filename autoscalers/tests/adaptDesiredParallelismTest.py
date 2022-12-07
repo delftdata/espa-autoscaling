@@ -95,5 +95,6 @@ class AdaptDesiredParallelismTest(unittest.TestCase):
         expected_desired_parallelisms = {"a": 2, "b": 3, "c": 4, "d": 5, "e": 7, "f": 8, "g": 9}
         self.assertEqual(desired_parallelisms, expected_desired_parallelisms)
 
+
 if __name__ == '__main__':
     unittest.main()

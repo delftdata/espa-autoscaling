@@ -1,19 +1,20 @@
+# Requires: AVAILABLE_TASKMANAGERS
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  name: hpa-cpu
+  name: ds2
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: hpa-cpu
+      app: ds2
   template:
     metadata:
       annotations:
         prometheus.io/port: '8000'
         ververica.com/scrape_every_2s: 'true'
       labels:
-        app: hpa-cpu
+        app: ds2
     spec:
       containers:
       - name: python-container
@@ -21,7 +22,7 @@ spec:
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
-        args: ["python", "./", "hpa-cpu"]
+        args: ["python", "./", "ds2"]
         env:
         # Python configurations
         - name: PYTHONUNBUFFERED
@@ -31,14 +32,16 @@ spec:
 
         # Common variables
         - name: USE_FLINK_REACTIVE  # {true, false} - false is default
-          value: "${USE_FLINK_REACTIVE}"
+          value: "true"
         - name: PROMETHEUS_SERVER   # prometheus-server is default
           value: "prometheus-server"
         - name: FLINK_JOBMANAGER_SERVER   # flink-jobmanager-rest:8081 is default
           value: "flink-jobmanager-rest:8081"
         - name: AVAILABLE_TASKMANAGERS # 16 is default
-          value: "16"
-        - name: METRIC_AGGREGATION_PERIOD_SECONDS # 10 is default
+          value: "${AVAILABLE_TASKMANAGERS}"
+        - name: OVERPROVISIONING_FACTOR # 1.0 is default
+          value: "1.0"
+        - name: METRIC_AGGREGATION_PERIOD_SECONDS # 60 is default
           value: "15"
         - name: COOLDOWN_PERIOD_SECONDS # 120 is default
           value: "120"
@@ -46,11 +49,3 @@ spec:
           value: "15"
         - name: KUBERNETES_NAMESPACE # default is default
           value: "jkanis-space"
-
-          # HPA configurations
-        - name: HPA_SCALE_DOWN_WINDOW_SECONDS # 300 is default
-          value: "300"
-
-          # CPU configurations
-        - name: CPU_UTILIZATION_TARGET_VALUE # 0.7 is default
-          value: "0.7"

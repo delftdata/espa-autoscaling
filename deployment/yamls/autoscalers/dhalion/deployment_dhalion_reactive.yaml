@@ -1,3 +1,4 @@
+# Requires: AVAILABLE_TASKMANAGERS
 kind: Deployment
 apiVersion: apps/v1
 metadata:
@@ -37,7 +38,7 @@ spec:
         - name: FLINK_JOBMANAGER_SERVER   # flink-jobmanager-rest:8081 is default
           value: "flink-jobmanager-rest:8081"
         - name: AVAILABLE_TASKMANAGERS # 16 is default
-          value: "16"
+          value: "${AVAILABLE_TASKMANAGERS}"
         - name: OVERPROVISIONING_FACTOR # 1.0 is default
           value: "1.0"
         - name: METRIC_AGGREGATION_PERIOD_SECONDS # 60 is default

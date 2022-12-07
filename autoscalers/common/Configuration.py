@@ -35,7 +35,8 @@ class Configurations:
     NONREACTIVE_JOB = os.environ.get("NONREACTIVE_JOB",
                                      "ch.ethz.systems.strymon.ds2.flink.nexmark.queries.updated.Query1KafkaSource")
     NONREACTIVE_CONTAINER = os.environ.get("NONREACTIVE_CONTAINER", "gsiachamis/flink-nexmark-queries:1.0")
-
+    NONREACTIVE_ADJUST_ON_INSUFFICIENT_RESOURCES = os.environ.get("NONREACTIVE_ADJUST_ON_INSUFFICIENT_RESOURCES",
+                                                                  "true").lower() in ["true", "1", "t"]
     RUN_LOCALLY = False
 
     def printConfigurations(self):
@@ -55,6 +56,8 @@ class Configurations:
         print(f"\tNONREACTIVE_TIME_AFTER_SAVEPOINT: {self.NONREACTIVE_TIME_AFTER_SAVEPOINT_SECONDS}")
         print(f"\tNONREACTIVE_JOB: {self.NONREACTIVE_JOB}")
         print(f"\tNONREACTIVE_CONTAINER: {self.NONREACTIVE_CONTAINER}")
+        print(f"\tNONREACTIVE_ADJUST_ON_INSUFFICIENT_RESOURCES: {self.NONREACTIVE_ADJUST_ON_INSUFFICIENT_RESOURCES}")
+
 
 
 

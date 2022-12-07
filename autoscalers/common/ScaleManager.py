@@ -18,7 +18,6 @@ class ScaleManager:
         :param metricsGatherer:
         """
         self.configurations = configurations
-        self.adaptationMode = True  # We should provide this as a configuration option
         self.desiredParallelisms = {}
         self.metricsGatherer = metricsGatherer
         self.nonreactiveJobmanagerTemplate = "resources/templates/non-reactive-jobmanager-template.yaml"
@@ -51,15 +50,14 @@ class ScaleManager:
             desiredParallelisms[max_operator] += 1
         return desiredParallelisms
 
-    def _checkForSufficientResources(self, flinkReactive: bool, desiredParallelisms: dict[str, int]):
+    def _checkForSufficientResources(self, desiredParallelisms: dict[str, int]):
         """
         Check if there are enough TaskManagers to reach the desired parallelism.
-        :param flinkReactive: If true, signals that flink is running in reactive mode. False for non-reactive.
         :param desiredParallelisms: The per-operator desired parallelisms as a dictionary.
         :return: True if there are enough TaskManagers for the desired parallelisms, else False.
         """
         totalAvailableTaskManagers = self.configurations.AVAILABLE_TASKMANAGERS
-        if flinkReactive:
+        if self.configurations.USE_FLINK_REACTIVE:
             if max(desiredParallelisms.values()) > totalAvailableTaskManagers:
                 print("Insufficient resources for the desired parallelisms.")
                 return False
@@ -72,6 +70,7 @@ class ScaleManager:
             else:
                 return True
 
+
     def _enforceMinimumParallelismCondition(self, desiredParallelisms: dict[str, int]):
         """
         Enforce the condition that each operator must use at least one TaskManager.
@@ -81,6 +80,7 @@ class ScaleManager:
         for operator, parallelism in desiredParallelisms.items():
             if parallelism < 1:
                 desiredParallelisms[operator] = 1
+
 
     def _calculateParallelismIncludingOverprovisioningFactor(self, parallelism: int,
                                                              overprovisioning_factor: float = None) -> int:
@@ -96,7 +96,7 @@ class ScaleManager:
         return math.ceil(parallelism * overprovisioning_factor)
 
     def _addOverprovisioningFactorToDesiredParallelism(self, desiredParallelisms: {str, int},
-                                                              overprovisioning_factor: float = None):
+                                                       overprovisioning_factor: float = None):
         """
         Given the desired parallelism. Calculate the operator's parallelism after adding the overprovisioning_factor.
         :param desiredParallelisms: desired parallelisms.
@@ -139,24 +139,31 @@ class ScaleManager:
         if self.configurations.USE_FLINK_REACTIVE:
             desiredTaskmanagersAmount = max(desiredParallelisms.values())
             currentTaskmanagerAmount = max(currentParallelisms.values())
-            if not self._checkForSufficientResources(True, desiredParallelisms):
+            if not self._checkForSufficientResources(desiredParallelisms):
+                print(f"Not enough resources for desired parallelism of {desiredTaskmanagersAmount}. Setting "
+                      f"desiredParallelism to the maximum of {self.configurations.AVAILABLE_TASKMANAGERS} taskmanagers")
                 desiredTaskmanagersAmount = self.configurations.AVAILABLE_TASKMANAGERS
             if currentTaskmanagerAmount != desiredTaskmanagersAmount:
+                print(f"Performing scaling operation. Scaling from {currentTaskmanagerAmount} to "
+                      f"{desiredTaskmanagersAmount}.")
                 performedScalingOperation = True
                 self.metricsGatherer.kubernetesManager.adaptFlinkTaskmanagersParallelism(desiredTaskmanagersAmount)
         else:
-            if not self._checkForSufficientResources:
-                if self.adaptationMode:
+            if not self._checkForSufficientResources(desiredParallelisms):
+                if self.configurations.NONREACTIVE_ADJUST_ON_INSUFFICIENT_RESOURCES:
                     desiredParallelisms = self._adaptScalingToExistingResources(desiredParallelisms)
-                    changeInParallelism = False
-                    for operator in desiredParallelisms.keys():
-                        if currentParallelisms[operator] != desiredParallelisms[operator]:
-                            changeInParallelism = True
-                    if changeInParallelism:
-                        self._performOperatorBasedScaling(currentParallelisms, desiredParallelisms)
-                        performedScalingOperation = True
                 else:
                     print("Scaling decision ignored due to insufficient TaskManagers.")
+                    return
+            changeInParallelism = False
+            for operator in desiredParallelisms.keys():
+                if currentParallelisms[operator] != desiredParallelisms[operator]:
+                    changeInParallelism = True
+            if changeInParallelism:
+                print(f"Performing scaling operation. Scaling from {currentParallelisms} to {desiredParallelisms}.")
+                self._performOperatorBasedScaling(currentParallelisms, desiredParallelisms)
+                performedScalingOperation = True
+
         if cooldownPeriod and performedScalingOperation:
             print(f"Performed scaling operation. Entering {cooldownPeriod}s cooldown-period.")
             time.sleep(cooldownPeriod)
