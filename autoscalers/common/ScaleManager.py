@@ -1,9 +1,9 @@
 import time
+import math
 from pathlib import Path
 import os
 from .applications import ApplicationManager
 from .Configuration import Configurations
-
 
 
 class ScaleManager:
@@ -18,7 +18,7 @@ class ScaleManager:
         :param metricsGatherer:
         """
         self.configurations = configurations
-        self.adaptationMode = True          # We should provide this as a configuration option 
+        self.adaptationMode = True  # We should provide this as a configuration option
         self.desiredParallelisms = {}
         self.metricsGatherer = metricsGatherer
         self.nonreactiveJobmanagerTemplate = "resources/templates/non-reactive-jobmanager-template.yaml"
@@ -29,7 +29,6 @@ class ScaleManager:
                 os.makedirs(directory)
                 print(f"Added directory {directory}.")
 
-
     def _adaptScalingToExistingResources(self, desiredParallelisms: dict[str, int]) -> dict[str, int]:
         """
         Adapt the desired parallelisms to the available resources.
@@ -37,7 +36,8 @@ class ScaleManager:
         :return: The per-operator desired parallelisms as a dictionary adapted to the maximum available operators.
         """
         minimum_parallelism = len(desiredParallelisms.keys())
-        adaptationFactor = (self.configurations.AVAILABLE_TASKMANAGERS - minimum_parallelism)/(sum(desiredParallelisms.values()) - minimum_parallelism)
+        adaptationFactor = (self.configurations.AVAILABLE_TASKMANAGERS - minimum_parallelism) / (
+                    sum(desiredParallelisms.values()) - minimum_parallelism)
         max_parallelism = 0
         max_operator = ""
         for operator, parallelism in desiredParallelisms.items():
@@ -46,7 +46,7 @@ class ScaleManager:
                 max_operator = operator
             desiredParallelisms[operator] = 1 + round(adaptationFactor * (parallelism - 1))
         if sum(desiredParallelisms.values()) > self.configurations.AVAILABLE_TASKMANAGERS:
-            desiredParallelisms[max_operator] -= 1 
+            desiredParallelisms[max_operator] -= 1
         if sum(desiredParallelisms.values()) < self.configurations.AVAILABLE_TASKMANAGERS:
             desiredParallelisms[max_operator] += 1
         return desiredParallelisms
@@ -72,7 +72,6 @@ class ScaleManager:
             else:
                 return True
 
-    
     def _enforceMinimumParallelismCondition(self, desiredParallelisms: dict[str, int]):
         """
         Enforce the condition that each operator must use at least one TaskManager.
@@ -82,6 +81,33 @@ class ScaleManager:
         for operator, parallelism in desiredParallelisms.items():
             if parallelism < 1:
                 desiredParallelisms[operator] = 1
+
+    def _calculateParallelismIncludingOverprovisioningFactor(self, parallelism: int,
+                                                             overprovisioning_factor: float = None) -> int:
+        """
+        Calculate the parallelism of an operator after adding the overprovisioning_factor.
+        :param parallelism: Initial parallelism without adding the overprovisioning_factor
+        :param overprovisioning_factor: overprovisioning-factor to multiply parallelism with. Is set to
+        self.configurations.OVERPROVISIONING_FACTOR if left None;
+        :return: parallelism including overprovisioning_factor
+        """
+        if not overprovisioning_factor:
+            overprovisioning_factor = self.configurations.OVERPROVISIONING_FACTOR
+        return math.ceil(parallelism * overprovisioning_factor)
+
+    def _addOverprovisioningFactorToDesiredParallelism(self, desiredParallelisms: {str, int},
+                                                              overprovisioning_factor: float = None):
+        """
+        Given the desired parallelism. Calculate the operator's parallelism after adding the overprovisioning_factor.
+        :param desiredParallelisms: desired parallelisms.
+        :param overprovisioning_factor: overprovisioning_factor to add. Self.configurations.OVERPROVISIONING_FACTOR is
+        used when left None.
+        """
+        for operator in desiredParallelisms:
+            parallelism = desiredParallelisms[operator]
+            new_parallelism = self._calculateParallelismIncludingOverprovisioningFactor(parallelism,
+                                                                                        overprovisioning_factor)
+            desiredParallelisms[operator] = new_parallelism
 
     # Scaling operation
     def performScaleOperations(self, currentParallelisms: {str, int}, desiredParallelisms: {str, int},
@@ -104,8 +130,9 @@ class ScaleManager:
         if not (len(parallelismIntersection) == len(desiredParallelisms) == len(currentParallelisms)):
             raise Exception(f"Parallelism keys do not match: Length of desiredParallelism {desiredParallelisms}, "
                             f"currentParallelisms {currentParallelisms} differ and their intersection: "
-                            f"{ parallelismIntersection}")
+                            f"{parallelismIntersection}")
 
+        self._addOverprovisioningFactorToDesiredParallelism(desiredParallelisms)
         self._enforceMinimumParallelismCondition(desiredParallelisms)
 
         performedScalingOperation = False
@@ -148,13 +175,11 @@ class ScaleManager:
         :return:
         """
 
-
         # Idea;
         # Trigger savepoint
         #   Wait for savepoint
         # Stop job
         # Trigger savepoint and get Id
-
 
         # To do it correctly
         # Stop jobmanager
@@ -170,7 +195,8 @@ class ScaleManager:
         # Execute stop request
         job_id = self.metricsGatherer.jobmanagerManager.getJobId()
         print(f"Stopping job {job_id} with a savepoint.")
-        stop_request, trigger_id = self.metricsGatherer.jobmanagerManager.sendStopJobRequestAndGetSavePointTriggerId(job_id=job_id)
+        stop_request, trigger_id = self.metricsGatherer.jobmanagerManager.sendStopJobRequestAndGetSavePointTriggerId(
+            job_id=job_id)
         print(stop_request.json())
         print(f"Triggered savepoint with trigger_id: {trigger_id}")
 
@@ -230,4 +256,3 @@ class ScaleManager:
                 args.append(parameter)
                 args.append(str(desiredParallelisms[operator]))
         self.__writeJobmanagerConfigurationFile(container=self.configurations.NONREACTIVE_CONTAINER, args=args)
-
