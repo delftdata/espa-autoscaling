@@ -110,8 +110,7 @@ class ScaleManager:
             desiredParallelisms[operator] = new_parallelism
 
     # Scaling operation
-    def performScaleOperations(self, currentParallelisms: {str, int}, desiredParallelisms: {str, int},
-                               cooldownPeriod: int = None):
+    def performScaleOperations(self, currentParallelisms: {str, int}, desiredParallelisms: {str, int}):
         """
         Perform a scaling operation from current parallelisms to desiredParallelisms.
         If we use Flink-reactive, we scale the amount of taskmanagers to the maximum desired parallelism. If this
@@ -121,7 +120,7 @@ class ScaleManager:
         desiredParallelisms. If currentParallelisms are similar to desired parallelisms, we do not do anything.
         After a scaling operation, we invoke a cooldownPeriod as defined by cooldownPeriod. When undefined, we skip
         the cooldown period.
-        :param currentParallelisms: The per-operator current parellelisms
+        :param currentParallelisms: The per-operator current parallelisms
         :param desiredParallelisms: The per-operator desired parallelisms
         :param cooldownPeriod: Optional cooldownperiod to be invoked after a scaling operation happens.
         :return: None
@@ -164,9 +163,10 @@ class ScaleManager:
                 self._performOperatorBasedScaling(currentParallelisms, desiredParallelisms)
                 performedScalingOperation = True
 
-        if cooldownPeriod and performedScalingOperation:
-            print(f"Performed scaling operation. Entering {cooldownPeriod}s cooldown-period.")
-            time.sleep(cooldownPeriod)
+        if performedScalingOperation:
+            print(f"Performed scaling operation. Entering {self.configurations.COOLDOWN_PERIOD_SECONDS}s "
+                  f"cooldown-period.")
+            time.sleep(self.configurations.COOLDOWN_PERIOD_SECONDS)
 
     def _performOperatorBasedScaling(self, currentParallelisms: {str, int}, desiredParallelisms: {str, int}):
         """
@@ -209,8 +209,9 @@ class ScaleManager:
 
         # Job stopping is an async operation, we need to query the status before we can continue
         savepointStatus = ""
+        savepointPath = ""
         while savepointStatus not in ["COMPLETED", "FAILED"]:
-            savepointStatus = self.metricsGatherer.jobmanagerManager.extractSavePointStatusFromSavePointTriggerJSON(
+            savepointStatus, savepointPath = self.metricsGatherer.jobmanagerManager.extractSavePointStatusFromSavePointTriggerJSON(
                 job_id=job_id, trigger_id=trigger_id
             )
             time.sleep(1)
@@ -219,11 +220,9 @@ class ScaleManager:
         if savepointStatus == "FAILED":
             raise Exception("Creating a savepoint failed.")
 
-        savepointPath = self.metricsGatherer.jobmanagerManager.extractSavePointPathFromSavePointTriggerJSON(
-            job_id=job_id, trigger_id=trigger_id
-        )
-        if not savepointPath:
+        if savepointPath == "":
             raise Exception("Unable to fetch path of savepoint.")
+
         print(f"Savepoint is saved at {savepointPath}")
 
         # Create new jobmanager configurations file
@@ -231,17 +230,27 @@ class ScaleManager:
 
         # Scale taskmanagers if we need new ones
         currentTotalTaskmanagers = sum(currentParallelisms.values())
-        desiredTaskmanagers = sum(currentParallelisms.values())
+        desiredTaskmanagers = sum(desiredParallelisms.values())
         if currentTotalTaskmanagers != desiredTaskmanagers:
             self.metricsGatherer.kubernetesManager.adaptFlinkTaskmanagersParallelism(desiredTaskmanagers)
 
-        # Delete jobmanager
+        # Delete jobmanager job
         self.metricsGatherer.kubernetesManager.deleteJobManager()
-        time.sleep(self.configurations.NONREACTIVE_TIME_AFTER_DELETE_JOB_SECONDS)
+        # Wait until jobmanager job is terminated
+        self.metricsGatherer.kubernetesManager.waitUntilAllJobmanagerJobsAreRemoved()
 
-        # Delete jobmanager's pod
+        # Delete jobmanager service
+        # self.metricsGatherer.kubernetesManager.deleteJobManagerService()
+        # Wait until jobmanager service is terminated
+        # self.metricsGatherer.kubernetesManager.waitUntilAllJobmanagerServicesAreRemoved()
+
+        # Delete jobmanager pod
         self.metricsGatherer.kubernetesManager.deleteJobManagerPod()
-        time.sleep(self.configurations.NONREACTIVE_TIME_AFTER_DELETE_POD_SECONDS)
+        # Wait until jobmanager pod is terminated
+        self.metricsGatherer.kubernetesManager.waitUntilAllJobmanagerPodsAreRemoved()
+
+        # Wait a bit longer before creating a new jobmanager
+        time.sleep(self.configurations.NONREACTIVE_WAIT_TIME_AFTER_JOBMANAGER_DELETION_SECONDS)
 
         # Deploy a new job with updated parallelisms
         self.metricsGatherer.kubernetesManager.deployNewJobManager(self.nonreactiveJobmanagerSavefile)
@@ -250,7 +259,6 @@ class ScaleManager:
     def __writeJobmanagerConfigurationFile(self, **kwargs):
         templateFile = open(self.nonreactiveJobmanagerTemplate, "r")
         template = templateFile.read()
-        print(template)
         with open(self.nonreactiveJobmanagerSavefile, 'w+') as yfile:
             yfile.write(template.format(**kwargs))
 

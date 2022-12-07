@@ -245,26 +245,16 @@ class JobmanagerManager:
         :return: The status of the savepointing process.
         """
         savePointTriggerJson = self.getSavePointTriggerJSON(job_id=job_id, trigger_id=trigger_id)
-
         status = savePointTriggerJson["status"]["id"]
-        return status
-
-    def extractSavePointPathFromSavePointTriggerJSON(self, job_id, trigger_id):
-        """
-        Extract the location of the stored savepoint with trigger_id for the designated job.
-        :param job_id: The job_id of the job for which the savepoint is created.
-        :param trigger_id: Trigger_id of the triggered savepoint.
-        :return: The path to the savepoint.
-        """
-        savePointTriggerJson = self.getSavePointTriggerJSON(job_id=job_id, trigger_id=trigger_id)
-        operationJson = savePointTriggerJson['operation']
-        if "location" in operationJson:
-            location = operationJson["location"]
-            return location
-        else:
-            if "failure-cause" in operationJson:
-                print(f"Making a savepoint gave the following error: {operationJson['failure-cause']['class']}: "
-                      f"{operationJson['failure-cause']['stack-trace']}.")
+        savepointLocation = ""
+        if status == "COMPLETED":
+            operationJson = savePointTriggerJson['operation']
+            if "location" in operationJson:
+                savepointLocation = operationJson["location"]
             else:
-                print(f"Operation.Location unavailable in savepointJSON: {savePointTriggerJson}")
-            return None
+                if "failure-cause" in operationJson:
+                    print(f"Making a savepoint gave the following error: {operationJson['failure-cause']['class']}: "
+                          f"{operationJson['failure-cause']['stack-trace']}.")
+                else:
+                    print(f"Operation.Location unavailable in savepointJSON: {savePointTriggerJson}")
+        return status, savepointLocation

@@ -90,9 +90,5 @@ class HPACPU(HPA):
         print(f"Desired parallelisms: {desiredParallelisms}")
         print(f"Maximum desired parallelisms: {allMaximumDesiredParallelisms}")
         print(f"Current parallelisms: {currentParallelisms}")
-        self.scaleManager.performScaleOperations(
-            currentParallelisms,
-            allMaximumDesiredParallelisms,
-            cooldownPeriod=self.configurations.COOLDOWN_PERIOD_SECONDS
-        )
+        self.scaleManager.performScaleOperations(currentParallelisms, allMaximumDesiredParallelisms)
 

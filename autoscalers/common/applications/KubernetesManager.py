@@ -1,5 +1,6 @@
 import random
 import traceback
+import time
 
 from common import Configurations
 from kubernetes import client, utils, config
@@ -38,6 +39,7 @@ class KubernetesManager:
             try:
                 _ = self.batchV1.delete_namespaced_job(name="flink-jobmanager", pretty=True,
                                                        namespace=self.configurations.KUBERNETES_NAMESPACE)
+                print("Deleted jobmanager job")
             except:
                 print("Error: deleting jobmanager failed.")
                 traceback.print_exc()
@@ -46,6 +48,27 @@ class KubernetesManager:
                 operation="Deleting jobmanager job",
                 command=f"kubectl delete job flink-jobmanager"
             )
+
+    def waitUntilAllJobmanagerJobsAreRemoved(self):
+        """
+        Wait until no pod containing the name 'jobmanager' is online anymore.
+        If a list_namespaced_pod request fails, the method is returned.
+        """
+        jobmanager_jobs_is_online = True
+        while jobmanager_jobs_is_online:
+            print("Waiting until jobmanager job is removed.")
+            jobmanager_jobs_is_online = False
+            time.sleep(1)
+            try:
+                response = self.batchV1.list_namespaced_job(namespace=self.configurations.KUBERNETES_NAMESPACE)
+                # check whether a pod named jobmanager is still online
+                for i in response.items:
+                    if "jobmanager" in i.metadata.name:
+                        jobmanager_jobs_is_online = True
+            except:
+                print("Error: failed fetching information about jobs in namespace")
+                traceback.print_exc()
+        print("Jobmanager job is removed.")
 
     def deleteJobManagerPod(self):
         if not self.configurations.RUN_LOCALLY:
@@ -57,13 +80,14 @@ class KubernetesManager:
                 jobmanager_name = None
                 for i in response.items:
                     if "jobmanager" in i.metadata.name:
-                        print("Found jobmanager id: " + str(i.metadata.name))
                         jobmanager_name = i.metadata.name
+                        print(f"Found jobmanager pod id: {jobmanager_name}")
+
                 # delete pod
                 if jobmanager_name is not None:
                     _ = self.coreV1.delete_namespaced_pod(name=jobmanager_name,
                                                           namespace=self.configurations.KUBERNETES_NAMESPACE)
-                    print("deleted pod")
+                    print(f"Deleted pod {jobmanager_name}")
                 else:
                     print("No jobmanager pod found")
             except:
@@ -75,6 +99,78 @@ class KubernetesManager:
                 command=f"kubectl delete pods "
                         "$(kubectl get pods -o yaml | grep flink-jobmanager- | grep name | awk '{print $2}')"
             )
+
+    def waitUntilAllJobmanagerPodsAreRemoved(self):
+        """
+        Wait until no pod containing the name 'jobmanager' is online anymore.
+        If a list_namespaced_pod request fails, the method is returned.
+        """
+        jobmanager_pods_is_online = True
+        while jobmanager_pods_is_online:
+            print("Waiting until jobmanager pod is removed.")
+            jobmanager_pods_is_online = False
+            time.sleep(1)
+            try:
+                response = self.coreV1.list_namespaced_pod(namespace=self.configurations.KUBERNETES_NAMESPACE)
+                # check whether a pod named jobmanager is still online
+                for i in response.items:
+                    if "jobmanager" in i.metadata.name:
+                        jobmanager_pods_is_online = True
+            except:
+                print("Error: failed fetching information about pods in namespace")
+                traceback.print_exc()
+        print("Jobmanager pod is removed.")
+
+    def deleteJobManagerService(self):
+        if not self.configurations.RUN_LOCALLY:
+            try:
+                # Delete jobmanager service
+                # delete the remaining jobmanager service
+                response = self.coreV1.list_namespaced_service(namespace=self.configurations.KUBERNETES_NAMESPACE)
+                # find name
+                jobmanager_service_name = None
+                for i in response.items:
+                    if "jobmanager" in i.metadata.name:
+                        jobmanager_service_name = i.metadata.name
+                        print(f"Found jobmanager service id: {jobmanager_service_name}")
+
+                # delete service
+                if jobmanager_service_name is not None:
+                    _ = self.coreV1.delete_namespaced_service(name=jobmanager_service_name,
+                                                              namespace=self.configurations.KUBERNETES_NAMESPACE)
+                    print(f"Deleted service {jobmanager_service_name}")
+                else:
+                    print("No jobmanager service found")
+            except:
+                print("Error: failed deleting jobmanager service")
+                traceback.print_exc()
+        else:
+            self.__mockKubernetesInteraction(
+                operation="Delete jobmanager service",
+                command=f"kubectl delete service "
+                        "$(kubectl get pods -o yaml | grep flink-jobmanager- | grep name | awk '{print $2}')"
+            )
+
+    def waitUntilAllJobmanagerServicesAreRemoved(self):
+        """
+        Wait until no service containing the name 'jobmanager' is online anymore.
+        If a list_namespaced_pod request fails, the method is returned.
+        """
+        jobmanager_service_is_online = True
+        while jobmanager_service_is_online:
+            print("Waiting until jobmanager service is removed.")
+            jobmanager_service_is_online = False
+            time.sleep(1)
+            try:
+                response = self.coreV1.list_namespaced_service(namespace=self.configurations.KUBERNETES_NAMESPACE)
+                # check whether a service named jobmanager is still online
+                for i in response.items:
+                    if "jobmanager" in i.metadata.name:
+                        jobmanager_service_is_online = True
+            except:
+                print("Error: failed fetching information about services in namespace")
+                traceback.print_exc()
+        print("Jobmanager service is removed.")
 
     # Set amount of Flink Taskmanagers
     def adaptFlinkTaskmanagersParallelism(self, new_number_of_taskmanagers):
@@ -131,11 +227,10 @@ class KubernetesManager:
 
     def deployNewJobManager(self, yaml_file: str):
         if not self.configurations.RUN_LOCALLY:
-
-            utils.create_from_yaml(self.k8s_client, yaml_file)
+            print(f"Deploying new jobmanager from file {yaml_file}")
+            utils.create_from_yaml(self.k8s_client, yaml_file, namespace=self.configurations.KUBERNETES_NAMESPACE)
         else:
             self.__mockKubernetesInteraction(
                 operation=f"Deploying a new jobmanager from file {yaml_file}",
                 command=f"kubectl apply -f {yaml_file}"
             )
-

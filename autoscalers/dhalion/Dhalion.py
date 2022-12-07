@@ -204,8 +204,4 @@ class Dhalion(Autoscaler, ABC):
             desiredParallelisms = self.getDesiredParallelisms()
             print(f"Desired parallelisms: {desiredParallelisms}")
             print(f"Current parallelisms: {currentParallelisms}")
-            self.scaleManager.performScaleOperations(
-                currentParallelisms,
-                desiredParallelisms,
-                cooldownPeriod=self.configurations.COOLDOWN_PERIOD_SECONDS
-            )
+            self.scaleManager.performScaleOperations(currentParallelisms, desiredParallelisms)
