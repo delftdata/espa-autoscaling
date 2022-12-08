@@ -19,20 +19,6 @@ class JobmanagerManager:
         """
         self.configurations = configurations
 
-    @staticmethod
-    def __stripOperatorName(operatorName: str):
-        """
-        The operator names of Prometheus differ from the Jobmanager. While the jobmanager supports " ", ".", and "-",
-        Prometheus presents the characters as a "_". To ensure compatibility between the prometheus metrics and the
-        jobmanager metrics, characters in the operator names are replaced with "_".
-        :param operatorName: Operatorname to replace characters with.
-        :return: Operator name that has all forbidden characters replaced with a "_"
-        """
-        unsupportedCharacters = ["-&gt", " ", ",", ".", "-", ";", "/", ">"]
-        for unsupportedCharacter in unsupportedCharacters:
-            operatorName = operatorName.replace(unsupportedCharacter, "_")
-        return operatorName
-
     def getJobId(self) -> int:
         """
         Get get the first ID of the listed jobs on the jobmanager.
@@ -117,7 +103,8 @@ class JobmanagerManager:
         verticeJSONs = self.__getVerticeJSONs(job_id, job)
         taskmanagerMapping = {}
         for verticeJSON in verticeJSONs:
-            operatorName = self.__stripOperatorName(verticeJSON['name'])
+            operatorName = self.configurations.experimentData\
+                .convertOperatorNameToPrometheusOperatorName(verticeJSON['name'])
             taskmanager_information = []
             for subtask_json in verticeJSON['subtasks']:
                 taskmanager_information.append((subtask_json['taskmanager-id'], subtask_json['status'],
@@ -134,7 +121,8 @@ class JobmanagerManager:
         if not jobPlan:
             jobPlan = self.__getJobPlanJson()
         node_json = jobPlan['plan']['nodes']
-        nodes = list(map(lambda node: self.__stripOperatorName(node['description']), node_json))
+        nodes = list(map(lambda node: self.configurations.experimentData
+                         .convertOperatorNameToPrometheusOperatorName(node['description']), node_json))
         return nodes
 
     def getIdOperatorMapping(self, jobPlan=None) -> {str, int}:
@@ -148,7 +136,8 @@ class JobmanagerManager:
         node_json = jobPlan['plan']['nodes']
         operator_id_mapping: {str, str} = {}
         for n in node_json:
-            operator_name = self.__stripOperatorName(n['description'])
+            operator_name = self.configurations.experimentData\
+                .convertOperatorNameToPrometheusOperatorName(n['description'])
             operator_id = n['id']
             operator_id_mapping[operator_id] = operator_name
         return operator_id_mapping
@@ -164,7 +153,8 @@ class JobmanagerManager:
         nodes = jobPlan['plan']['nodes']
         parallelisms: {str, int} = {}
         for node in nodes:
-            nodeName = self.__stripOperatorName(node['description'])
+            nodeName = self.configurations.experimentData\
+                .convertOperatorNameToPrometheusOperatorName(node['description'])
             nodeParallelism = node['parallelism']
             parallelisms[nodeName] = nodeParallelism
         return parallelisms
@@ -181,12 +171,15 @@ class JobmanagerManager:
 
         topology: [(str, str)] = []
         for node_json in jobPlan['plan']['nodes']:
-            node_name = self.__stripOperatorName(node_json['description'])
+            node_name = self.configurations.experimentData\
+                .convertOperatorNameToPrometheusOperatorName(node_json['description'])
             if "inputs" in node_json:
                 for edge_in_json in node_json['inputs']:
                     edge_in_operator_id = edge_in_json['id']
                     if edge_in_operator_id in id_operator_mapping.keys():
-                        node_in_name = self.__stripOperatorName(id_operator_mapping[edge_in_operator_id])
+                        node_in_name = self.configurations.experimentData\
+                            .convertOperatorNameToPrometheusOperatorName(
+                            id_operator_mapping[edge_in_operator_id])
                         topology.append((node_in_name, node_name))
         return topology
 
@@ -211,7 +204,8 @@ class JobmanagerManager:
         :param trigger_id: Trigger_id of the triggered savepoint.
         :return: Json with all information regarding the trigger
         """
-        savepoint_json = requests.get(f"http://{self.configurations.FLINK_JOBMANAGER_SERVER}/jobs/{job_id}/savepoints/{trigger_id}").json()
+        savepoint_json = requests.get(f"http://{self.configurations.FLINK_JOBMANAGER_SERVER}/jobs/{job_id}/savepoints/"
+                                      f"{trigger_id}").json()
         return savepoint_json
 
 

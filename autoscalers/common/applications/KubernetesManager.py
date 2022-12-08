@@ -219,10 +219,9 @@ class KubernetesManager:
                 traceback.print_exc()
                 return -1
         else:
-            randomAmountOfTaskmanagers = random.randint(self.configurations.MIN_PARALLELISM,
-                                                        self.configurations.MAX_PARALLELISM)
+            randomAmountOfTaskmanagers = random.randint(1, self.configurations.AVAILABLE_TASKMANAGERS)
             print(f"Running application locally. Returning random amount of: {randomAmountOfTaskmanagers} taskmanagers,"
-                  f"selected between [{self.configurations.MIN_PARALLELISM}, {self.configurations.MAX_PARALLELISM}].")
+                  f"selected between [1, {self.configurations.AVAILABLE_TASKMANAGERS}].")
             return randomAmountOfTaskmanagers
 
     def deployNewJobManager(self, yaml_file: str):

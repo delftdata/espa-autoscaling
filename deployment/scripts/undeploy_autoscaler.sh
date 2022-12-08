@@ -13,9 +13,11 @@ fi
 
 if [ "$MODE" == "reactive" ]
 then
-  kubectl delete -f ../yamls/autoscalers/"${AUTOSCALER}"/deployment_"${AUTOSCALER}"_reactive.yaml
+  kubectl delete --wait=true -f ../yamls/autoscalers/autoscaler_reactive_rbac_rules.yaml
+  kubectl delete --wait=true -f ../yamls/autoscalers/"${AUTOSCALER}"/deployment_"${AUTOSCALER}"_reactive.yaml
 else
-  kubectl delete -f ../yamls/autoscalers/"${AUTOSCALER}"/deployment_"${AUTOSCALER}"_non-reactive.yaml
+  kubectl delete --wait=true -f ../yamls/autoscalers/autoscaler_non_reactive_rbac_rules.yaml
+  kubectl delete --wait=true -f ../yamls/autoscalers/"${AUTOSCALER}"/deployment_"${AUTOSCALER}"_non-reactive.yaml
 fi
 kubectl delete -f ../yamls/autoscalers/autoscaler_rbac_rules.yaml
 

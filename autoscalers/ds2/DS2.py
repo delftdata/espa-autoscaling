@@ -206,11 +206,11 @@ class DS2(Autoscaler):
         :return: None
         """
 
-        print('\nExecuting next DS2 Iteration')
+        print('Executing next DS2 Iteration')
         time.sleep(self.configurations.ITERATION_PERIOD_SECONDS)
 
         # Fetching metrics
-        print("\t1. Fetching metrics")
+        print("Fetching metrics")
         topicKafkaInputRates: {str, int} = self.applicationManager.gatherTopicKafkaInputRates()
         operatorParallelisms: {str, int} = self.applicationManager\
             .fetchCurrentOperatorParallelismInformation(self.operators)
@@ -221,17 +221,17 @@ class DS2(Autoscaler):
         subtaskTrueOutputRates: {str, int} = self.applicationManager.gatherSubtaskTrueOutputRates(
             subtaskOutputRates=subtaskOutputRates)
 
-        # print(f"Found the following metrics: \n"
-        #       f"\ttopicKafkaInputRates: {topicKafkaInputRates}\n"
-        #       f"\toperatorParallelisms: {operatorParallelisms}\n"
-        #       f"\tsubtaskInputRates: {subtaskInputRates}\n"
-        #       f"\tsubtaskOutputRates: {subtaskOutputRates}\n"
-        #       f"\tsubtaskTrueProcessingRates: {subtaskTrueProcessingRates}\n"
-        #       f"\tsubtaskTrueOutputRates: {subtaskTrueOutputRates}"
-        # )
+        print(f"Found the following metrics: \n"
+              f"\ttopicKafkaInputRates: {topicKafkaInputRates}\n"
+              f"\toperatorParallelisms: {operatorParallelisms}\n"
+              f"\tsubtaskInputRates: {subtaskInputRates}\n"
+              f"\tsubtaskOutputRates: {subtaskOutputRates}\n"
+              f"\tsubtaskTrueProcessingRates: {subtaskTrueProcessingRates}\n"
+              f"\tsubtaskTrueOutputRates: {subtaskTrueOutputRates}"
+        )
 
         # Writing metrics to file
-        print("\t2. Writing metrics to file")
+        print("Writing metrics to file")
         self.writeOperatorRatesFile(
             topicKafkaInputRates=topicKafkaInputRates,
             operatorParallelisms=operatorParallelisms,
@@ -252,7 +252,7 @@ class DS2(Autoscaler):
         )
 
         # Call DS2 function
-        print("\t3a. Calling DS2 scaling policy.")
+        print("Calling DS2 scaling policy.")
         start_time = timer()
         ds2_model_result = subprocess.run([
             "cargo", "run", "--release", "--bin", "policy", "--",
@@ -262,12 +262,12 @@ class DS2(Autoscaler):
             "--system", "flink"
         ], capture_output=True)
         somethingWentWrong = False
-        print("\t3b. DS2's scaling module took ", timer() - start_time, "s to determine desired parallelisms.")
+        print("DS2's scaling module took ", timer() - start_time, "s to determine desired parallelisms.")
 
         # Fetch DS2's desired parallelisms
-        print("\t4a. Fetching DS2's desired parallelisms")
+        print("Fetching DS2's desired parallelisms")
         output_text = ds2_model_result.stdout.decode("utf-8").replace("\n", "")
-        print(f"\t4b. DS2 provided the following output: {output_text}")
+        print(f"DS2 provided the following output: {output_text}")
         output_text_values = output_text.split(",")
         useful_output = []
         for val in output_text_values:

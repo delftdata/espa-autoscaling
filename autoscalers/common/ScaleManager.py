@@ -122,7 +122,6 @@ class ScaleManager:
         the cooldown period.
         :param currentParallelisms: The per-operator current parallelisms
         :param desiredParallelisms: The per-operator desired parallelisms
-        :param cooldownPeriod: Optional cooldownperiod to be invoked after a scaling operation happens.
         :return: None
         """
         parallelismIntersection = [key for key in currentParallelisms if key in desiredParallelisms]
@@ -211,9 +210,8 @@ class ScaleManager:
         savepointStatus = ""
         savepointPath = ""
         while savepointStatus not in ["COMPLETED", "FAILED"]:
-            savepointStatus, savepointPath = self.metricsGatherer.jobmanagerManager.extractSavePointStatusFromSavePointTriggerJSON(
-                job_id=job_id, trigger_id=trigger_id
-            )
+            savepointStatus, savepointPath = self.metricsGatherer.jobmanagerManager\
+                .extractSavePointStatusFromSavePointTriggerJSON(job_id=job_id, trigger_id=trigger_id)
             time.sleep(1)
             print(f"Savepoint status: {savepointStatus}")
 
