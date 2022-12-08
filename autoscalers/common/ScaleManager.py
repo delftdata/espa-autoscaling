@@ -257,8 +257,8 @@ class ScaleManager:
             yfile.write(template.format(**kwargs))
 
     def __createJobmanagerConfigurationFile(self, desiredParallelisms: {str, int}, savepointPath: str):
-        args = ["standalone-job", "--job-classname", self.configurations.NONREACTIVE_JOB, "--fromSavepoint",
-                savepointPath]
+        args = ["standalone-job", "--slot-sharing", "true", "--job-classname", self.configurations.NONREACTIVE_JOB,
+                "--fromSavepoint", savepointPath]
         for operator in desiredParallelisms.keys():
             parameter = self.configurations.experimentData.getParallelismParameterOfOperator(operator)
             if parameter:

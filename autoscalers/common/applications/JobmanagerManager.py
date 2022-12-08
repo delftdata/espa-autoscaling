@@ -248,7 +248,7 @@ class JobmanagerManager:
             else:
                 if "failure-cause" in operationJson:
                     print(f"Making a savepoint gave the following error: {operationJson['failure-cause']['class']}")
-                    # print(f"Stacktrace: {operationJson['failure-cause']['stack-trace']}")
+                    print(f"Stacktrace: {operationJson['failure-cause']['stack-trace']}")
                 else:
                     print(f"Operation.Location unavailable in savepointJSON: {savePointTriggerJson}")
         return status, savepointLocation
