@@ -70,8 +70,8 @@ class ScaleManager:
             else:
                 return True
 
-
-    def _enforceMinimumParallelismCondition(self, desiredParallelisms: dict[str, int]):
+    @staticmethod
+    def _enforceMinimumParallelismCondition(desiredParallelisms: dict[str, int]):
         """
         Enforce the condition that each operator must use at least one TaskManager.
         :param desiredParallelisms: The per-operator desired parallelisms as a dictionary.
@@ -80,7 +80,6 @@ class ScaleManager:
         for operator, parallelism in desiredParallelisms.items():
             if parallelism < 1:
                 desiredParallelisms[operator] = 1
-
 
     def _calculateParallelismIncludingOverprovisioningFactor(self, parallelism: int,
                                                              overprovisioning_factor: float = None) -> int:

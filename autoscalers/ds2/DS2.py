@@ -68,6 +68,9 @@ class DS2(Autoscaler):
         :param subtaskOutputRates: Per subtask output rate: {"operator subtask_id",  outputRate}
         :return: None
         """
+
+        something_went_wrong = False
+
         with open(self.operatorRatesFileName, 'w+', newline='') as f:
             writer = csv.writer(f)
             header = ["# operator_id", "operator_instance_id", "total_number_of_operator_instances", "epoch_timestamp",
@@ -79,6 +82,11 @@ class DS2(Autoscaler):
             for operator in topicKafkaInputRates.keys():
                 row = [operator, 0, 1, timestamp, 1, 1, 1, 1]
                 writer.writerow(row)
+
+            if len(operatorParallelisms) > min(len(subtaskTrueProcessingRates), len(subtaskOutputRates),
+                                               len(subtaskInputRates), len(subtaskOutputRates)):
+                print("Error: subtask metrics contained less subtasks than operators in the topology.")
+                something_went_wrong = True
 
             for subtask in subtaskInputRates:
                 try:
@@ -98,6 +106,7 @@ class DS2(Autoscaler):
                         row.append(operator)
                         # operator_instance_id
                         row.append(0)
+                        something_went_wrong = True
 
                     # 3. total_number_of_operator_instances
                     if operator in operatorParallelisms:
@@ -106,6 +115,7 @@ class DS2(Autoscaler):
                         print(f"Error: could not find operator '{operator}' in "
                               f"operatorParallelisms '{operatorParallelisms}'")
                         row.append(1)
+                        something_went_wrong = True
 
                     # 4. epoch_timestamp
                     row.append(timestamp)
@@ -117,6 +127,7 @@ class DS2(Autoscaler):
                         print(f"Error: could not find subtask '{subtask}' in "
                               f"subtaskTrueProcessingRates '{subtaskTrueProcessingRates}'")
                         row.append(1)
+                        something_went_wrong = True
 
                     # 6. subtask true_output_rate
                     if subtask in subtaskTrueOutputRates:
@@ -125,6 +136,7 @@ class DS2(Autoscaler):
                         print(f"Error: could not find subtask '{subtask}' in "
                               f"subtaskTrueOutputRates {subtaskTrueOutputRates}'")
                         row.append(1)
+                        something_went_wrong = True
 
                     # 7. subtask observed_processing_rate
                     if subtask in subtaskInputRates:
@@ -133,6 +145,7 @@ class DS2(Autoscaler):
                         print(f"Error: could not find subtask '{subtask}' in "
                               f"subtaskInputRates {subtaskInputRates}'")
                         row.append(1)
+                        something_went_wrong = True
 
                     # 8 subtask observed_output_rate
                     if subtask in subtaskOutputRates:
@@ -141,11 +154,16 @@ class DS2(Autoscaler):
                         print(f"Error: could not find subtask '{subtask}' in "
                               f"subtaskOutputRates {subtaskOutputRates}'")
                         row.append(1)
+                        something_went_wrong = True
 
                     writer.writerow(row)
                 except:
                     print(f"Error: writing metrics of operator '{operator}' failed. Stacktrace:")
                     traceback.print_exc()
+                    something_went_wrong = True
+
+            f.close()
+        return not something_went_wrong
 
     def writeKafkaSourceRatesFile(self, topicKafkaInputRates: {str, int}):
         """
@@ -154,6 +172,7 @@ class DS2(Autoscaler):
         :param topicKafkaInputRates: Metrics including the inputrates of Kafka
         :return: None.
         """
+        something_went_wrong = False
         # write rate files
         with open(self.kafkaSourceRatesFileName, 'w+', newline='') as f:
             writer = csv.writer(f)
@@ -162,9 +181,11 @@ class DS2(Autoscaler):
             for key, value in topicKafkaInputRates.items():
                 row = [key, value]
                 writer.writerow(row)
+            f.close()
+        return not something_went_wrong
 
     def writeTopologyStatusFile(self, operatorParallelisms: {str, int}, topology: [(str, str)],
-                                topicKafkaInputRates: {str, int}):
+                                topicKafkaInputRates: {str, int}) -> bool:
         """
         Write topology to a file. The kafkaTopicInputRates are used to also include the kafka_topics as inputs to DS2.
         The topology should also include the topics.
@@ -172,8 +193,10 @@ class DS2(Autoscaler):
         :param operatorParallelisms: Parallelisms of known operators
         :param topology: Topology including all operators
         :param topicKafkaInputRates: All kafkaTopic Input rates
-        :return:
+        :return: Boolean indicating whether writing went correctly.
         """
+        something_went_wrong = False
+
         # setting number of operators for kafka topic to 1, so it can be used in topology.
         parallelisms = dict(operatorParallelisms)
         for key in topicKafkaInputRates.keys():
@@ -194,6 +217,9 @@ class DS2(Autoscaler):
                 else:
                     print(f"Error: lOperator: '{lOperator}' or rOperator '{rOperator}' not found in "
                           f"operatorParallelisms {operatorParallelisms}")
+                    something_went_wrong = True
+            f.close()
+        return not something_went_wrong
 
     def runAutoscalerIteration(self):
         """
@@ -230,9 +256,10 @@ class DS2(Autoscaler):
               f"\tsubtaskTrueOutputRates: {subtaskTrueOutputRates}"
         )
 
+        writing_succeeded = True
         # Writing metrics to file
-        print("Writing metrics to file")
-        self.writeOperatorRatesFile(
+        print("Writing metrics to file.")
+        writing_succeeded = writing_succeeded and self.writeOperatorRatesFile(
             topicKafkaInputRates=topicKafkaInputRates,
             operatorParallelisms=operatorParallelisms,
             subtaskTrueProcessingRates=subtaskTrueProcessingRates,
@@ -241,62 +268,65 @@ class DS2(Autoscaler):
             subtaskOutputRates=subtaskOutputRates,
         )
 
-        self.writeKafkaSourceRatesFile(
+        writing_succeeded = writing_succeeded and self.writeKafkaSourceRatesFile(
             topicKafkaInputRates=topicKafkaInputRates
         )
 
-        self.writeTopologyStatusFile(
+        writing_succeeded = writing_succeeded and self.writeTopologyStatusFile(
             operatorParallelisms=operatorParallelisms,
             topology=self.topology,
             topicKafkaInputRates=topicKafkaInputRates,
         )
 
         # Call DS2 function
-        print("Calling DS2 scaling policy.")
-        start_time = timer()
-        ds2_model_result = subprocess.run([
-            "cargo", "run", "--release", "--bin", "policy", "--",
-            "--topo", self.topologyStatusFileName,
-            "--rates", self.operatorRatesFileName,
-            "--source-rates", self.kafkaSourceRatesFileName,
-            "--system", "flink"
-        ], capture_output=True)
-        somethingWentWrong = False
-        print("DS2's scaling module took ", timer() - start_time, "s to determine desired parallelisms.")
+        if not writing_succeeded:
+            print("Something went wrong while writing metrics to file. Skipping calling the ds2 iteration.")
+        else:
+            print("Calling DS2 scaling policy.")
+            start_time = timer()
+            ds2_model_result = subprocess.run([
+                "cargo", "run", "--release", "--bin", "policy", "--",
+                "--topo", self.topologyStatusFileName,
+                "--rates", self.operatorRatesFileName,
+                "--source-rates", self.kafkaSourceRatesFileName,
+                "--system", "flink"
+            ], capture_output=True)
+            something_went_wrong = False
+            print("DS2's scaling module took ", timer() - start_time, "s to determine desired parallelisms.")
 
-        # Fetch DS2's desired parallelisms
-        print("Fetching DS2's desired parallelisms")
-        output_text = ds2_model_result.stdout.decode("utf-8").replace("\n", "")
-        print(f"DS2 provided the following output: {output_text}")
-        output_text_values = output_text.split(",")
-        useful_output = []
-        for val in output_text_values:
-            if "topic" not in val:
-                substringsToRemove = [" ", "NodeIndex", "(0)", "(1)", "(2)", "(3)", "(4)", "(5)", "(6)", "(7)", "(8)",
-                                      "(9)", "\""]
-                for substringToRemove in substringsToRemove:
-                    val = val.replace(substringToRemove, "")
-                useful_output.append(val)
+            # Fetch DS2's desired parallelisms
+            print("Fetching DS2's desired parallelisms")
+            output_text = ds2_model_result.stdout.decode("utf-8").replace("\n", "")
+            print(f"DS2 provided the following output: {output_text}")
+            output_text_values = output_text.split(",")
+            useful_output = []
+            for val in output_text_values:
+                if "topic" not in val:
+                    substringsToRemove = [" ", "NodeIndex", "(0)", "(1)", "(2)", "(3)", "(4)", "(5)", "(6)", "(7)", "(8)",
+                                          "(9)", "\""]
+                    for substringToRemove in substringsToRemove:
+                        val = val.replace(substringToRemove, "")
+                    useful_output.append(val)
 
-        desiredParallelisms: {str, int} = {}
-        for i in range(0, len(useful_output), 2):
-            if len(useful_output) > i + 1:
-                operator = useful_output[i]
-                desiredParallelism = math.ceil(float(useful_output[i + 1]))
-                desiredParallelism = max(desiredParallelism, 1)
-                desiredParallelisms[operator] = desiredParallelism
-            else:
-                print(f"Error: useful_output {useful_output} is not large enough to process the next desiredParallelism"
-                      f" i={i}.")
-                somethingWentWrong = True
+            desiredParallelisms: {str, int} = {}
+            for i in range(0, len(useful_output), 2):
+                if len(useful_output) > i + 1:
+                    operator = useful_output[i]
+                    desiredParallelism = math.ceil(float(useful_output[i + 1]))
+                    desiredParallelism = max(desiredParallelism, 1)
+                    desiredParallelisms[operator] = desiredParallelism
+                else:
+                    print(f"Error: useful_output {useful_output} is not large enough to process the next desiredParallelism"
+                          f" i={i}.")
+                    something_went_wrong = True
 
-        if somethingWentWrong:
-            print(f"Getting DS2 prediction went wrong. It gave the following result:\n\n"
-                  f"Output:\n{ds2_model_result.stdout}\n\n"
-                  f"Errors:\n{ds2_model_result.stderr}\n\n"
-                  f"Return code:\n{ds2_model_result.returncode}\n\n")
+            if something_went_wrong:
+                print(f"Getting DS2 prediction went wrong. It gave the following result:\n\n"
+                      f"Output:\n{ds2_model_result.stdout}\n\n"
+                      f"Errors:\n{ds2_model_result.stderr}\n\n"
+                      f"Return code:\n{ds2_model_result.returncode}\n\n")
 
-        print(f"\t5. Desired parallelisms: {desiredParallelisms}")
+            print(f"\t5. Desired parallelisms: {desiredParallelisms}")
 
-        # Scale to desired parallelisms
-        self.scaleManager.performScaleOperations(operatorParallelisms, desiredParallelisms)
+            # Scale to desired parallelisms
+            self.scaleManager.performScaleOperations(operatorParallelisms, desiredParallelisms)

@@ -9,6 +9,3 @@ class HPAConfigurations(Configurations):
     def printConfigurations(self):
         super().printConfigurations()
         print(f"\tHPA_SCALE_DOWN_WINDOW_SECONDS: {self.HPA_SCALE_DOWN_WINDOW_SECONDS}")
-
-
-

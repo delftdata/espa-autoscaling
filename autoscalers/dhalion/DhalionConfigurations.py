@@ -14,4 +14,3 @@ class DhalionConfigurations(Configurations):
         super().printConfigurations()
         print(f"\tDHALION_SCALE_DOWN_FACTOR: {self.DHALION_SCALE_DOWN_FACTOR}")
         print(f"\tDHALION_BUFFER_USAGE_CLOSE_TO_ZERO_THRESHOLD: {self.DHALION_BUFFER_USAGE_CLOSE_TO_ZERO_THRESHOLD}")
-

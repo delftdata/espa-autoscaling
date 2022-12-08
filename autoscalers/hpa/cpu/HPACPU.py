@@ -91,4 +91,3 @@ class HPACPU(HPA):
         print(f"Maximum desired parallelisms: {allMaximumDesiredParallelisms}")
         print(f"Current parallelisms: {currentParallelisms}")
         self.scaleManager.performScaleOperations(currentParallelisms, allMaximumDesiredParallelisms)
-

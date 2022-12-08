@@ -224,7 +224,7 @@ class JobmanagerManager:
         """
         Send a stop request to the jobmanager and get the response and the corresponding savepoint's triggerID.
         :param job_id: Job_id to send a stop-request to.
-        :return: The response from the server, the savepoint's triggerID
+        :return: The response from the server, the savepoint triggerID
         """
         if not job_id:
             job_id = self.getJobId()
@@ -247,8 +247,8 @@ class JobmanagerManager:
                 savepointLocation = operationJson["location"]
             else:
                 if "failure-cause" in operationJson:
-                    print(f"Making a savepoint gave the following error: {operationJson['failure-cause']['class']}: "
-                          f"{operationJson['failure-cause']['stack-trace']}.")
+                    print(f"Making a savepoint gave the following error: {operationJson['failure-cause']['class']}")
+                    # print(f"Stacktrace: {operationJson['failure-cause']['stack-trace']}")
                 else:
                     print(f"Operation.Location unavailable in savepointJSON: {savePointTriggerJson}")
         return status, savepointLocation

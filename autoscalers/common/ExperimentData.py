@@ -1,6 +1,7 @@
 class ExperimentData:
     operator_to_topic_naming = {
         "bidssource": "bids_topic",
+        "auctionsource": "auction_topic",
         "auctionssource": "auction_topic",
         "personsource": "person_topic"
     }
@@ -91,4 +92,3 @@ class ExperimentData:
             if printError:
                 print(f"Error: did not find {operator} in operator_to_parallelism_mapping "
                       f"{self.operator_to_parallelism_mapping}.")
-

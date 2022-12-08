@@ -1,5 +1,3 @@
-import traceback
-
 from common import Configurations
 from .JobmanagerManager import JobmanagerManager
 from .PrometheusManager import PrometheusManager
