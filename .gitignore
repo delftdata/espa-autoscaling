@@ -14,3 +14,4 @@ __pycache__/
 *.class
 *.project
 results/logs/*
+results/snapshots/*

@@ -252,3 +252,31 @@ class JobmanagerManager:
                 else:
                     print(f"Operation.Location unavailable in savepointJSON: {savePointTriggerJson}")
         return status, savepointLocation
+
+    def getUnreadyAutoscalers(self):
+        operator_taskmanager_information = self.getOperatorHostInformation()
+        operators = self.getOperators()
+
+        operator_ready_taskmanagers = []
+        operator_non_ready_taskmanagers = []
+
+        for operator in operators:
+            if operator in operator_taskmanager_information:
+                ready_taskmanagers = []
+                nonready_taskmanagers = []
+                for tm_id, status, duration_ms in operator_taskmanager_information[operator]:
+                    taskmanager = tm_id.replace(".", "_").replace("-", "_")
+                    if status == "RUNNING":
+                        ready_taskmanagers.append(taskmanager)
+                    else:
+                        nonready_taskmanagers.append(taskmanager)
+                operator_ready_taskmanagers[operator] = ready_taskmanagers
+                operator_nonready_taskmanagers[operator] = nonready_taskmanagers
+            else:
+                print(
+                    f"Error: did not find operator '{operator} in operator_taskmanager_information "
+                    f"'{operator_taskmanager_information}'")
+                operator_ready_taskmanagers[operator] = []
+                operator_nonready_taskmanagers[operator] = []
+        return operator_ready_taskmanagers, operator_nonready_taskmanagers
+

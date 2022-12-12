@@ -62,6 +62,13 @@ else
   envsubst < ../yamls/queries/non-reactive/query"${QUERY}"-experiments-jobmanager-non-reactive.yaml | kubectl apply -f -
 fi
 
+# Wait for all pods to start
+while kubectl get pods | grep -i 'ContainerCreating' > /dev/null;
+do
+    sleep 3
+    echo "Waiting for pods to start..."
+done
+
 # Deploy workbench
 export INPUT_RATE_MEAN=$INPUT_RATE_MEAN
 export INPUT_RATE_MAX_DIVERGENCE=$INPUT_RATE_MAX_DIVERGENCE

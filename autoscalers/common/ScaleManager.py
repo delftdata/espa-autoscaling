@@ -225,18 +225,12 @@ class ScaleManager:
         # Create new jobmanager configurations file
         self.__createJobmanagerConfigurationFile(desiredParallelisms, savepointPath)
 
-        # Scale taskmanagers if we need new ones
-        currentTotalTaskmanagers = sum(currentParallelisms.values())
-        desiredTaskmanagers = sum(desiredParallelisms.values())
-        if currentTotalTaskmanagers != desiredTaskmanagers:
-            self.metricsGatherer.kubernetesManager.adaptFlinkTaskmanagersParallelism(desiredTaskmanagers)
-
         # Delete jobmanager job
         self.metricsGatherer.kubernetesManager.deleteJobManager()
         # Wait until jobmanager job is terminated
         self.metricsGatherer.kubernetesManager.waitUntilAllJobmanagerJobsAreRemoved()
 
-        # Delete jobmanager service
+        # Delete jobmanager service (disabled)
         # self.metricsGatherer.kubernetesManager.deleteJobManagerService()
         # Wait until jobmanager service is terminated
         # self.metricsGatherer.kubernetesManager.waitUntilAllJobmanagerServicesAreRemoved()
@@ -245,6 +239,14 @@ class ScaleManager:
         self.metricsGatherer.kubernetesManager.deleteJobManagerPod()
         # Wait until jobmanager pod is terminated
         self.metricsGatherer.kubernetesManager.waitUntilAllJobmanagerPodsAreRemoved()
+
+        # Scale taskmanagers if we need new ones
+        currentTotalTaskmanagers = sum(currentParallelisms.values())
+        desiredTaskmanagers = sum(desiredParallelisms.values())
+        if currentTotalTaskmanagers != desiredTaskmanagers:
+            self.metricsGatherer.kubernetesManager.adaptFlinkTaskmanagersParallelism(desiredTaskmanagers)
+
+        self.metricsGatherer.kubernetesManager.waitUntilAllTaskmanagersAreRunning()
 
         # Deploy a new job with updated parallelisms
         self.metricsGatherer.kubernetesManager.deployNewJobManager(self.nonreactiveJobmanagerSavefile)

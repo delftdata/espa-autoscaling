@@ -197,6 +197,30 @@ class KubernetesManager:
                 command=f"kubectl scale deploy flink-taskmanager --replicas={new_number_of_taskmanagers}"
             )
 
+    def waitUntilAllTaskmanagersAreRunning(self):
+        """
+        Wait until no pod containing the name 'flink-taskmanager' are running.
+        If a list_namespaced_pod request fails, the method is returned.
+        """
+        not_running_taskmanagers: [str] = ["Initializing"]
+        while not_running_taskmanagers:
+            not_running_taskmanagers = []
+            try:
+                response = self.coreV1.list_namespaced_pod(namespace=self.configurations.KUBERNETES_NAMESPACE)
+                for i in response.items:
+                    name = i.metadata.name
+                    if "flink-taskmanager" in name:
+                        phase = i.status.phase
+                        if phase != "Running":
+                            not_running_taskmanagers.append(name)
+                if not_running_taskmanagers:
+                    print(f"Waiting for the following taskmanagers to start running: {not_running_taskmanagers}")
+            except:
+                print("Error: failed fetching information about pods in namespace")
+                traceback.print_exc()
+            time.sleep(1)
+        print("All taskmanager pods are running.")
+
 
     def getCurrentNumberOfTaskmanagersMetrics(self) -> int:
         """

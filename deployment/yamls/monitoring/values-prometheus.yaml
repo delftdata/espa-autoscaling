@@ -16,6 +16,16 @@ pushgateway:
 server:
   persistentVolume:
     enabled: false
+  extraFlags:
+#    - web.enable-lifecycle
+    ## web.enable-admin-api flag controls access to the administrative HTTP API which includes functionality such as
+    ## deleting time series. This is disabled by default.
+    - web.enable-admin-api
+    ## storage.tsdb.no-lockfile flag controls BD locking
+#    - storage.tsdb.no-lockfile
+    ## storage.tsdb.wal-compression flag enables compression of the write-ahead log (WAL)
+#    - storage.tsdb.wal-compression
+  storagePath: "/prometheus/"
 
 # | is required because extraScrapeConfigs is expected to be a string
 extraScrapeConfigs: |
