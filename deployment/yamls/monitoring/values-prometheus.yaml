@@ -16,6 +16,9 @@ pushgateway:
 server:
   persistentVolume:
     enabled: false
+  extraFlags:
+    - web.enable-admin-api
+  storagePath: "/prometheus/"
 
 # | is required because extraScrapeConfigs is expected to be a string
 extraScrapeConfigs: |

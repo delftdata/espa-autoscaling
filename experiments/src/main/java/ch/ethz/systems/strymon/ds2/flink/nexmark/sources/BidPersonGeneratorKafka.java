@@ -19,24 +19,12 @@
 package ch.ethz.systems.strymon.ds2.flink.nexmark.sources;
 
 import ch.ethz.systems.strymon.ds2.flink.nexmark.sources.LoadPattern.*;
-import org.apache.beam.sdk.nexmark.NexmarkConfiguration;
-import org.apache.beam.sdk.nexmark.sources.generator.GeneratorConfig;
-import org.apache.beam.sdk.nexmark.sources.generator.model.AuctionGenerator;
-import org.apache.beam.sdk.nexmark.sources.generator.model.BidGenerator;
-import org.apache.beam.sdk.nexmark.sources.generator.model.PersonGenerator;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.flink.api.java.utils.ParameterTool;
-import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerRecord;
-
-import javax.naming.ConfigurationException;
 import java.text.ParseException;
-import java.util.List;
-import java.util.Properties;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 
 
 /*
@@ -113,9 +101,19 @@ import java.util.Set;
  *                Generate person topic events. Default value: false
  *          enable-auction-topic (false): BOOLEAN
  *                Generate auction topic events. Default value: false
- *     Optional parameters
+ *      Optional parameters
  *          kafka-server: STRING ("kafka-service:9092")
  *                Kafka server location. Default value: "kafka-service:9092"
+ *
+ *   Generator setup
+ *          iteration-duration-ms (60000): Int
+ *                Duration of an iteration in ms. An iteration is the period in which a specific input rate from the
+ *                load pattern is being generated. Default value: 60_000ms.
+ *          epoch-duration-ms (1000): Int
+ *                Duration of an epoch in ms. iteration_duration_ms should be dividable by epoch-duration-ms for the
+ *                best generator-performance.
+ *          generatorParallelism (1): Int
+ *                Amount of threads that running simultaneously while generating data. Default value: 1.
  *
  *    Other
  *      Optional parameters
@@ -132,8 +130,6 @@ import java.util.Set;
 @SuppressWarnings("ALL")
 public class BidPersonGeneratorKafka {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-    private final GeneratorConfig config;
 
     private volatile boolean running = true;
 
@@ -141,111 +137,14 @@ public class BidPersonGeneratorKafka {
 
     private boolean debuggingEnabled = false;
 
-    public BidPersonGeneratorKafka() {
-        this.config = new GeneratorConfig(
-                NexmarkConfiguration.DEFAULT,
-                1,
-                1000L,
-                0,
-                1
-        );
-    }
-
     public void log(String message) {
         if (this.debuggingEnabled) {
             System.out.println(message);
         }
     }
 
-    public int getExperimentRate(long startTime, List<Integer> loadPattern){
-        int elapsed_minutes = (int)Math.floor((double) ((System.currentTimeMillis() - startTime) / 60000));
-        // Repeat the pattern if the experiment is not stopped yet.
-        elapsed_minutes  = elapsed_minutes % loadPattern.size();
-        return loadPattern.get(elapsed_minutes);
-    }
-
-
-    /**
-     * Generate a bid event and write it to producer on auctionTopic
-     * @param producer Producer to write even to
-     * @param auctionTopic Topic of event
-     * @throws Exception Exception caused by objectMapper (JsonException)
-     */
-    private long eventsCountSoFarBid = 0;
-    private long nextIdBid() {
-        return config.firstEventId + this.config.nextAdjustedEventNumber(this.eventsCountSoFarBid);
-    }
-    public void generateBidEvent(Producer<String, byte[]> producer, String bidsTopic) throws Exception {
-        long nextId = nextIdBid();
-        Random rnd = new Random(nextId);
-
-        // When, in event time, we should generate the event. Monotonic.
-        long eventTimestamp = config.timestampAndInterEventDelayUsForEvent(
-                config.nextEventNumber(this.eventsCountSoFarBid)
-        ).getKey();
-
-        producer.send(new ProducerRecord<String, byte[]>(
-                bidsTopic,
-                objectMapper.writeValueAsBytes(BidGenerator.nextBid(nextId, rnd, eventTimestamp, config))
-        ));
-        this.eventsCountSoFarBid++;
-    }
-
-    /**
-     * Generate a person event and write it to producer on auctionTopic
-     * @param producer Producer to write even to
-     * @param auctionTopic Topic of event
-     * @throws Exception Exception caused by objectMapper (JsonException)
-     */
-    private long eventsCountSoFarPerson = 0;
-    private long nextIdPerson() {
-        return config.firstEventId + this.config.nextAdjustedEventNumber(eventsCountSoFarPerson);
-    }
-    public void generatePersonEvent(Producer<String, byte[]> producer, String personTopic) throws Exception {
-        long eventTimestamp = config.timestampAndInterEventDelayUsForEvent(
-                config.nextEventNumber(this.eventsCountSoFarPerson)
-        ).getKey();
-
-        long nextId = nextIdPerson();
-        Random rnd = new Random(nextId);
-        producer.send(new ProducerRecord<String, byte[]>(
-                personTopic,
-                this.objectMapper.writeValueAsBytes(PersonGenerator.nextPerson(nextId, rnd, eventTimestamp, config))
-        ));
-        this.eventsCountSoFarPerson++;
-    }
-
-    /**
-     * Generate an auction event and write it to producer on auctionTopic
-     * @param producer Producer to write even to
-     * @param auctionTopic Topic of event
-     * @throws Exception Exception caused by objectMapper (JsonException)
-     */
-    private long eventsCountSoFarAuctions = 0;
-    private long nextIdAuctions() {
-        return config.firstEventId + this.config.nextAdjustedEventNumber(eventsCountSoFarAuctions);
-    }
-    public void generateAuctionEvent(Producer<String, byte[]> producer, String auctionTopic) throws Exception {
-        long eventTimestamp =
-                config.timestampAndInterEventDelayUsForEvent(
-                        config.nextEventNumber(this.eventsCountSoFarAuctions)).getKey();
-        long nextId = nextIdAuctions();
-        Random rnd = new Random(nextId);
-        producer.send(new ProducerRecord<String, byte[]>(
-                auctionTopic,
-                this.objectMapper.writeValueAsBytes(AuctionGenerator.nextAuction(
-                        eventsCountSoFarAuctions,
-                        nextId,
-                        rnd,
-                        eventTimestamp,
-                        config
-                ))
-        ));
-        this.eventsCountSoFarAuctions++;
-    }
-
-
-    public LoadPattern getCosineLoadPattern(int query, int experimentLength, boolean useDefaultConfigurations, ParameterTool params) {
+    public LoadPattern getCosineLoadPattern(int query, int experimentLength, boolean useDefaultConfigurations,
+                                            ParameterTool params) {
         /**
          * Custom paramters:
          *   cosine-period: INT
@@ -331,6 +230,7 @@ public class BidPersonGeneratorKafka {
             return new RandomLoadPattern(query, experimentLength, initialInputRate, minDivergence, maxDivergence);
         }
     }
+
     public LoadPattern getIncreaseLoadPattern(int query, int experimentLength, boolean useDefaultConfigurations) {
         /**
          * Custom paramters:
@@ -358,11 +258,13 @@ public class BidPersonGeneratorKafka {
     public LoadPattern getTestRun_ScaleUp() {
         return new TestrunLoadPattern(true);
     }
+
     public LoadPattern getTestRun_ScaleDown() {
         return new TestrunLoadPattern(false);
     }
 
-    public LoadPattern getTestRun(int query, int experimentLength, boolean useDefaultConfigurations, ParameterTool params)  {
+    public LoadPattern getTestRun(int query, int experimentLength, boolean useDefaultConfigurations,
+                                  ParameterTool params)  {
         /**
          * Custom paramters:
          * - inputrate0: int
@@ -438,13 +340,11 @@ public class BidPersonGeneratorKafka {
         return loadPattern;
     }
 
-
-
-
     public void run(String[] args) throws Exception {
         final ParameterTool params = ParameterTool.fromArgs(args);
         this.debuggingEnabled = params.getBoolean("debugging", false);
         this.log("Set debuggingEnabled to " + this.debuggingEnabled + ".");
+
         /**
          * Load pattern generation
          */
@@ -452,70 +352,56 @@ public class BidPersonGeneratorKafka {
         List<Integer> loadPattern = loadPatternConfiguration.getLoadPattern().f1;
         if (this.debuggingEnabled) { loadPatternConfiguration.plotLoadPattern(); }
 
-        /***
-         * Kafka configuration
-         */
+        String kafkaServer = params.get("kafka-server", "kafka-service:9092");
+
         boolean bidsTopicEnabled = params.getBoolean("enable-bids-topic", false);
         boolean personTopicEnabled = params.getBoolean("enable-person-topic", false);
         boolean auctionTopicEnabled = params.getBoolean("enable-auction-topic", false);
-        int amountOfTopics = (bidsTopicEnabled ? 1 : 0) + (personTopicEnabled ? 1 : 0 + (auctionTopicEnabled ? 1 : 0));
-        if (amountOfTopics < 1) {
+
+        if (!bidsTopicEnabled && !personTopicEnabled && !auctionTopicEnabled) {
             bidsTopicEnabled = true;
             System.out.println("Warning: No topics are enabled. Bids topic is enabled by default.");
         }
+        System.out.println("The following topics are enabled:" + (bidsTopicEnabled ? " bids-topic": "")
+                + (personTopicEnabled ? " person-topic": "")  + (auctionTopicEnabled ? " auction-topic": "")
+        );
 
-        String kafka_server = params.get("kafka-server", "kafka-service:9092");
+        int epochDurationMs = params.getInt("epoch-duration-ms", 100);
+        int iterationDurationMs = params.getInt("iteration-duration-ms", 60_000);
+        if (iterationDurationMs % epochDurationMs != 0) {
+            System.out.println("Warning: for most accurate performance, iterationDurationMs (" + iterationDurationMs +
+                    "ms) should be dividable by epoch-duration-ms (" + epochDurationMs + "ms)");
+        }
+
+        int generatorParallelism = params.getInt("generator-parallelism", 1);
 
         Set<String> remainingParameters = params.getUnrequestedParameters();
         if (remainingParameters.size() > 0) {
             System.out.println("Warning: did not recognize the following parameters: " + String.join(",", remainingParameters));
         }
 
-        Properties props = new Properties();
-        props.put("bootstrap.servers", kafka_server);
-        props.put("acks", "1");
-        props.put("retries", "0");
-        props.put("linger.ms", "10");
-        props.put("compression.type", "lz4");
-        props.put("batch.size", "50000");
-        props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-        props.put("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
-        Producer<String, byte[]> producer = new KafkaProducer<>(props);
-
+        System.out.println("Instantiating generators with parallelism[" + generatorParallelism + "] iterationtime[" +
+                iterationDurationMs + "ms] epochduration[" + epochDurationMs + "ms]." );
 
         /**
-         * Run workbench
+         * Beginning event generation
          */
+        // Creating producer
+
+        BidPersonAuctionSourceParallelManager sourceManager = new BidPersonAuctionSourceParallelManager(kafkaServer,
+                epochDurationMs, personTopicEnabled, auctionTopicEnabled, bidsTopicEnabled, generatorParallelism);
+
+        // Starting iteration
         long start_time = System.currentTimeMillis();
-        System.out.println("Starting data generation");
-        while (((System.currentTimeMillis() - start_time) / 60000) < loadPatternConfiguration.getLoadPatternPeriod()) {
-            long emitStartTime = System.currentTimeMillis();
-
-            int current_rate = getExperimentRate(start_time, loadPattern);
-            for (int i = 0; i < current_rate; i += amountOfTopics) {
-                try {
-                    if (bidsTopicEnabled) {
-                        this.generateBidEvent(producer, "bids_topic");
-                    }
-                    if (personTopicEnabled) {
-                        this.generatePersonEvent(producer, "person_topic");
-                    }
-                    if (auctionTopicEnabled) {
-                        this.generateAuctionEvent(producer, "auction_topic");
-                    }
-                }
-                catch (Exception e){
-                    e.printStackTrace();
-                }
-
-
-                // Sleep for the rest of timeslice if needed
-                long emitTime = System.currentTimeMillis() - emitStartTime;
-                if (emitTime < 1000) {
-                    Thread.sleep(1000 - emitTime);
-                }
-            }
+        // While the loadPatternPeriod is not over
+        for (int iteration = 0; iteration < loadPatternConfiguration.getLoadPatternPeriod(); iteration++) {
+            int iterationInputRatePerSecond = loadPattern.get(iteration);
+            System.out.println("Starting iteration " + iteration + " with " + iterationInputRatePerSecond + "r/s after " +
+                    (System.currentTimeMillis() - start_time) / 1000 + "s");
+            sourceManager.runGeneratorsForPeriod(iterationInputRatePerSecond, iterationDurationMs);
         }
+        System.out.println("Finished workbench execution after " +  (System.currentTimeMillis() - start_time) / 1000 +
+                " at time "+ System.currentTimeMillis() / 1000 + "s");
     }
 
     public static void main(String[] args){

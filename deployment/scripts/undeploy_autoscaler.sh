@@ -1,41 +1,21 @@
 #!/bin/bash
 
-AUTOSCALER=$1 #{dhalion, ds2-original, ds2-updated, HPA, varga1, varga2}
+AUTOSCALER=$1 #{dhalion, ds2, hpa-cpu hpa-varga, }
 MODE=$2 #{reactive, non-reactive}
-echo "Undeploying autoscaler: $AUTOSCALER"
 
-#kubectl wait --timeout=4m --for=condition=ready statefulset --all
+if [ "$AUTOSCALER" == "dhalion" ] || [ "$AUTOSCALER" == "ds2" ] || [ "$AUTOSCALER" == "hpa-cpu" ]
+then
+  echo "Undeploying autoscaler $AUTOSCALER with mode $MODE."
+else
+  echo "Autoscaler $AUTOSCALER was not recognized. Canceling autoscaler undeployment."
+  exit 1
+fi
 
-case $AUTOSCALER in
-  "dhalion")
-    kubectl delete --wait=true -f ../yamls/autoscalers/dhalion/dhalion_rbac_rules.yaml
-    kubectl delete --wait=true -f ../yamls/autoscalers/dhalion/dhalion-deployment_v2.yaml
-  ;;
-  "ds2-original")
-    kubectl delete --wait=true -f ../yamls/autoscalers/ds2/rules_ds2.yaml
-    kubectl delete --wait=true -f ../yamls/autoscalers/ds2/ds2-original-"$MODE".yaml
-  ;;
-  "ds2-updated")
-    kubectl delete --wait=true -f ../yamls/autoscalers/ds2/rules_ds2.yaml
-    kubectl delete --wait=true -f ../yamls/autoscalers/ds2/ds2-updated-"$MODE".yaml
-  ;;
-  "HPA")
-    kubectl delete --wait=true -f ../yamls/autoscalers/hpa/hpa-rbac-rules.yaml
-    kubectl delete --wait=true -f ../yamls/autoscalers/hpa/hpa-cpu-"$MODE".yaml
-  ;;
-  "varga1")
-    helm repo remove prometheus-community
-    helm uninstall my-release
-    kubectl delete --wait=true -f ../yamls/monitoring/prometheus-adapter-config.yaml
-    kubectl delete --wait=true -f ../yamls/monitoring/adapter-deployment.yaml
-    kubectl delete --wait=true -f ../yamls/autoscalers/varga/varga_HPA.yaml
-  ;;
-  "varga2")
-    helm repo remove prometheus-community
-    helm uninstall my-release
-    kubectl delete --wait=true -f ../yamls/monitoring/prometheus-adapter-config_varga_v2.yaml
-    kubectl delete --wait=true -f ../yamls/monitoring/adapter-deployment.yaml
-    kubectl delete --wait=true -f ../yamls/autoscalers/varga/varga_HPA.yaml
-  ;;
-  *)
-esac
+if [ "$MODE" == "reactive" ]
+then
+  kubectl delete --wait=true -f ../yamls/autoscalers/autoscaler_reactive_rbac_rules.yaml
+  kubectl delete --wait=true -f ../yamls/autoscalers/"${AUTOSCALER}"/deployment_"${AUTOSCALER}"_reactive.yaml
+else
+  kubectl delete --wait=true -f ../yamls/autoscalers/autoscaler_non_reactive_rbac_rules.yaml
+  kubectl delete --wait=true -f ../yamls/autoscalers/"${AUTOSCALER}"/deployment_"${AUTOSCALER}"_non-reactive.yaml
+fi

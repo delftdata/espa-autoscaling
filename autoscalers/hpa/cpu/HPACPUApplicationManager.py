@@ -39,7 +39,8 @@ class HPACPUApplicationManager(ApplicationManager):
     def gatherCPUUsageOfTaskmanagers(self, taskmanagers: [str], taskmanager_CPUUsages=None) -> [float]:
         """
         Given a list of taskmanagers. Fetch their CPU_usage and add them to a list.
-        If CPU_usage is unavailable, add taskmanager_unavailable_value. Add nothing if taskmanager_unavailable_value is None.
+        If CPU_usage is unavailable, add taskmanager_unavailable_value. Add nothing if taskmanager_unavailable_value is
+        None.
         :param taskmanagers: Taskmanagers to fetch CPU usage from
         :param taskmanager_CPUUsages: Optional variable containing all taskmanagers CPU usages
         :return: List of CPU_values belonging to the taskmanagers

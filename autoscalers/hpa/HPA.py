@@ -75,8 +75,8 @@ class HPA(Autoscaler, ABC):
             allMaximumParallelisms[operator] = self.__getMaximumParallelismOfOperatorFromWindow(operator)
         return allMaximumParallelisms
 
-
-    def calculateScaleRatio(self, current_metric_variable: float, target_metric_variable: float):
+    @staticmethod
+    def calculateScaleRatio(current_metric_variable: float, target_metric_variable: float):
         """
         Calcualte the scale ratio based on the current_metric_variable and the target_metric_variable
         :param current_metric_variable: Current metric variable
@@ -86,8 +86,8 @@ class HPA(Autoscaler, ABC):
         scaleRatio = current_metric_variable / target_metric_variable
         return scaleRatio
 
-
-    def calculateDesiredParallelism(self, scale_factor: float, current_parallelism):
+    @staticmethod
+    def calculateDesiredParallelism(scale_factor: float, current_parallelism):
         """
         Based on the scale_factor and the current_parallelism. Determine the desired parallelism.
         The desired_parallelism should be in range between (MIN_PARALLELISM and MAX_PARALLELISM)

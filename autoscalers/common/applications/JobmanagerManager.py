@@ -19,20 +19,6 @@ class JobmanagerManager:
         """
         self.configurations = configurations
 
-    @staticmethod
-    def __stripOperatorName(operatorName: str):
-        """
-        The operator names of Prometheus differ from the Jobmanager. While the jobmanager supports " ", ".", and "-",
-        Prometheus presents the characters as a "_". To ensure compatibility between the prometheus metrics and the
-        jobmanager metrics, characters in the operator names are replaced with "_".
-        :param operatorName: Operatorname to replace characters with.
-        :return: Operator name that has all forbidden characters replaced with a "_"
-        """
-        unsupportedCharacters = ["-&gt", " ", ",", ".", "-", ";", "/", ">"]
-        for unsupportedCharacter in unsupportedCharacters:
-            operatorName = operatorName.replace(unsupportedCharacter, "_")
-        return operatorName
-
     def getJobId(self) -> int:
         """
         Get get the first ID of the listed jobs on the jobmanager.
@@ -117,7 +103,8 @@ class JobmanagerManager:
         verticeJSONs = self.__getVerticeJSONs(job_id, job)
         taskmanagerMapping = {}
         for verticeJSON in verticeJSONs:
-            operatorName = self.__stripOperatorName(verticeJSON['name'])
+            operatorName = self.configurations.experimentData\
+                .convertOperatorNameToPrometheusOperatorName(verticeJSON['name'])
             taskmanager_information = []
             for subtask_json in verticeJSON['subtasks']:
                 taskmanager_information.append((subtask_json['taskmanager-id'], subtask_json['status'],
@@ -134,7 +121,8 @@ class JobmanagerManager:
         if not jobPlan:
             jobPlan = self.__getJobPlanJson()
         node_json = jobPlan['plan']['nodes']
-        nodes = list(map(lambda node: self.__stripOperatorName(node['description']), node_json))
+        nodes = list(map(lambda node: self.configurations.experimentData
+                         .convertOperatorNameToPrometheusOperatorName(node['description']), node_json))
         return nodes
 
     def getIdOperatorMapping(self, jobPlan=None) -> {str, int}:
@@ -148,7 +136,8 @@ class JobmanagerManager:
         node_json = jobPlan['plan']['nodes']
         operator_id_mapping: {str, str} = {}
         for n in node_json:
-            operator_name = self.__stripOperatorName(n['description'])
+            operator_name = self.configurations.experimentData\
+                .convertOperatorNameToPrometheusOperatorName(n['description'])
             operator_id = n['id']
             operator_id_mapping[operator_id] = operator_name
         return operator_id_mapping
@@ -164,7 +153,8 @@ class JobmanagerManager:
         nodes = jobPlan['plan']['nodes']
         parallelisms: {str, int} = {}
         for node in nodes:
-            nodeName = self.__stripOperatorName(node['description'])
+            nodeName = self.configurations.experimentData\
+                .convertOperatorNameToPrometheusOperatorName(node['description'])
             nodeParallelism = node['parallelism']
             parallelisms[nodeName] = nodeParallelism
         return parallelisms
@@ -181,12 +171,15 @@ class JobmanagerManager:
 
         topology: [(str, str)] = []
         for node_json in jobPlan['plan']['nodes']:
-            node_name = self.__stripOperatorName(node_json['description'])
+            node_name = self.configurations.experimentData\
+                .convertOperatorNameToPrometheusOperatorName(node_json['description'])
             if "inputs" in node_json:
                 for edge_in_json in node_json['inputs']:
                     edge_in_operator_id = edge_in_json['id']
                     if edge_in_operator_id in id_operator_mapping.keys():
-                        node_in_name = self.__stripOperatorName(id_operator_mapping[edge_in_operator_id])
+                        node_in_name = self.configurations.experimentData\
+                            .convertOperatorNameToPrometheusOperatorName(
+                            id_operator_mapping[edge_in_operator_id])
                         topology.append((node_in_name, node_name))
         return topology
 
@@ -211,7 +204,8 @@ class JobmanagerManager:
         :param trigger_id: Trigger_id of the triggered savepoint.
         :return: Json with all information regarding the trigger
         """
-        savepoint_json = requests.get(f"http://{self.configurations.FLINK_JOBMANAGER_SERVER}/jobs/{job_id}/savepoints/{trigger_id}").json()
+        savepoint_json = requests.get(f"http://{self.configurations.FLINK_JOBMANAGER_SERVER}/jobs/{job_id}/savepoints/"
+                                      f"{trigger_id}").json()
         return savepoint_json
 
 
@@ -230,7 +224,7 @@ class JobmanagerManager:
         """
         Send a stop request to the jobmanager and get the response and the corresponding savepoint's triggerID.
         :param job_id: Job_id to send a stop-request to.
-        :return: The response from the server, the savepoint's triggerID
+        :return: The response from the server, the savepoint triggerID
         """
         if not job_id:
             job_id = self.getJobId()
@@ -245,26 +239,44 @@ class JobmanagerManager:
         :return: The status of the savepointing process.
         """
         savePointTriggerJson = self.getSavePointTriggerJSON(job_id=job_id, trigger_id=trigger_id)
-
         status = savePointTriggerJson["status"]["id"]
-        return status
-
-    def extractSavePointPathFromSavePointTriggerJSON(self, job_id, trigger_id):
-        """
-        Extract the location of the stored savepoint with trigger_id for the designated job.
-        :param job_id: The job_id of the job for which the savepoint is created.
-        :param trigger_id: Trigger_id of the triggered savepoint.
-        :return: The path to the savepoint.
-        """
-        savePointTriggerJson = self.getSavePointTriggerJSON(job_id=job_id, trigger_id=trigger_id)
-        operationJson = savePointTriggerJson['operation']
-        if "location" in operationJson:
-            location = operationJson["location"]
-            return location
-        else:
-            if "failure-cause" in operationJson:
-                print(f"Making a savepoint gave the following error: {operationJson['failure-cause']['class']}: "
-                      f"{operationJson['failure-cause']['stack-trace']}.")
+        savepointLocation = ""
+        if status == "COMPLETED":
+            operationJson = savePointTriggerJson['operation']
+            if "location" in operationJson:
+                savepointLocation = operationJson["location"]
             else:
-                print(f"Operation.Location unavailable in savepointJSON: {savePointTriggerJson}")
-            return None
+                if "failure-cause" in operationJson:
+                    print(f"Making a savepoint gave the following error: {operationJson['failure-cause']['class']}")
+                    print(f"Stacktrace: {operationJson['failure-cause']['stack-trace']}")
+                else:
+                    print(f"Operation.Location unavailable in savepointJSON: {savePointTriggerJson}")
+        return status, savepointLocation
+
+    def getUnreadyAutoscalers(self):
+        operator_taskmanager_information = self.getOperatorHostInformation()
+        operators = self.getOperators()
+
+        operator_ready_taskmanagers = []
+        operator_non_ready_taskmanagers = []
+
+        for operator in operators:
+            if operator in operator_taskmanager_information:
+                ready_taskmanagers = []
+                nonready_taskmanagers = []
+                for tm_id, status, duration_ms in operator_taskmanager_information[operator]:
+                    taskmanager = tm_id.replace(".", "_").replace("-", "_")
+                    if status == "RUNNING":
+                        ready_taskmanagers.append(taskmanager)
+                    else:
+                        nonready_taskmanagers.append(taskmanager)
+                operator_ready_taskmanagers[operator] = ready_taskmanagers
+                operator_nonready_taskmanagers[operator] = nonready_taskmanagers
+            else:
+                print(
+                    f"Error: did not find operator '{operator} in operator_taskmanager_information "
+                    f"'{operator_taskmanager_information}'")
+                operator_ready_taskmanagers[operator] = []
+                operator_nonready_taskmanagers[operator] = []
+        return operator_ready_taskmanagers, operator_nonready_taskmanagers
+

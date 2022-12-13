@@ -175,7 +175,6 @@ class PrometheusManager:
         kafkaInputRate = self.__extract_per_topic_metrics(kafkaInputRate_data)
         return kafkaInputRate
 
-
     #######################################################
     # Subtask subtraction
     @staticmethod

@@ -72,44 +72,45 @@ public class Query5KafkaSource {
         // enable latency tracking
         // env.getConfig().setLatencyTrackingInterval(5000);
 
-        final int max_parallelism_source = params.getInt("source-max-parallelism", 20);
-
         KafkaSource<Bid> source =
-            KafkaSource.<Bid>builder()
-                .setBootstrapServers("kafka-service:9092")
-                .setTopics("bids_topic")
-                .setGroupId("consumer_group")
-                .setProperty("fetch.min.bytes", "1000")
-                .setStartingOffsets(OffsetsInitializer.committedOffsets(OffsetResetStrategy.EARLIEST))
-                .setValueOnlyDeserializer(new BidDeserializationSchema())
-                .build();
+                KafkaSource.<Bid>builder()
+                        .setBootstrapServers("kafka-service:9092")
+                        .setTopics("bids_topic")
+                        .setGroupId("consumer_group")
+                        .setProperty("fetch.min.bytes", "1000")
+                        .setStartingOffsets(OffsetsInitializer.committedOffsets(OffsetResetStrategy.EARLIEST))
+                        .setValueOnlyDeserializer(new BidDeserializationSchema())
+                        .build();
 
         DataStream<Bid> bids = env.fromSource(source, WatermarkStrategy.noWatermarks(), "BidsSource")
                 .slotSharingGroup(sourceSSG)
-                .setParallelism(params.getInt("p-bid-source", 1))
-                .setMaxParallelism(max_parallelism_source)
+                .setParallelism(params.getInt("p-bids-source", 1))
                 .assignTimestampsAndWatermarks(new TimestampAssigner())
                 .slotSharingGroup(sourceSSG)
-                .uid("BidsSource");
+                .uid("BidsSource")
+                .name("BidsTimestampAssigner");
 
         // SELECT B1.auction, count(*) AS num
         // FROM Bid [RANGE 60 MINUTE SLIDE 1 MINUTE] B1
         // GROUP BY B1.auction
         DataStream<Tuple2<Long, Long>> windowed = bids.keyBy(new KeySelector<Bid, Long>() {
-            @Override
-            public Long getKey(Bid bid) throws Exception {
-                return bid.auction;
-            }
-        }).timeWindow(Time.minutes(60), Time.minutes(1))
+                    @Override
+                    public Long getKey(Bid bid) throws Exception {
+                        return bid.auction;
+                    }
+                }).timeWindow(Time.minutes(60), Time.minutes(1))
                 .aggregate(new CountBids())
-                .name("Sliding Window")
+                .name("WindowCount")
+                .uid("WindowCount")
                 .setParallelism(params.getInt("p-window", 1))
                 .slotSharingGroup(windowSSG);
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         windowed.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
-                .setParallelism(params.getInt("p-window", 1))
-                .slotSharingGroup(sinkSSG);
+                .setParallelism(params.getInt("p-sink", 1))
+                .slotSharingGroup(sinkSSG)
+                .name("LatencySink")
+                .uid("LatencySink");
 
         // execute program
         env.execute("Nexmark Query5 with a Kafka Source");

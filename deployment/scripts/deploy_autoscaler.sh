@@ -1,54 +1,28 @@
 #!/bin/bash
 
-AUTOSCALER=$1 #{dhalion, ds2-original, ds2-updated, HPA, varga1, varga2}
-METRIC=$2
-QUERY=$3
-MODE=$4 #{reactive, non-reactive}
-echo "Deploying autoscaler: $AUTOSCALER with metric $METRIC and query $QUERY"
-export METRIC=$METRIC
-export QUERY=$QUERY
+AUTOSCALER=$1 #{dhalion, ds2, hpa-cpu hpa-varga, }
+QUERY=$2
+MODE=$3 #{reactive, non-reactive}
+AVAILABLE_TASKMANAGERS=$4
 
-#kubectl wait --timeout=4m --for=condition=ready statefulset --all
+if [ "$AUTOSCALER" == "dhalion" ] || [ "$AUTOSCALER" == "ds2" ] || [ "$AUTOSCALER" == "hpa-cpu" ]
+then
+  echo "Deploying autoscaler $AUTOSCALER on query $QUERY with mode $MODE setting available_taskmanagers=$AVAILABLE_TASKMANAGERS"
+else
+  echo "Autoscaler $AUTOSCALER was not recognized. Canceling autoscaler deployment"
+  exit 1
+fi
 
-case $AUTOSCALER in
-  "dhalion")
-    kubectl apply -f ../yamls/autoscalers/dhalion/dhalion_rbac_rules.yaml
-    envsubst < ../yamls/autoscalers/dhalion/dhalion-deployment_v2.yaml | kubectl apply -f -
-    ;;
-  "ds2-original")
-    kubectl apply -f ../yamls/autoscalers/ds2/rules_ds2.yaml
-    envsubst < ../yamls/autoscalers/ds2/ds2-original-"$MODE".yaml | kubectl apply -f -
-    ;;
-  "ds2-updated")
-    kubectl apply -f ../yamls/autoscalers/ds2/rules_ds2.yaml
-    envsubst < ../yamls/autoscalers/ds2/ds2-updated-"$MODE".yaml | kubectl apply -f -
-    ;;
-  "HPA")
-    kubectl apply -f ../yamls/autoscalers/hpa/hpa-rbac-rules.yaml
-    envsubst < ../yamls/autoscalers/hpa/hpa-cpu-"$MODE".yaml | kubectl apply -f -
-    ;;
-  "varga1")
-    helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-    helm repo update
-    helm install my-release prometheus-community/prometheus-adapter
-    kubectl delete deployment/my-release-prometheus-adapter
-    kubectl apply -f ../yamls/monitoring/prometheus-adapter-config.yaml
-    kubectl apply -f ../yamls/monitoring/adapter-deployment.yaml
-    #  kubectl wait --timeout=4m --for=condition=ready statefulset --all
-    envsubst < ../yamls/autoscalers/varga/varga_HPA.yaml | kubectl apply -f -
-    ;;
-  "varga2")
-    helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-    helm repo update
-    helm install my-release prometheus-community/prometheus-adapter
-    kubectl delete deployment/my-release-prometheus-adapter
-    kubectl apply -f ../yamls/monitoring/prometheus-adapter-config_varga_v2.yaml
-    kubectl apply -f ../yamls/monitoring/adapter-deployment.yaml
-    #  kubectl wait --timeout=4m --for=condition=ready statefulset --all
-    envsubst < ../yamls/autoscalers/varga/varga_HPA.yaml | kubectl apply -f -
-    ;;
-  *)
-esac
+export AVAILABLE_TASKMANAGERS=$AVAILABLE_TASKMANAGERS
+if [ "$MODE" == "reactive" ]
+then
+  kubectl apply -f ../yamls/autoscalers/autoscaler_reactive_rbac_rules.yaml
+  envsubst < ../yamls/autoscalers/"${AUTOSCALER}"/deployment_"${AUTOSCALER}"_reactive.yaml | kubectl apply -f -
+else
+  kubectl apply -f ../yamls/autoscalers/autoscaler_non_reactive_rbac_rules.yaml
+  export QUERY=$QUERY
+  envsubst < ../yamls/autoscalers/"${AUTOSCALER}"/deployment_"${AUTOSCALER}"_non-reactive.yaml | kubectl apply -f -
+fi
 
 
 

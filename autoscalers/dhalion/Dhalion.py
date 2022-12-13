@@ -43,7 +43,7 @@ class Dhalion(Autoscaler, ABC):
         return self.desiredParallelisms
 
 
-    def queueSizeisCloseToZero(self, operator: str, inputQueueMetrics: {str, float}):
+    def queueSizeIsCloseToZero(self, operator: str, inputQueueMetrics: {str, float}):
         """
         Check whether the queuesize of operator {operator} is close to zero.
         This is done by taking the inputQueue size of the operator and check whether it is smaller than
@@ -51,7 +51,6 @@ class Dhalion(Autoscaler, ABC):
         :param operator: Operator to check the queueSize for
         :param inputQueueMetrics: Directory of inputQueueMetrics with OperatorName as key and its inputQueueSize as
         value
-        :param inputQueueThreshold: Threshold of which the inputQueuesize should be smaller to be close to zero
         :return: Whether the operator's input Queuesize is close to zero
         """
         if operator in inputQueueMetrics.keys():
@@ -98,7 +97,8 @@ class Dhalion(Autoscaler, ABC):
             print(f"Error: {operator} not found in backpressure metrics: {backpressureTimeMetrics}")
             return 1
 
-    def calculateDesiredParallelism(self, operator: str, currentParallelisms: {str, int}, scaling_factor: float):
+    @staticmethod
+    def calculateDesiredParallelism(operator: str, currentParallelisms: {str, int}, scaling_factor: float):
         """
         Get the desired parallelsim of an operator based on its current parallelism, a scaling facotr and whether it is
         scaling up or down.
@@ -189,7 +189,7 @@ class Dhalion(Autoscaler, ABC):
             # For every operator
             for operator in self.operators:
                 # Check if input queue buffer is almost empty
-                if self.queueSizeisCloseToZero(operator, buffersInUsage):
+                if self.queueSizeIsCloseToZero(operator, buffersInUsage):
                     # Scale down with SCALE_DOWN_FACTOR
                     # Get desired parallelism
                     operatorDesiredParallelism = self.calculateDesiredParallelism(
@@ -204,8 +204,4 @@ class Dhalion(Autoscaler, ABC):
             desiredParallelisms = self.getDesiredParallelisms()
             print(f"Desired parallelisms: {desiredParallelisms}")
             print(f"Current parallelisms: {currentParallelisms}")
-            self.scaleManager.performScaleOperations(
-                currentParallelisms,
-                desiredParallelisms,
-                cooldownPeriod=self.configurations.COOLDOWN_PERIOD_SECONDS
-            )
+            self.scaleManager.performScaleOperations(currentParallelisms, desiredParallelisms)
