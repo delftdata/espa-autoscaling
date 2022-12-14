@@ -8,7 +8,7 @@ then
   echo "Undeploying autoscaler $AUTOSCALER with mode $MODE."
 else
   echo "Autoscaler $AUTOSCALER was not recognized. Canceling autoscaler undeployment."
-  exit 1
+  exit 0
 fi
 
 if [ "$MODE" == "reactive" ]

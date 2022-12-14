@@ -1,3 +1,12 @@
-3;non-reactive;3;16;dhalion;50000;30000
-3;non-reactive;3;16;cpu-hpa;50000;30000
-3;non-reactive;3;16;ds2;50000;30000
+1;non-reactive;3;48;cpu-hpa;2500000;1500000;test-1-cpu-hpa
+2;non-reactive;3;48;cpu-hpa;2500000;1500000;test-2-cpu-hpa
+5;non-reactive;3;48;cpu-hpa;2500000;1500000;test-5-cpu-hpa
+11;non-reactive;3;48;cpu-hpa;2500000;1500000;test-11-cpu-hpa
+1;non-reactive;3;48;ds2;2500000;1500000;test-1-cpu-ds2
+2;non-reactive;3;48;ds2;2500000;1500000;test-2-cpu-ds2
+5;non-reactive;3;48;ds2;2500000;1500000;test-5-cpu-ds2
+11;non-reactive;3;48;ds2;2500000;1500000;test-11-cpu-dhalion
+1;non-reactive;3;48;dhalion;2500000;1500000;test-1-cpu-dhalion
+2;non-reactive;3;48;dhalion;2500000;1500000;test-2-cpu-dhalion
+5;non-reactive;3;48;dhalion;2500000;1500000;test-5-cpu-dhalion
+11;non-reactive;3;48;dhalion;2500000;1500000;test-11-cpu-dhalion

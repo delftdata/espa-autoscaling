@@ -10,7 +10,7 @@ Fetch data of current experiment from prometheus server
 def scrape_data(prometheus_host_ip, query_being_run, autoscaler, cpu_percentage, load_pattern, experiment_time_minutes):
     prom = PrometheusConnect(url="http://" + prometheus_host_ip + ":9090", disable_ssl=True)
 
-    start_time = parse_datetime("now") - parse_timedelta(f"{experiment_time_minutes}m")
+    start_time = parse_datetime(f"{experiment_time_minutes}m")
     end_time = parse_datetime("now")
 
     metric_query_dict = {
@@ -41,3 +41,7 @@ def scrape_data(prometheus_host_ip, query_being_run, autoscaler, cpu_percentage,
         path = "./experiment_data/individual_data/" + query_being_run + "/" + load_pattern + "/" + autoscaler + "/" + cpu_percentage
         if not os.path.exists(path):
             os.makedirs(path)
+
+        metric_df.to_csv(path + "/" + metric + ".csv")
+
+

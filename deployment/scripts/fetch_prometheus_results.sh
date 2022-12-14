@@ -1,13 +1,22 @@
 #!/bin/bash
 
-EXPERIMENT_TAG=$1
+QUERY=$1
+AUTOSCALER=$2
+EXPERIMENT_TAG=$3
 
-# Fetch snapshot of prometheus deploy
 PROMETHEUS_POD="$(kubectl get pods --no-headers -o custom-columns=":metadata.name" --selector=app=prometheus)"
 echo "Port forwarding prometheus server ($PROMETHEUS_POD)"
 kubectl port-forward "$PROMETHEUS_POD" 9090 &
-
 sleep 5s
+
+# Save autoscaler logs
+AUTOSCALER_POD=$(kubectl get pods | grep "$AUTOSCALER" | awk '{print $1}')
+AUTOSCALER_LOG_DIRECTORY="../../../results/logs/$EXPERIMENT_TAG/"
+mkdir -p "$AUTOSCALER_LOG_DIRECTORY"
+kubectl logs "$(kubectl get pods | grep hpa-cpu | awk '{print $1}')" > "$AUTOSCALER_LOG_DIRECTORY/$AUTOSCALER_POD.log"
+echo "Fetched logs from $AUTOSCALER_POD"
+
+# Fetch snapshot of prometheus deploy
 echo "Fetching prometheus snapshot..."
 RESPONSE=$(curl -XPOST http://localhost:9090/api/v1/admin/tsdb/snapshot)
 SNAPSHOT_STATUS=$(echo "$RESPONSE" | sed 's/{//g' | sed 's/}//g' | cut -d "," -f1 | cut -d ":" -f2 | sed 's/"//g' )
@@ -20,28 +29,9 @@ else
   echo "Creating a snapshot failed: $RESPONSE"
 fi
 
+# Fetching data from prometheus
+python3 ../data_processing_old localhost "query-$QUERY" "$AUTOSCALER" "$EXPERIMENT_TAG" "cosine-60"
+
+
 echo "Removing port forward of prometheus server ($PROMETHEUS_POD)"
 ps -aux | grep "kubectl port-forward $PROMETHEUS_POD" | grep -v grep | awk {'print $2'} | xargs kill
-
-
-
-## Fetch data from prometheus deploy
-#if [ "$run_local" = true ]
-#  then
-#      echo "Fetching data from local prometheus pod with query=$query autoscaler=$autoscaler metric=$metric run_local=$run_local"
-#      PROMETHEUS_POD=$(kubectl get pods --no-headers -o custom-columns=":metadata.name" --selector=app=prometheus)
-#      echo "Found Prometheus pod: $PROMETHEUS_POD"
-#      kubectl port-forward "$PROMETHEUS_POD" 9090 &
-#      sleep 60s
-#      python3 ../data_processing localhost "query-$query" $autoscaler $metric "cosine-60"
-#      sleep 5s
-#      echo "Deleting port-forward"
-#      ps -aux | grep "kubectl port-forward $PROMETHEUS_POD" | grep -v grep | awk {'print $2'} | xargs kill
-#  else
-#      echo "Fetching data from external prometheus pod with query=$query autoscaler=$autoscaler metric=$metric run_local=$run_local"
-#      prometheus_IP=$(kubectl get svc my-external-prometheus -o yaml | grep ip: | awk '{print $3}')
-#      python3 ../data_processing $prometheus_IP "query-$query" $autoscaler $metric "cosine-60"
-#fi
-
-sleep 30s
-echo "Fetched data from prometheus server"

@@ -9,6 +9,7 @@ Put together all data fetched from prometheus server
 
 
 def combine_all_metrics(query, auto_scaler, percentage, load_pattern):
+    print("Combining all metrics")
     metrics = ["backpressure", "busy_time", "CPU_load", "idle_time", "lag", "latency", "taskmanager", "throughput"]
 
     path_to_files = "./experiment_data/individual_data/" + query + "/" + load_pattern + "/" + auto_scaler + "/" + percentage + "/"
@@ -16,6 +17,14 @@ def combine_all_metrics(query, auto_scaler, percentage, load_pattern):
 
     # convert timestamps to seconds
     input_data["datetime"] = pd.to_datetime(input_data['timestamp'], format="%Y/%m/%d")
+
+    # remove first files of experiment
+    input_data = input_data.loc[input_data['value'] != 0]
+
+    # get number of minutes and seconds since start of experiment
+    input_data = input_data.reset_index()
+    input_data['seconds'] = input_data.index.values * 15
+    input_data['minutes'] = input_data.index.values * 0.25
 
     # filter tail of dataframe
     input_data = input_data.loc[input_data['minutes'] <= 140]

@@ -1,9 +1,7 @@
 #!/bin/bash
 
-run_local=true
-
 # Experiment configurations to run the experiments in
-file0=../experiments/query_1_experiments.txt
+file0=../experiments/experiments.txt
 
 # input
 line=""
@@ -15,6 +13,7 @@ AVAILABLE_TASKMANAGERS=""
 AUTOSCALER=""
 INPUT_RATE_MEAN=""
 INPUT_RATE_MAX_DIVERGENCE=""
+EXPERIMENT_TAG=""
 
 function parseLine() {
   # default values
@@ -48,10 +47,12 @@ function parseLine() {
     elif [ "$i" -eq 6 ]
     then
       INPUT_RATE_MAX_DIVERGENCE="$w"
+    elif [ "$i" -eq 7 ]
+    then
+      EXPERIMENT_TAG="$w"
     fi
     i=$((i+1))
   done
-  METRIC="$INITIAL_PARALLELISM---$AVAILABLE_TASKMANAGERS---$INPUT_RATE_MEAN---$INPUT_RATE_MAX_DIVERGENCE"
 }
 
 function deployExperiment() {
@@ -62,14 +63,14 @@ function deployExperiment() {
 
 function fetchExperiments() {
     parseLine
-    echo "Fetching data from QUERY=$QUERY AUTOSCALER=$AUTOSCALER metric=$METRIC"
-    source ./fetch_prometheus_results.sh "$QUERY" "$AUTOSCALER" "$METRIC" "$run_local"
+    echo "Fetching data from QUERY=$QUERY AUTOSCALER=$AUTOSCALER EXPERIMENT_TAG=$EXPERIMENT_TAG"
+    source ./fetch_prometheus_results.sh "$QUERY" "$AUTOSCALER" "$EXPERIMENT_TAG"
 }
 
 function undeployExperiments() {
   parseLine
   echo "Undeploying experiment with QUERY=$QUERY AUTOSCALER=$AUTOSCALER MODE=$MODE"
-  source ./undeploy_experiment.sh "$QUERY" "$AUTOSCALER" "$MODE"
+  source ./undeploy_experiment.sh "$QUERY" "$MODE" "$AUTOSCALER"
 }
 
 paste -d@ $file0 | while IFS="@" read -r e0
@@ -80,7 +81,7 @@ do
   deployExperiment
   echo "Finished deploying all containers"
 
-  sleep 140m
+  sleep 5m
 
   echo "Collect all data"
   fetchExperiments

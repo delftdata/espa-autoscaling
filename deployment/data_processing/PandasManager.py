@@ -1,7 +1,7 @@
 import pandas
-from prometheus_api_client import MetricRangeDataFrame
-
-from data_processing import Configurations
+import pandas.core.api
+import math
+from Configuration import Configurations
 
 
 class PandasManager:
@@ -10,55 +10,57 @@ class PandasManager:
     def __init__(self, configurations: Configurations):
         self.configs = configurations
 
-    def write_individual_metric_data_to_file(self, metric, metric_df):
-        filePath = self.configs.get_individual_metric_data_path(metric)
-        metric_df.to_csv(filePath)
+    def write_combined_metrics_data_to_file(self, combined_metrics_df):
+        filePath = self.configs.get_combined_metric_data_path()
+        self.write_dataframe_to_file(filePath, combined_metrics_df)
 
-    def combine_all_individual_metric_files(self):
-        known_individual_metric_file_paths: [str] = self.configs.get_known_individual_files()
+    def write_individual_metric_data_to_file(self, metric_name, metric_df):
+        filePath = self.configs.get_individual_metric_data_path(metric_name)
+        self.write_dataframe_to_file(filePath, metric_df)
 
-        combined_data = pandas.read_csv(known_individual_metric_file_paths.pop())
-        combined_data["datetime"] = pandas.to_datetime(combined_data['timestamp'], format="%Y/%m/%d")
-        # set timestampe
+    @staticmethod
+    def write_dataframe_to_file(filePath, dataframe):
+        dataframe.to_csv(filePath)
 
+    def combine_individual_metrics_and_write_to_file(self):
+        combined_data = None
+        for metric_name, data_path in self.configs.get_known_individual_data_files().items():
+            # Read data
+            metric_data = pandas.read_csv(data_path)
+            # Drop __name__ column
+            metric_data = metric_data.drop(labels="__name__", axis="columns")
+            # Rename values column to metric_name
+            metric_data = metric_data.rename(columns={"value": metric_name})
 
-        input_data = pd.read_csv(path_to_files + "input_rate.csv")
+            if combined_data is None:
+                # Convert timestamps to seconds
+                metric_data["datetime"] = pandas.to_datetime(metric_data['timestamp'], format="%Y/%m/%d")
 
-        # convert timestamps to seconds
+                # Remove first line of experiment
+                metric_data = metric_data.loc[metric_data[metric_name] != 0]
 
-        # remove first files of experiment
-        input_data = input_data.loc[input_data['value'] != 0]
+                # get number of minutes and seconds since start of experiment
+                metric_data = metric_data.reset_index()
+                metric_data['seconds'] = metric_data.index.values * self.configs.data_step_size_seconds
+                metric_data['minutes'] = metric_data.index.values * (60 / self.configs.data_step_size_seconds)
 
-        # get number of minutes and seconds since start of experiment
-        input_data = input_data.reset_index()
-        input_data['seconds'] = input_data.index.values * 15
-        input_data['minutes'] = input_data.index.values * 0.25
+                # Remove data from outside experiment period
+                metric_data = metric_data.loc[metric_data['minutes'] <= self.configs.experiment_length_minutes]
 
-        # filter tail of dataframe
-        input_data = input_data.loc[input_data['minutes'] <= 140]
+                # Assign metric_Data to combined_data
+                combined_data = metric_data
+            else:
+                # Join data with combined_data on timestamp
+                combined_data = combined_data.join(metric_data.set_index('timestamp'), on="timestamp", how='left')
 
-        # remove column
-        input_data = input_data.drop(labels="__name__", axis="columns")
+        # Interpolate missing metrics
+        for metric_name in self.configs.get_known_individual_data_files().keys():
+            combined_data[metric_name] = combined_data[metric_name].interpolate()
 
-        # rename 'value' to metric name
-        input_data = input_data.rename(columns={"value": "input_rate"})
+        # Replace NaN data with 0
+        combined_data = combined_data.fillna(0)
 
-        for metric in metrics:
-            df = pd.read_csv(path_to_files + metric + ".csv")
-            df = df.drop(labels="__name__", axis="columns")
-            df = df.rename(columns={"value": metric})
-            input_data = input_data.join(df.set_index('timestamp'), on="timestamp", how='left')
+        # Write data to file
+        self.write_combined_metrics_data_to_file(combined_data)
 
-        metrics = ["input_rate", "backpressure", "busy_time", "CPU_load", "idle_time", "lag", "latency", "taskmanager",
-                   "throughput"]
-
-        for metric in metrics:
-            input_data[metric] = input_data[metric].interpolate()
-
-        input_data = input_data.fillna(0)
-
-        path = "./experiment_data/full_data/" + load_pattern + "/" + query
-        if not os.path.exists(path):
-            os.makedirs(path)
-        input_data.to_csv(path + "/" + query + "_" + auto_scaler + "_" + percentage + ".csv")
 
