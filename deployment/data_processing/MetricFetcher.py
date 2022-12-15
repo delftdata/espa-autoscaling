@@ -39,9 +39,10 @@ class MetricFetcher:
                                                                                      start_timestamp=start_timestamp,
                                                                                      end_timestamp=end_timestamp)
             self.pandas_manager.write_individual_metric_data_to_file(metric_name, metric_df)
+        print(f"Saved individual metrics at {self.configs.get_individual_data_directory()}/")
 
     def fetch_data(self):
-        print(f"Fetching data from {self.configs.prometheus_address}:{self.configs.prometheus_port}")
+        print(f"Fetching data from {self.configs.prometheus_ip}:{self.configs.prometheus_port}")
         self.file_writer.initialize_known_directories()
 
         print("Writing timestamps")
@@ -57,6 +58,3 @@ class MetricFetcher:
         self.pandas_manager.combine_individual_metrics_and_write_to_file()
 
         print("Done fetching data")
-
-
-

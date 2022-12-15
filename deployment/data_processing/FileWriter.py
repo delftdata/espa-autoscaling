@@ -27,3 +27,4 @@ class FileWriter:
 
         with open(start_end_datetime_path, 'w', newline='') as f:
             f.write(f"{start_timedate},{end_timedate}")
+        print(f"Written experiment timestamps to {start_end_datetime_path}")

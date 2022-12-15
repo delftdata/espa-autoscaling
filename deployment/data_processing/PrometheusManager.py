@@ -11,7 +11,7 @@ class PrometheusManager:
 
     def __init__(self, configurations: Configurations):
         self.configs = configurations
-        self.prometheus_connection = PrometheusConnect(url=f"http://{self.configs.prometheus_address}:"
+        self.prometheus_connection = PrometheusConnect(url=f"http://{self.configs.prometheus_ip}:"
                                                            f"{self.configs.prometheus_port}",
                                                        disable_ssl=True)
 

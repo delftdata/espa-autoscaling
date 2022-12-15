@@ -13,6 +13,8 @@ class PandasManager:
     def write_combined_metrics_data_to_file(self, combined_metrics_df):
         filePath = self.configs.get_combined_metric_data_path()
         self.write_dataframe_to_file(filePath, combined_metrics_df)
+        print(f"Combined metrics and saved them at {filePath}")
+
 
     def write_individual_metric_data_to_file(self, metric_name, metric_df):
         filePath = self.configs.get_individual_metric_data_path(metric_name)
@@ -21,6 +23,7 @@ class PandasManager:
     @staticmethod
     def write_dataframe_to_file(filePath, dataframe):
         dataframe.to_csv(filePath)
+
 
     def combine_individual_metrics_and_write_to_file(self):
         combined_data = None

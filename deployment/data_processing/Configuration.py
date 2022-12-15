@@ -2,22 +2,24 @@ class Configurations:
     data_directory: str
     experiment_identifier: str
 
-    prometheus_address: str
-    prometheus_port: int = 9090
+    prometheus_ip: str
+    prometheus_port: int
 
     experiment_length_minutes: int
     data_step_size_seconds: int
 
     known_directories: [str] = []
-
     known_individual_data_files: {str, str} = {}
 
     def __init__(self, data_directory: str, experiment_identifier: str,
-                 prometheus_address: str, experiment_length_minutes: int,
-                 data_step_size_seconds: int):
-        self.prometheus_address = prometheus_address
+                 prometheus_ip: str, prometheus_port,
+                 experiment_length_minutes: int, data_step_size_seconds: int):
         self.data_directory = data_directory
         self.experiment_identifier = experiment_identifier
+
+        self.prometheus_ip = prometheus_ip
+        self.prometheus_port = prometheus_port
+
         self.experiment_length_minutes = experiment_length_minutes
         self.data_step_size_seconds = data_step_size_seconds
 
