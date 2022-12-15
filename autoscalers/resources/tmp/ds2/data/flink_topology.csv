@@ -1,0 +1,7 @@
+# operator_id1,operator_name1,total_number_of_operator_instances1,operator_id2,operator_name2,total_number_of_operator_instances2
+Incrementaljoin,Incrementaljoin,4,Sink,Sink,4
+Source:_auctionsSource,Source:_auctionsSource,4,Incrementaljoin,Incrementaljoin,4
+Filter,Filter,4,Incrementaljoin,Incrementaljoin,4
+Source:_personSource,Source:_personSource,4,Filter,Filter,4
+auction_topic,auction_topic,1,Source:_auctionsSource,Source:_auctionsSource,4
+person_topic,person_topic,1,Source:_personSource,Source:_personSource,4

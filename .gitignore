@@ -13,3 +13,5 @@ __pycache__/
 *.out
 *.class
 *.project
+results/logs/*
+results/snapshots/*

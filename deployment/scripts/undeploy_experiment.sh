@@ -1,12 +1,11 @@
 #!/bin/bash
 
-query=$1
-autoscaler=$2
-mode=$3
+QUERY=$1                      #{1, 2, 3, 5, 8, 11}
+MODE=$2                       #{reactive, non-reactive}
+AUTOSCALER=$3
 
-echo "Undeploying experiment Query=$query autoscaler=$autoscaler"
-source ./undeploy_autoscaler.sh $autoscaler $mode
-source ./undeploy_queries.sh $query $mode
-sleep 60s
+echo "Undeploying experiment Query=$QUERY MODE=$MODE AUTOSCALER=$AUTOSCALER"
+source ./undeploy_autoscaler.sh $AUTOSCALER $MODE
+source ./undeploy_queries.sh $QUERY $MODE
 source ./undeploy_nfs.sh
 echo "Finished undeploying experiment"

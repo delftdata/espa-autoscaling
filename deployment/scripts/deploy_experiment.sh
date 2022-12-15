@@ -1,12 +1,20 @@
 #!/bin/bash
 
-query=$1
-autoscaler=$2
-metric=$3
-mode=$4
+QUERY=$1                      #{1, 2, 3, 5, 8, 11}
+MODE=$2                       #{reactive, non-reactive}
+INITIAL_PARALLELISM=$3
+AVAILABLE_TASKMANAGERS=$4
+AUTOSCALER=$5
+INPUT_RATE_MEAN=$6           # Mean of Cosinus pattern
+INPUT_RATE_MAX_DIVERGENCE=$7
 
-echo "Deploying experiment with: Query=$query autoscaler=$autoscaler metric=$metric"
+AUTOSCALER_DEPLOYMENT_COOLDOWN="3s"
+echo "Deploying experiment with: Query=$QUERY MODE=$MODE INITIAL_PARALLELISM=$INITIAL_PARALLELISM AVAILABLE_TASKMANAGERS=$AVAILABLE_TASKMANAGERS AUTOSCALER=$AUTOSCALER INPUT_RATE_MEAN=$INPUT_RATE_MEAN INPUT_RATE_MAX_DIVERGENCE=$INPUT_RATE_MAX_DIVERGENCE"
 source ./deploy_nfs.sh
-source ./deploy_queries.sh $query $mode
-source ./deploy_autoscaler.sh $autoscaler $metric $query $mode
+source ./deploy_queries.sh $QUERY $MODE $INITIAL_PARALLELISM $INPUT_RATE_MEAN $INPUT_RATE_MAX_DIVERGENCE
+
+echo "Sleeping for $AUTOSCALER_DEPLOYMENT_COOLDOWN before deploying autoscaler."
+sleep $AUTOSCALER_DEPLOYMENT_COOLDOWN
+
+source ./deploy_autoscaler.sh $AUTOSCALER $QUERY $MODE $AVAILABLE_TASKMANAGERS
 echo "Finished deployment"

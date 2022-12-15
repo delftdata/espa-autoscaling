@@ -76,8 +76,6 @@ public class Query8KafkaSource {
         // enable latency tracking
         //env.getConfig().setLatencyTrackingInterval(5000);
 
-        final int max_parallelism_source = params.getInt("source-max-parallelism", 20);
-
         // Flink API doesn't allow to change parallelism or to set a SlotSharingGroup for the join window
         // We set the global parallelism to the desired windowed join parallelism and set individually the parallelism
         // for the other operators. For the SlotSharingGroup, we rely on the default group.
@@ -94,12 +92,13 @@ public class Query8KafkaSource {
                         .build();
 
 
-        DataStream<Person> persons = env.fromSource(person_source, WatermarkStrategy.noWatermarks(), "PersonSource")
-                .slotSharingGroup("PersonSource")
+        DataStream<Person> persons = env.fromSource(person_source, WatermarkStrategy.noWatermarks(), "personSource")
+                .slotSharingGroup(sourcePersonSSG)
                 .setParallelism(params.getInt("p-person-source", 1))
-                .setMaxParallelism(max_parallelism_source)
                 .assignTimestampsAndWatermarks(new PersonTimestampAssigner())
-                .slotSharingGroup(sourcePersonSSG);
+                .slotSharingGroup(sourcePersonSSG)
+                .uid("personSource")
+                .name("PersonTimestampAssigner");
 
 
         KafkaSource<Auction> auction_source =
@@ -112,12 +111,13 @@ public class Query8KafkaSource {
                 .setValueOnlyDeserializer(new AuctionDeserializationSchema())
                 .build();
 
-        DataStream<Auction> auctions = env.fromSource(auction_source, WatermarkStrategy.noWatermarks(), "AuctionSource")
-                .slotSharingGroup("AuctionSource")
+        DataStream<Auction> auctions = env.fromSource(auction_source, WatermarkStrategy.noWatermarks(), "auctionsSource")
+                .slotSharingGroup(sourceAuctionSSG)
                 .setParallelism(params.getInt("p-auction-source", 1))
-                .setMaxParallelism(max_parallelism_source)
                 .assignTimestampsAndWatermarks(new AuctionTimestampAssigner())
-                .slotSharingGroup(sourceAuctionSSG);
+                .slotSharingGroup(sourceAuctionSSG)
+                .name("auctionsSource")
+                .uid("AuctionTimestampAssigner");
 
         // SELECT Rstream(P.id, P.name, A.reserve)
         // FROM Person [RANGE 1 HOUR] P, Auction [RANGE 1 HOUR] A
@@ -129,7 +129,8 @@ public class Query8KafkaSource {
                     public Long getKey(Person p) {
                         return p.id;
                     }
-                }).equalTo(new KeySelector<Auction, Long>() {
+                }).equalTo(
+                        new KeySelector<Auction, Long>() {
                             @Override
                             public Long getKey(Auction a) {
                                 return a.seller;
@@ -146,7 +147,10 @@ public class Query8KafkaSource {
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
         joined.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
-                .setParallelism(params.getInt("p-window", 1)).slotSharingGroup(sinkSSG);
+                .slotSharingGroup(sinkSSG)
+                .setParallelism(params.getInt("p-sink", 1))
+                .uid("LatencySink")
+                .name("LatencySink");
 
         // execute program
         env.execute("Nexmark Query8 with a Kafka Source");

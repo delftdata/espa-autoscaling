@@ -1,5 +1,5 @@
 from prometheus_api_client import PrometheusConnect, MetricsList, Metric, MetricSnapshotDataFrame, MetricRangeDataFrame
-from prometheus_api_client.utils import parse_datetime
+from prometheus_api_client.utils import parse_datetime, parse_timedelta
 import os
 
 """
@@ -7,10 +7,10 @@ Fetch data of current experiment from prometheus server
 """
 
 
-def scrape_data(prometheus_host_ip, query_being_run, autoscaler, cpu_percentage, load_pattern):
+def scrape_data(prometheus_host_ip, query_being_run, autoscaler, cpu_percentage, load_pattern, experiment_time_minutes):
     prom = PrometheusConnect(url="http://" + prometheus_host_ip + ":9090", disable_ssl=True)
 
-    start_time = parse_datetime("4h")
+    start_time = parse_datetime("now") - parse_timedelta(f"{experiment_time_minutes}m")
     end_time = parse_datetime("now")
 
     metric_query_dict = {
