@@ -25,22 +25,6 @@ if __name__ == "__main__":
         metric_fetcher.fetch_data()
 
     else:
-        print(f"Insufficient parameters. Expected: [prometheus_address] Received: {arguments}")
-        configs: Configurations = Configurations(
-            "./testresults", "test_experiment_123",
-            "localhost", 9090,
-            140, 15
-        )
-        metric_fetcher: MetricFetcher = MetricFetcher(configs)
-        metric_fetcher.fetch_data()
-
-    metric_fetcher: MetricFetcher = Met
-    experiment_query: str = "1"
-    experiment_run_label: str = "4m"
-
-
-    if experiment_run_label:
-        experiment_run_label = f"[{experiment_run_label}]"
-
-
+        print(f"Insufficient parameters. Expected: [prometheus_ip, prometheus_port, experiment_length_minutes, "
+              f"data_step_size_seconds, data_directory, experiment_identifier] Received: {arguments}")
 

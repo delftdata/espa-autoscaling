@@ -26,7 +26,7 @@ class MetricFetcher:
     }
 
     task_specific_metric_queries = {
-        "task_parallelism", "count(flink_taskmanager_job_task_operator_numRecordsIn) by (task_name)"
+        "task_parallelism": "count(flink_taskmanager_job_task_operator_numRecordsIn) by (task_name)",
     }
 
     def __init__(self, configurations: Configurations):
@@ -41,35 +41,45 @@ class MetricFetcher:
     def _fetch_single_column_metrics(self, start_timestamp, end_timestamp):
         for metric_name, metric_query in self.single_column_metric_queries.items():
             try:
-                metric_df = self.prometheus_manager.get_pandas_dataframe_from_prometheus(metric_name, metric_query,
-                                                                                         start_timestamp=start_timestamp,
-                                                                                         end_timestamp=end_timestamp)
+                metric_df = self.prometheus_manager.get_pandas_dataframe_from_prometheus(
+                    metric_query, start_timestamp=start_timestamp, end_timestamp=end_timestamp)
                 self.pandas_manager.write_individual_metric_data_to_file(metric_name, metric_df)
             except:
                 print(f"Error fetching individual metric {metric_name}")
                 traceback.print_exc()
-
         print(f"Saved individual metrics at {self.configs.get_individual_data_directory()}/")
 
+    def _fetch_task_specific_column_metrics(self, start_timestamp, end_timestamp):
+        for metric_name, metric_query in self.task_specific_metric_queries.items():
+            try:
+                metric_data = self.prometheus_manager.get_pandas_dataframe_from_prometheus(
+                    metric_query, start_timestamp=start_timestamp, end_timestamp=end_timestamp)
+                self.pandas_manager.write_task_specific_metric_data_to_file(metric_name, metric_data)
+            except:
+                print(f"Error fetching task specific metric {metric_name}")
+                traceback.print_exc()
+        print(f"Saved task specific metrics at {self.configs.get_individual_data_directory()}/")
+
     def fetch_data(self):
-        # print(f"Fetching data from {self.configs.prometheus_ip}:{self.configs.prometheus_port}")
-        # self.file_writer.initialize_known_directories()
+        print(f"Fetching data from {self.configs.prometheus_ip}:{self.configs.prometheus_port}")
+        self.file_writer.initialize_known_directories()
 
-        # print("Writing timestamps")
-        # start_timestamp, end_timestamp = self.prometheus_manager.get_prometheus_experiment_start_and_end_datetime()
-        # self._fetch_experiment_start_end_timestamps(start_timestamp, end_timestamp)
+        print("Writing timestamps")
+        start_timestamp, end_timestamp = self.prometheus_manager.get_prometheus_experiment_start_and_end_datetime()
+        self._fetch_experiment_start_end_timestamps(start_timestamp, end_timestamp)
 
-        # print("Fetching individual data")
-        # # Fetch individual data
-        # self._fetch_single_column_metrics(start_timestamp, end_timestamp)
-        #
-        # print("Combining individual data")
-        # # Combine individual data and write to file
-        # self.pandas_manager.combine_individual_metrics_and_write_to_file()
+        print("Fetching individual data")
+        # Fetch individual data
+        self._fetch_single_column_metrics(start_timestamp, end_timestamp)
+
+        print("Fetching task-specific data")
+        # Fetch individual data
+        self._fetch_task_specific_column_metrics(start_timestamp, end_timestamp)
+
+        print("Combining individual data")
+        # Combine individual data and write to file
+        self.pandas_manager.combine_individual_metrics_and_write_to_file()
 
 
-        for key, item in self.task_specific_metric_queries.items():
-            data = self.prometheus_manager.get_pandas_dataframe_from_prometheus("task_parallelism", self.task_specific_metric_queries.pop())
-            print(data)
 
         print("Done fetching data")

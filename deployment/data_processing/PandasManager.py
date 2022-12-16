@@ -15,23 +15,27 @@ class PandasManager:
         self.write_dataframe_to_file(filePath, combined_metrics_df)
         print(f"Combined metrics and saved them at {filePath}")
 
-
     def write_individual_metric_data_to_file(self, metric_name, metric_df):
         filePath = self.configs.get_individual_metric_data_path(metric_name)
         self.write_dataframe_to_file(filePath, metric_df)
 
+    def write_task_specific_metric_data_to_file(self, metric_name, metric_data):
+        task_names = metric_data["task_name"].unique()
+        for task_name in task_names:
+            metric_task_name = f"{metric_name}-{task_name}"
+            metric_task_data = metric_data[metric_data['task_name'] == task_name]
+            metric_task_data = metric_task_data.drop(labels="task_name", axis="columns")
+            self.write_individual_metric_data_to_file(metric_task_name, metric_task_data)
+
     @staticmethod
     def write_dataframe_to_file(filePath, dataframe):
         dataframe.to_csv(filePath)
-
 
     def combine_individual_metrics_and_write_to_file(self):
         combined_data = None
         for metric_name, data_path in self.configs.get_known_individual_data_files().items():
             # Read data
             metric_data = pandas.read_csv(data_path)
-            # Drop __name__ column
-            metric_data = metric_data.drop(labels="__name__", axis="columns")
             # Rename values column to metric_name
             metric_data = metric_data.rename(columns={"value": metric_name})
 

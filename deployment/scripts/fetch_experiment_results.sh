@@ -2,7 +2,7 @@
 
 PROMETHEUS_IP="localhost"
 PROMETHEUS_PORT="9090"
-EXPERIMENT_LENGTH_MINUTES=140
+EXPERIMENT_LENGTH_MINUTES=150 # we want to make sure we fetch all data of the experiment
 DATA_STEP_SIZE_SECONDS=15
 
 QUERY=$1

@@ -1,8 +1,11 @@
+import dateparser
+
 from Configuration import Configurations
 
+from datetime import datetime
 import prometheus_api_client
+import prometheus_api_client.utils
 from prometheus_api_client import PrometheusConnect
-from prometheus_api_client.utils import parse_datetime
 
 
 class PrometheusManager:
@@ -16,9 +19,9 @@ class PrometheusManager:
                                                        disable_ssl=True)
 
     def get_prometheus_experiment_start_and_end_datetime(self):
-        start_datetime = parse_datetime(f"{self.configs.experiment_length_minutes}m")
-        end_datetime = parse_datetime("now")
-        return start_datetime, end_datetime
+        start_datetime_UTC = dateparser.parse(f"{self.configs.experiment_length_minutes}m", settings={'TIMEZONE': 'UTC'})
+        end_datetime_UTC = dateparser.parse(f"now", settings={'TIMEZONE': 'UTC'})
+        return start_datetime_UTC, end_datetime_UTC
 
     def fetch_data_from_prometheus(self, query, start_datetime=None, end_datetime=None):
         if not start_datetime or not end_datetime:
@@ -26,6 +29,9 @@ class PrometheusManager:
             start_datetime = tmp_start_datetime if not start_datetime else start_datetime
             end_datetime = tmp_end_datetime if not end_datetime else end_datetime
 
+
+        print(start_datetime)
+        print(end_datetime)
         prometheus_data = self.prometheus_connection.custom_query_range(
             query=query,
             start_time=start_datetime,
@@ -34,8 +40,7 @@ class PrometheusManager:
         )
         return prometheus_data
 
-    def get_pandas_dataframe_from_prometheus(self, metric_name, query, start_timestamp=None, end_timestamp=None):
+    def get_pandas_dataframe_from_prometheus(self, query, start_timestamp=None, end_timestamp=None):
         prometheus_data = self.fetch_data_from_prometheus(query, start_timestamp, end_timestamp)
-        prometheus_data[0]['metric'] = {'__name__': metric_name}
         metric_data = prometheus_api_client.MetricRangeDataFrame(prometheus_data)
         return metric_data
