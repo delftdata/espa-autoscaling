@@ -2,6 +2,7 @@ from PandasManager import PandasManager
 from PrometheusManager import PrometheusManager
 from FileWriter import FileWriter
 from Configuration import Configurations
+import traceback
 
 
 class MetricFetcher:
@@ -39,10 +40,15 @@ class MetricFetcher:
 
     def _fetch_single_column_metrics(self, start_timestamp, end_timestamp):
         for metric_name, metric_query in self.single_column_metric_queries.items():
-            metric_df = self.prometheus_manager.get_pandas_dataframe_from_prometheus(metric_name, metric_query,
-                                                                                     start_timestamp=start_timestamp,
-                                                                                     end_timestamp=end_timestamp)
-            self.pandas_manager.write_individual_metric_data_to_file(metric_name, metric_df)
+            try:
+                metric_df = self.prometheus_manager.get_pandas_dataframe_from_prometheus(metric_name, metric_query,
+                                                                                         start_timestamp=start_timestamp,
+                                                                                         end_timestamp=end_timestamp)
+                self.pandas_manager.write_individual_metric_data_to_file(metric_name, metric_df)
+            except:
+                print(f"Error fetching individual metric {metric_name}")
+                traceback.print_exc()
+
         print(f"Saved individual metrics at {self.configs.get_individual_data_directory()}/")
 
     def fetch_data(self):

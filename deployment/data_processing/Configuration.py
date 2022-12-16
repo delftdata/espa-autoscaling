@@ -79,7 +79,6 @@ class Configurations:
         FileName: {experiment_identifier}_data.csv
         Path: {data_directory}/combined_data/{experiment_identifier}_data.csv
         """
-        combined_data_file_name = "combined_data"
         filePath = f"{self.get_combined_data_directory()}/{self.experiment_identifier}_data.csv"
         return filePath
 

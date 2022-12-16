@@ -15,5 +15,7 @@ __pycache__/
 *.project
 results/logs/*
 results/snapshots/*
-data_processing/resources/prometheus-snapshot-loader/etc/*
-data_processing/resources/prometheus-snapshot-loader/prometheus/*
+**/snapshots/**
+**/prometheus-snapshot-loader/prometheus/
+*.png
+**/graph_generation/

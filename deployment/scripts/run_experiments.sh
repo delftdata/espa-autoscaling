@@ -13,7 +13,8 @@ AVAILABLE_TASKMANAGERS=""
 AUTOSCALER=""
 INPUT_RATE_MEAN=""
 INPUT_RATE_MAX_DIVERGENCE=""
-EXPERIMENT_TAG=""
+EXPERIMENT_LABEL=""
+
 
 function parseLine() {
   # default values
@@ -24,6 +25,7 @@ function parseLine() {
   AUTOSCALER=""
   INPUT_RATE_MEAN=""
   INPUT_RATE_MAX_DIVERGENCE=""
+  EXPERIMENT_LABEL=""
   i=0
   for w in $(echo "$line" | tr ";" "\n"); do
     if [ "$i" -eq 0 ]
@@ -49,7 +51,7 @@ function parseLine() {
       INPUT_RATE_MAX_DIVERGENCE="$w"
     elif [ "$i" -eq 7 ]
     then
-      EXPERIMENT_TAG="$w"
+      EXPERIMENT_LABEL="$w"
     fi
     i=$((i+1))
   done
@@ -63,8 +65,8 @@ function deployExperiment() {
 
 function fetchExperiments() {
     parseLine
-    echo "Fetching data from QUERY=$QUERY AUTOSCALER=$AUTOSCALER EXPERIMENT_TAG=$EXPERIMENT_TAG"
-    source ./fetch_prometheus_results.sh "$QUERY" "$AUTOSCALER" "$EXPERIMENT_TAG"
+    echo "Fetching data from QUERY=$QUERY AUTOSCALER=$AUTOSCALER EXPERIMENT_TAG=$EXPERIMENT_LABEL"
+    source ./fetch_experiment_results.sh "$QUERY" "$MODE" "$AUTOSCALER" "$EXPERIMENT_LABEL"
 }
 
 function undeployExperiments() {
@@ -81,7 +83,7 @@ do
   deployExperiment
   echo "Finished deploying all containers"
 
-  sleep 5m
+  sleep 140m
 
   echo "Collect all data"
   fetchExperiments
