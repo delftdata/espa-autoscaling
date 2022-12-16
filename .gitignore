@@ -17,5 +17,5 @@ results/logs/*
 results/snapshots/*
 **/snapshots/**
 **/prometheus-snapshot-loader/prometheus/
-**/prometheus-snapshot-loader/etc/
 *.png
+**/graph_generation/

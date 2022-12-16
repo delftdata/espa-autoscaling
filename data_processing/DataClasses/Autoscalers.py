@@ -3,32 +3,28 @@ class Autoscalers:
     Helperclass containing all possible autoscalers with their corresponding variables used by the experiments.
     """
     DHALION = "dhalion"
-    DHALION_VARIABLES = ["1", "5", "10", "r-200-150", "r-300-225", "r-400-300", "r-600-450"]
-    DS2_ORIGINAL = "ds2-original"
-    DS2_ORIGINAL_VARIABLES = ["0", "33", "66"]
-    DS2_UPDATED = "ds2-updated"
-    DS2_UPDATED_VARIABLES = ["0", "33", "66"]
-    HPA = "HPA"
-    HPA_VARIABLES = ["50", "70", "90"]
-    VARGA1 = "varga1"
-    VARGA1_VARIABLES = ["0.3", "0.5", "0.7"]
-    VARGA2 = "varga2"
-    VARGA2_VARIABLES = ["0.3", "0.5", "0.7"]
+    DHALION_VARIABLES = [""]
+
+    DS2 = "ds2"
+    DS2_VARIABLES = [""]
+
+    HPA_CPU = "hpa-cpu"
+    HPA_CPU_VARIABLES = [""]
+
+    HPA_VARGA = "hpa-varga"
+    HPA_VARGA_VARIABLES = [""]
+
 
     @staticmethod
     def getVariablesOfAutoscaler(autoscaler) -> [str]:
         if autoscaler == Autoscalers.DHALION:
             return Autoscalers.DHALION_VARIABLES
-        elif autoscaler == Autoscalers.DS2_ORIGINAL:
-            return Autoscalers.DS2_ORIGINAL_VARIABLES
-        elif autoscaler == Autoscalers.DS2_UPDATED:
-            return Autoscalers.DS2_UPDATED_VARIABLES
-        elif autoscaler == Autoscalers.HPA:
-            return Autoscalers.HPA_VARIABLES
-        elif autoscaler == Autoscalers.VARGA1:
-            return Autoscalers.VARGA1_VARIABLES
-        elif autoscaler == Autoscalers.VARGA2:
-            return Autoscalers.VARGA2_VARIABLES
+        elif autoscaler == Autoscalers.DS2:
+            return Autoscalers.DS2_VARIABLES
+        elif autoscaler == Autoscalers.HPA_CPU:
+            return Autoscalers.HPA_CPU_VARIABLES
+        elif autoscaler == Autoscalers.HPA_VARGA:
+            return Autoscalers.HPA_VARGA_VARIABLES
         else:
             print(f"Error: did not find variables belonging to {autoscaler}.")
             return []
@@ -37,11 +33,9 @@ class Autoscalers:
     def getAllAutoscalers() -> [str]:
         return [
             Autoscalers.DHALION,
-            Autoscalers.DS2_ORIGINAL,
-            Autoscalers.DS2_UPDATED,
-            Autoscalers.HPA,
-            Autoscalers.VARGA1,
-            Autoscalers.VARGA2
+            Autoscalers.DS2,
+            Autoscalers.HPA_CPU,
+            Autoscalers.HPA_VARGA,
         ]
 
     @staticmethod
