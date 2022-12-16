@@ -17,3 +17,7 @@ results/logs/*
 results/snapshots/*
 data_processing/resources/prometheus-snapshot-loader/etc/*
 data_processing/resources/prometheus-snapshot-loader/prometheus/*
+**/snapshots/**
+prometheus/prometheus
+prometheus/etc
+*.png
