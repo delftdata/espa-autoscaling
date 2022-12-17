@@ -13,7 +13,7 @@ data:
     taskmanager.rpc.port: 6122
     jobmanager.memory.process.size: 1600m
     taskmanager.memory.process.size: 4000m  
-    taskmanager.memory.managed.fraction: 0.8
+    taskmanager.memory.managed.fraction: 0.2
     restart-strategy: fixeddelay
     restart-strategy.fixed-delay.attempts: 100000
     metrics.reporter.prom.class: org.apache.flink.metrics.prometheus.PrometheusReporter

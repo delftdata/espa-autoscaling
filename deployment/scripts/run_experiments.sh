@@ -13,6 +13,7 @@ AVAILABLE_TASKMANAGERS=""
 AUTOSCALER=""
 INPUT_RATE_MEAN=""
 INPUT_RATE_MAX_DIVERGENCE=""
+NAMESPACE=""
 EXPERIMENT_TAG=""
 
 function parseLine() {
@@ -24,6 +25,7 @@ function parseLine() {
   AUTOSCALER=""
   INPUT_RATE_MEAN=""
   INPUT_RATE_MAX_DIVERGENCE=""
+  NAMESPACE=""
   i=0
   for w in $(echo "$line" | tr ";" "\n"); do
     if [ "$i" -eq 0 ]
@@ -49,6 +51,9 @@ function parseLine() {
       INPUT_RATE_MAX_DIVERGENCE="$w"
     elif [ "$i" -eq 7 ]
     then
+      NAMESPACE="$w"
+    elif [ "$i" -eq 8 ]
+    then
       EXPERIMENT_TAG="$w"
     fi
     i=$((i+1))
@@ -58,7 +63,7 @@ function parseLine() {
 function deployExperiment() {
     parseLine
     echo "Deploying experiment with QUERY=$QUERY MODE=$MODE INITIAL_PARALLELISM=$INITIAL_PARALLELISM AVAILABLE_TASKMANAGERS=$AVAILABLE_TASKMANAGERS AUTOSCALER=$AUTOSCALER INPUT_RATE_MEAN=$INPUT_RATE_MEAN INPUT_RATE_MAX_DIVERGENCE=$INPUT_RATE_MAX_DIVERGENCE"
-    source ./deploy_experiment.sh "$QUERY" "$MODE" "$INITIAL_PARALLELISM" "$AVAILABLE_TASKMANAGERS" "$AUTOSCALER" "$INPUT_RATE_MEAN" "$INPUT_RATE_MAX_DIVERGENCE"
+    source ./deploy_experiment.sh "$QUERY" "$MODE" "$INITIAL_PARALLELISM" "$AVAILABLE_TASKMANAGERS" "$AUTOSCALER" "$INPUT_RATE_MEAN" "$INPUT_RATE_MAX_DIVERGENCE" "$NAMESPACE"
 }
 
 function fetchExperiments() {
@@ -70,7 +75,7 @@ function fetchExperiments() {
 function undeployExperiments() {
   parseLine
   echo "Undeploying experiment with QUERY=$QUERY AUTOSCALER=$AUTOSCALER MODE=$MODE"
-  source ./undeploy_experiment.sh "$QUERY" "$MODE" "$AUTOSCALER"
+  source ./undeploy_experiment.sh "$QUERY" "$MODE" "$AUTOSCALER" "$NAMESPACE"
 }
 
 paste -d@ $file0 | while IFS="@" read -r e0
