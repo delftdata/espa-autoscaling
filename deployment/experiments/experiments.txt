@@ -1,3 +1,6 @@
-11;non-reactive;10;75;dhalion;1200000;1000000;jkanis-space;dhalion_test
-1;non-reactive;10;75;dhalion;1200000;1000000;jkanis-space;dhalion_test
-2;non-reactive;10;75;dhalion;1200000;1000000;jkanis-space;dhalion_test
+11;non-reactive;10;75;hpa-cpu;1200000;1000000;workshop-experiments
+11;non-reactive;10;75;ds2;1200000;1000000;workshop-experiments
+1;non-reactive;5;75;hpa-cpu;1200000;1000000;workshop-experiments
+1;non-reactive;5;75;ds2;1200000;1000000;workshop-experiments
+2;non-reactive;5;75;hpa-cpu;1200000;1000000;workshop-experiments
+2;non-reactive;5;75;ds2;1200000;1000000;workshop-experiments
