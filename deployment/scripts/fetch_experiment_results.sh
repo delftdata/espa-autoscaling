@@ -2,13 +2,17 @@
 
 PROMETHEUS_IP="localhost"
 PROMETHEUS_PORT="9090"
-EXPERIMENT_LENGTH_MINUTES=140
+EXPERIMENT_LENGTH_MINUTES=150 # we want to make sure we fetch all data of the experiment
 DATA_STEP_SIZE_SECONDS=15
 
 QUERY=$1
 MODE=$2
 AUTOSCALER=$3
 EXPERIMENT_LABEL=$4
+
+# Label is an additional non-required identifier of the current experiment run. This can be used to distinguish 2
+# similar experiments with the same experiment_label from each other. EXPERIMENT_TAG={", "none", "undef", "undefined"}
+# will disable the tag
 EXPERIMENT_TAG=$5
 
 if [ "$EXPERIMENT_TAG" = "" ] || [ "$EXPERIMENT_TAG" = "none" ] || [ "$EXPERIMENT_TAG" = "undef" ] || [ "$EXPERIMENT_TAG" = "undefined" ]
@@ -43,7 +47,7 @@ sleep 5s
 # Save autoscaler logs
 AUTOSCALER_POD=$(kubectl get pods | grep "$AUTOSCALER" | awk '{print $1}')
 AUTOSCALER_LOG_FILE="$LOG_DIRECTORY/$AUTOSCALER_POD.log"
-kubectl logs "$(kubectl get pods | grep hpa-cpu | awk '{print $1}')" > AUTOSCALER_LOG_FILE
+kubectl logs "$(kubectl get pods | grep hpa-cpu | awk '{print $1}')" > "$AUTOSCALER_LOG_FILE"
 echo "Successfully saved logs of $AUTOSCALER_POD at $AUTOSCALER_LOG_FILE"
 
 # Fetch snapshot of prometheus deploy
@@ -61,7 +65,7 @@ fi
 
 
 # Fetching data from prometheus
-python3 ../data_processing "$PROMETHEUS_IP" "$PROMETHEUS_PORT" "$EXPERIMENT_LENGTH_MINUTES" "$DATA_STEP_SIZE_SECONDS" "$DATA_DIRECTORY" "$EXPERIMENT_IDENTIFIER"
+python3 ../data_fetching "$PROMETHEUS_IP" "$PROMETHEUS_PORT" "$EXPERIMENT_LENGTH_MINUTES" "$DATA_STEP_SIZE_SECONDS" "$DATA_DIRECTORY" "$EXPERIMENT_IDENTIFIER"
 
 
 # Remove port forward

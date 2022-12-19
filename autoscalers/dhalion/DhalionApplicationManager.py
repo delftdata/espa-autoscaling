@@ -8,7 +8,8 @@ class DhalionApplicationManager(ApplicationManager):
 
     def gatherBackpressureTimeMetrics(self, monitoringPeriodSeconds=None):
         if monitoringPeriodSeconds is not None:
-            return self.prometheusManager.getOperatorBackpressureStatusMetrics()
+            return self.prometheusManager.getOperatorBackpressureTimeMetrics(
+                monitoringPeriodSeconds=monitoringPeriodSeconds)
         else:
             return self.prometheusManager.getOperatorBackpressureTimeMetrics()
 

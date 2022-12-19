@@ -1,6 +1,6 @@
 from .Experiment import Experiment
 import os
-
+import os.path
 
 class ExperimentFile:
     experiment: Experiment
@@ -8,11 +8,11 @@ class ExperimentFile:
     datafile = "FILE NOT FOUND"
     print: str
 
-    def getFilePath(self, directory, query, autoscaler, variable, label):
-        filename = f"q{query}_{autoscaler}_{variable}.csv"
-        if label != "":
-            filename = f"{label}_{filename}"
-        return f"{directory}/{filename}"
+    def getFilePath(self, directory: str, experiment: Experiment):
+        filename = f"{experiment.getExperimentName()}_data.csv"
+        path = f"{directory}/{filename}"
+        print(path)
+        return path
 
     def __init__(self, directory: str, experiment: Experiment, printingEnabled=True):
         self.printingEnabled=printingEnabled
@@ -21,10 +21,7 @@ class ExperimentFile:
             self.directory = directory
             filepath = self.getFilePath(
                 self.directory,
-                self.experiment.query,
-                self.experiment.autoscaler,
-                self.experiment.variable,
-                self.experiment.label
+                self.experiment
             )
 
             if os.path.isfile(filepath):

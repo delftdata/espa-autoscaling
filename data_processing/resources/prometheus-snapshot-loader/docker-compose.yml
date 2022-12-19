@@ -3,7 +3,7 @@ version: '2.1'
 services:
   prometheus:
     image: prom/prometheus
-    container_name: prometheus
+    container_name: prometheus-snapshot-loader
     volumes:
       - ./etc/prometheus:/etc/prometheus
       - ./prometheus:/prometheus

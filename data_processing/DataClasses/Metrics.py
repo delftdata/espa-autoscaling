@@ -101,14 +101,14 @@ class Metrics:
 
     @staticmethod
     def getAllMetricClassesForAutoscaler(autoscaler: str):
-        if autoscaler in [Autoscalers.DS2_ORIGINAL, Autoscalers.DS2_UPDATED]:
-            return Metrics.getDefaultMetricClasses()
-            # return Metrics.getDefaultMetricClasses() + [Metrics.DS2_OPTIMAL_PARALLELISM]
-        elif autoscaler in [Autoscalers.VARGA1, Autoscalers.VARGA2]:
-            return Metrics.getDefaultMetricClasses()
-            # return Metrics.getDefaultMetricClasses() + [Metrics.VARGA_RELATIVE_LAG_CHANGE_RATE]
-        else:
-            return Metrics.getDefaultMetricClasses()
+        # if autoscaler in [Autoscalers.DS2_ORIGINAL, Autoscalers.DS2_UPDATED]:
+        #     return Metrics.getDefaultMetricClasses()
+        #     # return Metrics.getDefaultMetricClasses() + [Metrics.DS2_OPTIMAL_PARALLELISM]
+        # elif autoscaler in [Autoscalers.VARGA1, Autoscalers.VARGA2]:
+        #     return Metrics.getDefaultMetricClasses()
+        #     # return Metrics.getDefaultMetricClasses() + [Metrics.VARGA_RELATIVE_LAG_CHANGE_RATE]
+        # else:
+        return Metrics.getDefaultMetricClasses()
     @staticmethod
     def isMetricClass(metric: str):
         return Metrics.getAllMetricClasses().__contains__(metric)
