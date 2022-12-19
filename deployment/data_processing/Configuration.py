@@ -1,4 +1,7 @@
 class Configurations:
+    COMBINED_DATA_FILL_NAN_WITH_ZERO = False
+    COMBINED_DATA_INTERPOLATE = False
+
     data_directory: str
     experiment_identifier: str
 
@@ -10,6 +13,8 @@ class Configurations:
 
     known_directories: [str] = []
     known_individual_data_files: {str, str} = {}
+
+
 
     def __init__(self, data_directory: str, experiment_identifier: str,
                  prometheus_ip: str, prometheus_port,

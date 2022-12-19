@@ -60,12 +60,16 @@ class MetricFetcher:
                 traceback.print_exc()
         print(f"Saved task specific metrics at {self.configs.get_individual_data_directory()}/")
 
-    def fetch_data(self):
+    def fetch_data(self, timestamp_file=None):
         print(f"Fetching data from {self.configs.prometheus_ip}:{self.configs.prometheus_port}")
         self.file_writer.initialize_known_directories()
 
-        print("Writing timestamps")
-        start_timestamp, end_timestamp = self.prometheus_manager.get_prometheus_experiment_start_and_end_datetime()
+        if timestamp_file:
+            print(f"Fetching timestamps from {timestamp_file} and writing them to file")
+            start_timestamp, end_timestamp = self.file_writer.read_start_end_time_from_file(timestamp_file)
+        else:
+            print("Determining default timestamps timestamps and writing them to file")
+            start_timestamp, end_timestamp = self.prometheus_manager.get_prometheus_experiment_start_and_end_datetime()
         self._fetch_experiment_start_end_timestamps(start_timestamp, end_timestamp)
 
         print("Fetching individual data")
@@ -79,7 +83,5 @@ class MetricFetcher:
         print("Combining individual data")
         # Combine individual data and write to file
         self.pandas_manager.combine_individual_metrics_and_write_to_file()
-
-
 
         print("Done fetching data")

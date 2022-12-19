@@ -19,8 +19,15 @@ class PrometheusManager:
                                                        disable_ssl=True)
 
     def get_prometheus_experiment_start_and_end_datetime(self):
-        start_datetime_UTC = dateparser.parse(f"{self.configs.experiment_length_minutes}m", settings={'TIMEZONE': 'UTC'})
-        end_datetime_UTC = dateparser.parse(f"now", settings={'TIMEZONE': 'UTC'})
+        # Get timestamp in UTC
+        start_datetime = dateparser.parse(f"{self.configs.experiment_length_minutes}m", settings={'TIMEZONE': 'UTC'})
+        end_datetime = dateparser.parse(f"now", settings={'TIMEZONE': 'UTC'})
+
+        # Explicitly state timesone in timestamp
+        start_datetime_UTC = dateparser.parse(f"{start_datetime} UTC")
+        end_datetime_UTC = dateparser.parse(f"{end_datetime} UTC")
+
+        # Return datetimes
         return start_datetime_UTC, end_datetime_UTC
 
     def fetch_data_from_prometheus(self, query, start_datetime=None, end_datetime=None):
@@ -29,9 +36,6 @@ class PrometheusManager:
             start_datetime = tmp_start_datetime if not start_datetime else start_datetime
             end_datetime = tmp_end_datetime if not end_datetime else end_datetime
 
-
-        print(start_datetime)
-        print(end_datetime)
         prometheus_data = self.prometheus_connection.custom_query_range(
             query=query,
             start_time=start_datetime,

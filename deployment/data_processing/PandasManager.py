@@ -40,32 +40,38 @@ class PandasManager:
             metric_data = metric_data.rename(columns={"value": metric_name})
 
             if combined_data is None:
-                # Convert timestamps to seconds
-                metric_data["datetime"] = pandas.to_datetime(metric_data['timestamp'], format="%Y/%m/%d")
+                print(f"First metric: {metric_name}")
 
                 # Remove first line of experiment
                 metric_data = metric_data.loc[metric_data[metric_name] != 0]
-
-                # get number of minutes and seconds since start of experiment
-                metric_data = metric_data.reset_index()
-                metric_data['seconds'] = metric_data.index.values * self.configs.data_step_size_seconds
-                metric_data['minutes'] = metric_data.index.values * (60 / self.configs.data_step_size_seconds)
-
-                # Remove data from outside experiment period
-                metric_data = metric_data.loc[metric_data['minutes'] <= self.configs.experiment_length_minutes]
 
                 # Assign metric_Data to combined_data
                 combined_data = metric_data
             else:
                 # Join data with combined_data on timestamp
-                combined_data = combined_data.join(metric_data.set_index('timestamp'), on="timestamp", how='left')
+                combined_data = combined_data.join(metric_data.set_index('timestamp'), on="timestamp", how='outer')
+
+
+        # Reset index of experiment and remove old index
+        combined_data = combined_data.reset_index()
+        combined_data = combined_data.drop(labels="index", axis=1)
+
+        # Get number of minutes and seconds since start of experiment
+        combined_data.insert(1, "datetime", pandas.to_datetime(combined_data['timestamp'], format="%Y/%m/%d"))
+        combined_data.insert(2, "seconds", combined_data.index.values * self.configs.data_step_size_seconds)
+        combined_data.insert(3, "minutes", combined_data.index.values * (self.configs.data_step_size_seconds / 60))
+
+        # Remove data from outside experiment period. Experiment runs from [begin-time, begin-time + experiment_length]
+        combined_data = combined_data.loc[combined_data['minutes'] <= self.configs.experiment_length_minutes]
 
         # Interpolate missing metrics
-        for metric_name in self.configs.get_known_individual_data_files().keys():
-            combined_data[metric_name] = combined_data[metric_name].interpolate()
+        if self.configs.COMBINED_DATA_INTERPOLATE:
+            for metric_name in self.configs.get_known_individual_data_files().keys():
+                combined_data[metric_name] = combined_data[metric_name].interpolate()
 
         # Replace NaN data with 0
-        combined_data = combined_data.fillna(0)
+        if self.configs.COMBINED_DATA_FILL_NAN_WITH_ZERO:
+            combined_data = combined_data.fillna(0)
 
         # Write data to file
         self.write_combined_metrics_data_to_file(combined_data)
