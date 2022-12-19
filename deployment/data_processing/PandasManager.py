@@ -1,6 +1,5 @@
 import pandas
 import pandas.core.api
-import math
 from Configuration import Configurations
 
 
@@ -8,18 +7,32 @@ class PandasManager:
     configs: Configurations
 
     def __init__(self, configurations: Configurations):
+        """
+        Constructor of the PandasManager
+        """
         self.configs = configurations
 
     def write_combined_metrics_data_to_file(self, combined_metrics_df):
+        """
+        Write a dataframe to the get_combined_metric_data_path.
+        The dataframe meant to contain all data collected from the experiment.
+        """
         filePath = self.configs.get_combined_metric_data_path()
         self.write_dataframe_to_file(filePath, combined_metrics_df)
         print(f"Combined metrics and saved them at {filePath}")
 
     def write_individual_metric_data_to_file(self, metric_name, metric_df):
+        """
+        Write the result of a single_column_query with name {metric_name} to file.
+        """
         filePath = self.configs.get_individual_metric_data_path(metric_name)
         self.write_dataframe_to_file(filePath, metric_df)
 
     def write_task_specific_metric_data_to_file(self, metric_name, metric_data):
+        """
+        Write the results of a task_specific_metric_data_frame to file.
+        The dataframe is first split per task_name and written to a single file named {metric_name}_{task_name}.
+        """
         task_names = metric_data["task_name"].unique()
         for task_name in task_names:
             metric_task_name = f"{metric_name}-{task_name}"
@@ -29,9 +42,17 @@ class PandasManager:
 
     @staticmethod
     def write_dataframe_to_file(filePath, dataframe):
+        """
+        Write a panda's dataframe to file.
+        Filepath: path where to save the data-frame
+        Data-frame: dataframe to save to file.
+        """
         dataframe.to_csv(filePath)
 
     def combine_individual_metrics_and_write_to_file(self):
+        """
+        Combine all known individual metric datafiles into a single datafile.
+        """
         combined_data = None
         for metric_name, data_path in self.configs.get_known_individual_data_files().items():
             # Read data

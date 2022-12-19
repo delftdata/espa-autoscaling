@@ -11,7 +11,7 @@ class MetricFetcher:
     prometheus_manager: PrometheusManager
     file_writer: FileWriter
 
-
+    # Metrics that are aggregated over the entire system. Results fetched from prometheus only contains a single column.
     single_column_metric_queries = {
         "input_rate": "sum(rate(kafka_server_brokertopicmetrics_messagesin_total{topic=''}[1m]))",
         "latency": "avg(flink_taskmanager_job_task_operator_currentEmitEventTimeLag) / 1000",
@@ -25,20 +25,40 @@ class MetricFetcher:
         "busy_time": "avg(avg_over_time(flink_taskmanager_job_task_busyTimeMsPerSecond[1m])) / 1000"
     }
 
+    # Metrics that are aggregated per task_name. Results fetched form prometheus contain as many colums as the amount of
+    # tasks
     task_specific_metric_queries = {
         "task_parallelism": "count(flink_taskmanager_job_task_operator_numRecordsIn) by (task_name)",
     }
 
     def __init__(self, configurations: Configurations):
+        """
+        Constructor of the MetricFetcher
+        """
         self.configs = configurations
         self.pandas_manager = PandasManager(self.configs)
         self.prometheus_manager = PrometheusManager(self.configs)
         self.file_writer = FileWriter(self.configs)
 
-    def _fetch_experiment_start_end_timestamps(self, start_timestamp, end_timestamp):
+    def _fetch_experiment_start_end_timestamps(self, timestamp_file=None):
+        """
+        Fetch the start and end time of the current experiment, write them to file and return them.
+        """
+        if timestamp_file:
+            print(f"Fetching timestamps from {timestamp_file} and writing them to file")
+            start_timestamp, end_timestamp = self.file_writer.read_start_end_time_from_file(timestamp_file)
+        else:
+            print("Determining default timestamps timestamps and writing them to file")
+            start_timestamp, end_timestamp = self.prometheus_manager.get_prometheus_experiment_start_and_end_datetime()
+        self._fetch_experiment_start_end_timestamps(start_timestamp, end_timestamp)
+
         self.file_writer.write_start_end_time_to_file(start_timestamp, end_timestamp)
+        return start_timestamp, end_timestamp
 
     def _fetch_single_column_metrics(self, start_timestamp, end_timestamp):
+        """
+        Fetch the data of the single_column_metric_queries and write them to file.
+        """
         for metric_name, metric_query in self.single_column_metric_queries.items():
             try:
                 metric_df = self.prometheus_manager.get_pandas_dataframe_from_prometheus(
@@ -50,6 +70,9 @@ class MetricFetcher:
         print(f"Saved individual metrics at {self.configs.get_individual_data_directory()}/")
 
     def _fetch_task_specific_column_metrics(self, start_timestamp, end_timestamp):
+        """
+        Fetch the data of the task_specific_metric_queries and write them to file.
+        """
         for metric_name, metric_query in self.task_specific_metric_queries.items():
             try:
                 metric_data = self.prometheus_manager.get_pandas_dataframe_from_prometheus(
@@ -60,17 +83,22 @@ class MetricFetcher:
                 traceback.print_exc()
         print(f"Saved task specific metrics at {self.configs.get_individual_data_directory()}/")
 
+
     def fetch_data(self, timestamp_file=None):
+        """
+        Fetch all data of an experiment.
+        param: timestamp-file: default=None. If provided the timestamps determining the timeframe where to fetch data
+        from a taken from this file. If not provided, timestamps are generated from [now - experiment_length, now].
+        This function
+        - Determines timestamps and write them to a file
+        - Fetches all results from the single_column_metric_queries and writes them to file
+        - Fetches all results from the task_specific_metric_queries and writes them to file
+        - Combines all results in a single file and writes it to file
+        """
         print(f"Fetching data from {self.configs.prometheus_ip}:{self.configs.prometheus_port}")
         self.file_writer.initialize_known_directories()
 
-        if timestamp_file:
-            print(f"Fetching timestamps from {timestamp_file} and writing them to file")
-            start_timestamp, end_timestamp = self.file_writer.read_start_end_time_from_file(timestamp_file)
-        else:
-            print("Determining default timestamps timestamps and writing them to file")
-            start_timestamp, end_timestamp = self.prometheus_manager.get_prometheus_experiment_start_and_end_datetime()
-        self._fetch_experiment_start_end_timestamps(start_timestamp, end_timestamp)
+        start_timestamp, end_timestamp = self._fetch_experiment_start_end_timestamps(timestamp_file)
 
         print("Fetching individual data")
         # Fetch individual data
