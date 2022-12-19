@@ -1,5 +1,4 @@
 import math
-import traceback
 from abc import ABC
 import time
 
@@ -84,14 +83,16 @@ class Dhalion(Autoscaler, ABC):
                         print(
                             f"Error: {operator} from ({op1}, {op2}) not found in backpressure metrics: "
                             f"{backpressureTimeMetrics}")
-            print(backpressureValues)
             backpressureTime = 0
             if backpressureValues is not None:
                 backpressureTime = max(backpressureValues)
             else:
                 print(f"Warning: no backpressure cause found for {operator}")
+
+            backpressureTime = min(0.9, backpressureTime)
             normalTime = 1 - backpressureTime
             scaleUpFactor = 1 + backpressureTime / normalTime
+
             return scaleUpFactor
         else:
             print(f"Error: {operator} not found in backpressure metrics: {backpressureTimeMetrics}")
@@ -172,6 +173,9 @@ class Dhalion(Autoscaler, ABC):
                     currentParallelisms,
                     operatorScaleUpFactor
                 )
+                print(f"Determined a scale-up factor of {operatorScaleUpFactor} for operator {operator}, which resulted"
+                      f" in desired parallelism {operatorDesiredParallelism}")
+
                 # Save desired parallelism
                 self.setDesiredParallelism(operator, operatorDesiredParallelism)
 
@@ -200,8 +204,8 @@ class Dhalion(Autoscaler, ABC):
 
                     self.setDesiredParallelism(operator, operatorDesiredParallelism)
 
-            # Manage scaling actions
-            desiredParallelisms = self.getDesiredParallelisms()
-            print(f"Desired parallelisms: {desiredParallelisms}")
-            print(f"Current parallelisms: {currentParallelisms}")
-            self.scaleManager.performScaleOperations(currentParallelisms, desiredParallelisms)
+        # Manage scaling actions
+        desiredParallelisms = self.getDesiredParallelisms()
+        print(f"Desired parallelisms: {desiredParallelisms}")
+        print(f"Current parallelisms: {currentParallelisms}")
+        self.scaleManager.performScaleOperations(currentParallelisms, desiredParallelisms)

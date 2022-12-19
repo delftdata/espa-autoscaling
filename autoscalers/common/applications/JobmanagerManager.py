@@ -271,12 +271,12 @@ class JobmanagerManager:
                     else:
                         nonready_taskmanagers.append(taskmanager)
                 operator_ready_taskmanagers[operator] = ready_taskmanagers
-                operator_nonready_taskmanagers[operator] = nonready_taskmanagers
+                operator_non_ready_taskmanagers[operator] = nonready_taskmanagers
             else:
                 print(
                     f"Error: did not find operator '{operator} in operator_taskmanager_information "
                     f"'{operator_taskmanager_information}'")
                 operator_ready_taskmanagers[operator] = []
-                operator_nonready_taskmanagers[operator] = []
-        return operator_ready_taskmanagers, operator_nonready_taskmanagers
+                operator_non_ready_taskmanagers[operator] = []
+        return operator_ready_taskmanagers, operator_non_ready_taskmanagers
 

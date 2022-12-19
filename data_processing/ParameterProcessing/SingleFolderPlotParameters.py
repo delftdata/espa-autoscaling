@@ -5,8 +5,8 @@ import argparse
 
 class SingleFolderPlotParameters(PlotParameters):
     # Required
-    __main_folder: "ERROR: No main folder set"
-    __data_label: "ERROR: No data prefix set"
+    __main_folder = "ERROR: No main folder set"
+    __data_label = ""
     __result_folder_name: str
     __result_label = ""
     __plot_thresholds = False
@@ -76,7 +76,7 @@ class SingleFolderPlotParameters(PlotParameters):
                                 help="Directory in which datafiles can be found at src_dir/full-data")
 
         def includeSourceLabelInParser(parser: argparse.ArgumentParser):
-            parser.add_argument('source_label', type=str)
+            parser.add_argument('-source_label', type=str, nargs="?")
 
         def includeResultFolderInParser(parser: argparse.ArgumentParser):
             parser.add_argument('-result_folder_name', type=str, nargs="?")

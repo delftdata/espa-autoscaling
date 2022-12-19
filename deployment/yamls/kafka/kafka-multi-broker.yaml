@@ -45,10 +45,10 @@ spec:
         image: 9923/kafka_jmx:4
         resources:
           requests:
-            cpu: 1000m
+            cpu: 2000m
             memory: 4000Mi
           limits:
-            cpu: 1500m
+            cpu: 2500m
             memory: 8000Mi
 #        storage:
 #          type: persistent-claim
@@ -69,7 +69,7 @@ spec:
         - name: KAFKA_AUTO_CREATE_TOPICS_ENABLE
           value: "false"
         - name: KAFKA_LOG_RETENTION_MS
-          value: "10000"
+          value: "300000"
         - name: KAFKA_LOG_RETENTION_CHECK_INTERVAL_MS
           value: "5000"
         # - name: KAFKA_CREATE_TOPICS

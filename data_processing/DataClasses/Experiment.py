@@ -8,6 +8,7 @@ class Experiment:
     variable: str
     label: str
 
+
     def __init__(self, query: str, autoscaler: str, variable: str, label=""):
         """
         Constructor of an experiment class.
@@ -25,11 +26,9 @@ class Experiment:
         if not self.isValidExperiment():
             print(f"Error constructing experiment: {self} is not a valid experiment!")
 
+
     def __str__(self):
-        if (self.label == ""):
-            return f"Experiment[{self.query}, {self.autoscaler}-{self.variable}]"
-        else:
-            return f"Experiment[({self.label}) {self.query}, {self.autoscaler}-{self.variable}]"
+       return f"Experiment[{self.getExperimentName()}]"
 
     __repr__ = __str__
 
@@ -51,9 +50,11 @@ class Experiment:
         return False
 
     def getExperimentName(self):
-        name = f"q{self.query}_{self.autoscaler}_{self.variable}"
-        if self.label != "":
-            name = f"{self.label}_{name}"
+        name = f"q{self.query}_{self.autoscaler}"
+        if self.variable:
+            name = f"{name}_{self.variable}"
+        if self.label:
+            name = f"[{self.label}]{name}"
         return name
 
     @staticmethod
