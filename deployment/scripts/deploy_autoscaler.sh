@@ -21,7 +21,7 @@ then
   kubectl apply -f ../yamls/autoscalers/autoscaler_reactive_rbac_rules.yaml
   envsubst < ../yamls/autoscalers/"${AUTOSCALER}"/deployment_"${AUTOSCALER}"_reactive.yaml | kubectl apply -f -
 else
-  kubectl apply -f ../yamls/autoscalers/autoscaler_non_reactive_rbac_rules.yaml
+  envsubst < ../yamls/autoscalers/autoscaler_non_reactive_rbac_rules.yaml | kubectl apply -f -
   export QUERY=$QUERY
   envsubst < ../yamls/autoscalers/"${AUTOSCALER}"/deployment_"${AUTOSCALER}"_non-reactive.yaml | kubectl apply -f -
 fi
