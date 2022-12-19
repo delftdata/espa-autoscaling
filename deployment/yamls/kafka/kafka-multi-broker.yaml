@@ -45,10 +45,10 @@ spec:
         image: 9923/kafka_jmx:4
         resources:
           requests:
-            cpu: 1000m
+            cpu: 2000m
             memory: 4000Mi
           limits:
-            cpu: 1500m
+            cpu: 2500m
             memory: 8000Mi
 #        storage:
 #          type: persistent-claim

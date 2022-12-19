@@ -13,8 +13,12 @@ AVAILABLE_TASKMANAGERS=""
 AUTOSCALER=""
 INPUT_RATE_MEAN=""
 INPUT_RATE_MAX_DIVERGENCE=""
+NAMESPACE=""
 EXPERIMENT_LABEL=""
 
+# Additional identifier of an experiment that adds [{EXPIMENT_TAG}] to the identifier. This can be used to distinguish
+# similar experimental runs from each other.
+EXPERIMENT_TAG=""
 
 function parseLine() {
   # default values
@@ -25,6 +29,7 @@ function parseLine() {
   AUTOSCALER=""
   INPUT_RATE_MEAN=""
   INPUT_RATE_MAX_DIVERGENCE=""
+  NAMESPACE=""
   EXPERIMENT_LABEL=""
   i=0
   for w in $(echo "$line" | tr ";" "\n"); do
@@ -51,6 +56,9 @@ function parseLine() {
       INPUT_RATE_MAX_DIVERGENCE="$w"
     elif [ "$i" -eq 7 ]
     then
+      NAMESPACE="$w"
+    elif [ "$i" -eq 8 ]
+    then
       EXPERIMENT_LABEL="$w"
     fi
     i=$((i+1))
@@ -60,19 +68,19 @@ function parseLine() {
 function deployExperiment() {
     parseLine
     echo "Deploying experiment with QUERY=$QUERY MODE=$MODE INITIAL_PARALLELISM=$INITIAL_PARALLELISM AVAILABLE_TASKMANAGERS=$AVAILABLE_TASKMANAGERS AUTOSCALER=$AUTOSCALER INPUT_RATE_MEAN=$INPUT_RATE_MEAN INPUT_RATE_MAX_DIVERGENCE=$INPUT_RATE_MAX_DIVERGENCE"
-    source ./deploy_experiment.sh "$QUERY" "$MODE" "$INITIAL_PARALLELISM" "$AVAILABLE_TASKMANAGERS" "$AUTOSCALER" "$INPUT_RATE_MEAN" "$INPUT_RATE_MAX_DIVERGENCE"
+    source ./deploy_experiment.sh "$QUERY" "$MODE" "$INITIAL_PARALLELISM" "$AVAILABLE_TASKMANAGERS" "$AUTOSCALER" "$INPUT_RATE_MEAN" "$INPUT_RATE_MAX_DIVERGENCE" "$NAMESPACE"
 }
 
 function fetchExperiments() {
     parseLine
-    echo "Fetching data from QUERY=$QUERY AUTOSCALER=$AUTOSCALER EXPERIMENT_TAG=$EXPERIMENT_LABEL"
-    source ./fetch_experiment_results.sh "$QUERY" "$MODE" "$AUTOSCALER" "$EXPERIMENT_LABEL"
+    echo "Fetching data from QUERY=$QUERY AUTOSCALER=$AUTOSCALER EXPERIMENT_LABEL=$EXPERIMENT_LABEL"
+    source ./fetch_experiment_results.sh "$QUERY" "$MODE" "$AUTOSCALER" "$EXPERIMENT_LABEL" "$EXPERIMENT_TAG"
 }
 
 function undeployExperiments() {
   parseLine
   echo "Undeploying experiment with QUERY=$QUERY AUTOSCALER=$AUTOSCALER MODE=$MODE"
-  source ./undeploy_experiment.sh "$QUERY" "$MODE" "$AUTOSCALER"
+  source ./undeploy_experiment.sh "$QUERY" "$MODE" "$AUTOSCALER" "$NAMESPACE"
 }
 
 paste -d@ $file0 | while IFS="@" read -r e0

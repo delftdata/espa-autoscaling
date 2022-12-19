@@ -1,3 +1,5 @@
+# Requires: NAMESPACE
+
 ---
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
@@ -15,7 +17,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: default
-  namespace: jkanis-space
+  namespace: "${NAMESPACE}"
 roleRef:
   kind: ClusterRole
   name: pods-list

@@ -9,6 +9,10 @@ QUERY=$1
 MODE=$2
 AUTOSCALER=$3
 EXPERIMENT_LABEL=$4
+
+# Label is an additional non-required identifier of the current experiment run. This can be used to distinguish 2
+# similar experiments with the same experiment_label from each other. EXPERIMENT_TAG={", "none", "undef", "undefined"}
+# will disable the tag
 EXPERIMENT_TAG=$5
 
 if [ "$EXPERIMENT_TAG" = "" ] || [ "$EXPERIMENT_TAG" = "none" ] || [ "$EXPERIMENT_TAG" = "undef" ] || [ "$EXPERIMENT_TAG" = "undefined" ]

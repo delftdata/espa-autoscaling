@@ -48,4 +48,4 @@ spec:
         - name: ITERATION_PERIOD_SECONDS # 15 is default
           value: "15"
         - name: KUBERNETES_NAMESPACE # default is default
-          value: "jkanis-space"
+          value: "${NAMESPACE}"

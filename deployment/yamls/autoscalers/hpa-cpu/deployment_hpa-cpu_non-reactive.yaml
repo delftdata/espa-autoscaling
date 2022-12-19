@@ -1,4 +1,4 @@
-# Requires: AVAILABLE_TASKMANAGERS, QUERY
+# Requires: AVAILABLE_TASKMANAGERS, QUERY, NAMESPACE
 kind: Deployment
 apiVersion: apps/v1
 metadata:
@@ -48,7 +48,7 @@ spec:
         - name: ITERATION_PERIOD_SECONDS # 15 is default
           value: "15"
         - name: KUBERNETES_NAMESPACE # default is default
-          value: "jkanis-space"
+          value: "${NAMESPACE}"
 
         # Non-reactive functionality
         - name: NONREACTIVE_TIME_AFTER_SAVEPOINT_SECONDS # 4 is default
