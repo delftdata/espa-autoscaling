@@ -13,7 +13,7 @@ class Dhalion(Autoscaler, ABC):
 
     desiredParallelisms: {str, int}
     configurations: DhalionConfigurations
-    metricsGatherer: DhalionApplicationManager
+    applicationManager: DhalionApplicationManager
     scaleManager: ScaleManager
     operators: [str]
     topology: [(str, str)]
@@ -21,14 +21,15 @@ class Dhalion(Autoscaler, ABC):
 
     def __init__(self):
         self.configurations = DhalionConfigurations()
-        self.metricsGatherer = DhalionApplicationManager(self.configurations)
-        self.scaleManager: ScaleManager = ScaleManager(self.configurations, self.metricsGatherer)
+        self.applicationManager = DhalionApplicationManager(self.configurations)
+        self.scaleManager: ScaleManager = ScaleManager(self.configurations, self.applicationManager)
 
-    def setInitialMetrics(self):
-        self.operators = self.metricsGatherer.jobmanagerManager.getOperators()
-        self.topology = self.metricsGatherer.jobmanagerManager.getTopology()
+    def initialize(self):
+        self.applicationManager.initialize()
+        self.operators = self.applicationManager.jobmanagerManager.getOperators()
+        self.topology = self.applicationManager.gatherTopology(False)
         print(f"Found operators: '{self.operators}' with topology: '{self.topology}'")
-        currentParallelism = self.metricsGatherer.fetchCurrentOperatorParallelismInformation(
+        currentParallelism = self.applicationManager.fetchCurrentOperatorParallelismInformation(
             knownOperators=self.operators
         )
         print(f"Found initial parallelisms: '{currentParallelism}'")
@@ -140,23 +141,23 @@ class Dhalion(Autoscaler, ABC):
         time.sleep(self.configurations.ITERATION_PERIOD_SECONDS)
 
         # Get Backpressure information of every operator
-        backpressureStatusMetrics = self.metricsGatherer.gatherBackpressureStatusMetrics()
-        currentParallelisms: {str, int} = self.metricsGatherer.fetchCurrentOperatorParallelismInformation(
+        backpressureStatusMetrics = self.applicationManager.gatherBackpressureStatusMetrics()
+        currentParallelisms: {str, int} = self.applicationManager.fetchCurrentOperatorParallelismInformation(
             knownOperators=self.operators
         )
 
         # If backpressure exist, assume unhealthy state and investigate scale up possibilities
-        if self.metricsGatherer.isSystemBackpressured(backpressureStatusMetrics=backpressureStatusMetrics):
+        if self.applicationManager.isSystemBackpressured(backpressureStatusMetrics=backpressureStatusMetrics):
             print("Backpressure detected. System is in a unhealthy state. Investigating scale-up possibilities.")
 
             # Get operators causing backpressure
-            bottleneckOperators: [str] = self.metricsGatherer.gatherBottleneckOperators(
+            bottleneckOperators: [str] = self.applicationManager.gatherBottleneckOperators(
                 backpressureStatusMetrics=backpressureStatusMetrics,
                 topology=self.topology
             )
             print(f"The following operators are found to cause a possible bottleneck: {bottleneckOperators}")
 
-            backpressureTimeMetrics: {str, float} = self.metricsGatherer.gatherBackpressureTimeMetrics(
+            backpressureTimeMetrics: {str, float} = self.applicationManager.gatherBackpressureTimeMetrics(
                 monitoringPeriodSeconds=self.configurations.ITERATION_PERIOD_SECONDS)
 
             print(f"The following metrics are found:")
@@ -184,7 +185,7 @@ class Dhalion(Autoscaler, ABC):
             print(
                 "No backpressure detected, system is in an healthy state. Investigating scale-down possibilities.")
             # Get information about input buffers of operators
-            buffersInUsage = self.metricsGatherer.gatherBuffersInUsageMetrics()
+            buffersInUsage = self.applicationManager.gatherBuffersInUsageMetrics()
 
             print(f"Found the following metrics are found:")
             print(f"\tBuffer-in-usage[{buffersInUsage}]")

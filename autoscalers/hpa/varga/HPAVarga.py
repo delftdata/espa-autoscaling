@@ -9,17 +9,18 @@ from common import ScaleManager
 
 class HPAVarga(HPA, ABC):
     configurations: HPAVargaConfigurations
-    metricsGatherer: HPAVargaApplicationManager
+    applicationManager: HPAVargaApplicationManager
     scaleManager: ScaleManager
     operators: [str]
 
     def __init__(self):
         self.configurations = HPAVargaConfigurations()
-        self.metricsGatherer: HPAVargaApplicationManager = HPAVargaApplicationManager(self.configurations)
-        self.scaleManager: ScaleManager = ScaleManager(self.configurations, self.metricsGatherer)
+        self.applicationManager: HPAVargaApplicationManager = HPAVargaApplicationManager(self.configurations)
+        self.scaleManager: ScaleManager = ScaleManager(self.configurations, self.applicationManager)
 
-    def setInitialMetrics(self):
-        self.operators = self.metricsGatherer.jobmanagerManager.getOperators()
+    def initialize(self):
+        self.applicationManager.initialize()
+        self.operators = self.applicationManager.jobmanagerManager.getOperators()
 
     def runAutoscalerIteration(self):
         """
@@ -37,10 +38,10 @@ class HPAVarga(HPA, ABC):
         time.sleep(self.configurations.ITERATION_PERIOD_SECONDS)
 
         # Gather metrics:
-        currentParallelisms = self.metricsGatherer.fetchCurrentOperatorParallelismInformation(
+        currentParallelisms = self.applicationManager.fetchCurrentOperatorParallelismInformation(
             knownOperators=self.operators)
-        operatorUtilizationMetrics = self.metricsGatherer.gatherUtilizationMetrics()
-        operatorRelativeLagChangeMetrics = self.metricsGatherer.gatherRelativeLagChangeMetrics()
+        operatorUtilizationMetrics = self.applicationManager.gatherUtilizationMetrics()
+        operatorRelativeLagChangeMetrics = self.applicationManager.gatherRelativeLagChangeMetrics()
 
         # Calculate desired parallelism per operator
         desiredParallelisms = {}  # save desired parallelisms for debug purposes

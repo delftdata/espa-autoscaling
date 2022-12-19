@@ -35,11 +35,12 @@ class DS2(Autoscaler):
         self.scaleManager = ScaleManager(self.configurations, self.applicationManager)
 
 
-    def setInitialMetrics(self):
+    def initialize(self):
         """
         Set initial metrics of autoscaler and create directories required for file writing.
         :return: None
         """
+        self.applicationManager.initialize()
         self.operators = self.applicationManager.jobmanagerManager.getOperators()
         self.topology = self.applicationManager.gatherTopology(includeTopics=True)
         print(f"Found operators: '{self.operators}' with topology: '{self.topology}'")

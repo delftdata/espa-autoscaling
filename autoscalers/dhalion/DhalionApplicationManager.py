@@ -3,8 +3,12 @@ from common import ApplicationManager
 
 class DhalionApplicationManager(ApplicationManager):
 
+
     def gatherBackpressureStatusMetrics(self):
         return self.prometheusManager.getOperatorBackpressureStatusMetrics()
+
+    def gatherSubtaskPendingRecordsMetrics(self):
+        return self.prometheusManager.getSubtaskPendingRecords()
 
     def gatherBackpressureTimeMetrics(self, monitoringPeriodSeconds=None):
         if monitoringPeriodSeconds is not None:
@@ -27,6 +31,7 @@ class DhalionApplicationManager(ApplicationManager):
         return isSystemBackpressured
 
     def gatherBottleneckOperators(self, backpressureStatusMetrics: {str, bool}=None,
+                                  subtaskPendingRecordsMetrics: {str, bool}=None,
                                   topology: [(str, str)] = None) -> [str]:
         """
         Get all operators that are causing backpressure in the system.
@@ -38,16 +43,18 @@ class DhalionApplicationManager(ApplicationManager):
         """
         if not backpressureStatusMetrics:
             backpressureStatusMetrics = self.gatherBackpressureStatusMetrics()
+        if not subtaskPendingRecordsMetrics:
+            subtaskPendingRecordsMetrics = self.gatherSubtaskPendingRecordsMetrics()
         if not topology:
-            topology = self.jobmanagerManager.getTopology()
+            topology = self.gatherTopology(False)
+
+        # TODO: add kafka sources to also consider sources as bottleneck operators
 
         bottleNeckOperatorsSet: set = set()
         for lOperator, rOperator in topology:
             if lOperator not in backpressureStatusMetrics:
-                print(
-                    f"Error: left operator '{lOperator}' of topology '{topology}' not found in backpressure status "
-                    f"metrics '{backpressureStatusMetrics}'.")
-                continue
+                print(f"Error: right operator '{rOperator}' of topology '{topology}' not found in backpressure status "
+                      f"metrics '{backpressureStatusMetrics}'.")
             if rOperator not in backpressureStatusMetrics:
                 print(
                     f"Error: right operator '{rOperator}' of topology '{topology}' not found in backpressure status "
@@ -57,5 +64,12 @@ class DhalionApplicationManager(ApplicationManager):
             if backpressureStatusMetrics[lOperator]:
                 if not backpressureStatusMetrics[rOperator]:
                     bottleNeckOperatorsSet.add(rOperator)
+
+            if self.configurations.experimentData.operatorIsASource(lOperator):
+                print(lOperator)
+                print(subtaskPendingRecordsMetrics)
+
+
+
 
         return list(bottleNeckOperatorsSet)

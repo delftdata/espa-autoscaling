@@ -9,19 +9,20 @@ from common import ScaleManager
 
 class HPACPU(HPA):
     configurations: HPACPUConfigurations
-    metricsGatherer: HPACPUApplicationManager
+    applicationManager: HPACPUApplicationManager
     scaleManager: ScaleManager
     operators: [str]
 
 
     def __init__(self):
         self.configurations = HPACPUConfigurations()
-        self.metricsGatherer: HPACPUApplicationManager = HPACPUApplicationManager(self.configurations)
-        self.scaleManager: ScaleManager = ScaleManager(self.configurations, self.metricsGatherer)
+        self.applicationManager: HPACPUApplicationManager = HPACPUApplicationManager(self.configurations)
+        self.scaleManager: ScaleManager = ScaleManager(self.configurations, self.applicationManager)
 
 
-    def setInitialMetrics(self):
-        self.operators = self.metricsGatherer.jobmanagerManager.getOperators()
+    def initialize(self):
+        self.applicationManager.initialize()
+        self.operators = self.applicationManager.jobmanagerManager.getOperators()
 
 
     def runAutoscalerIteration(self):
@@ -40,10 +41,10 @@ class HPACPU(HPA):
         time.sleep(self.configurations.ITERATION_PERIOD_SECONDS)
 
         # Gather metrics:
-        operator_ready_taskmanagers, operator_unready_taskmanagers = self.metricsGatherer. \
+        operator_ready_taskmanagers, operator_unready_taskmanagers = self.applicationManager. \
             gatherReady_UnReadyTaskmanagerMapping()
-        taskmanager_cpu_usages = self.metricsGatherer.prometheusManager.getTaskmanagerJVMCPUUSAGE()
-        currentParallelisms = self.metricsGatherer.fetchCurrentOperatorParallelismInformation(
+        taskmanager_cpu_usages = self.applicationManager.prometheusManager.getTaskmanagerJVMCPUUSAGE()
+        currentParallelisms = self.applicationManager.fetchCurrentOperatorParallelismInformation(
             knownOperators=self.operators)
 
         # Per operator, calculate desired parallelism.
@@ -66,7 +67,7 @@ class HPACPU(HPA):
                 print(f"Warning: at least one taskmanager is not ready: '{unready_taskmanagers}'")
 
             # Calculate the scale_factor of the ready taskmanagers
-            ready_CPU_usages = self.metricsGatherer.gatherCPUUsageOfTaskmanagers(ready_taskmanagers,
+            ready_CPU_usages = self.applicationManager.gatherCPUUsageOfTaskmanagers(ready_taskmanagers,
                                                                                  taskmanager_cpu_usages)
             if len(ready_CPU_usages) <= 0:
                 print(f"Error: list of ready_CPU_usages is empty: 'ready_CPU_usages'. ")

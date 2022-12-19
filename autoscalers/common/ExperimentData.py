@@ -64,12 +64,21 @@ class ExperimentData:
 
 
     def __subtractSourceNameFromOperatorName(self, operatorName: str, printError=True):
-
+        """
+        For all sourceNames in self.operator_to_topic_naming, check whether the sourceName is contained in operatorName
+        and return the sourceName
+        """
         for sourceName in self.operator_to_topic_naming.keys():
             if sourceName in operatorName.lower():
                 return sourceName
         if printError:
             print(f"Error: could not determine sourceName from operatorName '{operatorName}'")
+
+    def operatorIsASource(self, operatorName: str):
+        """
+        Determine whether operatorName is a source.
+        """
+        return self.__subtractSourceNameFromOperatorName(operatorName, printError=False) is not None
 
     def getTopicFromOperatorName(self, operatorName, printError=True):
         sourceName = self.__subtractSourceNameFromOperatorName(operatorName, printError=False)

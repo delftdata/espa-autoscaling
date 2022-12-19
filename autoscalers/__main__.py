@@ -25,10 +25,11 @@ def getAutoscaler(autoscaler: str) -> Autoscaler:
 
 def setAutoscalerDeveloperConfigurations(autoscaler: Autoscaler):
     autoscaler.configurations.RUN_LOCALLY = True
-    autoscaler.configurations.USE_FLINK_REACTIVE = False
-    autoscaler.configurations.PROMETHEUS_SERVER = "34.91.248.224" + ":9090"
-    autoscaler.configurations.FLINK_JOBMANAGER_SERVER = "35.204.243.153" + ":8081"
-    autoscaler.configurations.ITERATION_PERIOD_SECONDS = 10
+    autoscaler.configurations.USE_FLINK_REACTIVE = True
+    autoscaler.configurations.PROMETHEUS_SERVER = "localhost" + ":9090"
+    autoscaler.configurations.FLINK_JOBMANAGER_SERVER = "localhost" + ":8081"
+    autoscaler.configurations.ITERATION_PERIOD_SECONDS = 15
+    print(autoscaler.configurations.RUN_LOCALLY)
 
 
 if __name__ == "__main__":
@@ -52,7 +53,7 @@ if __name__ == "__main__":
             print(f"Autoscaler {autoscalerName} successfully instantiated.")
             autoscaler.run()
         except:
-            print(f"Initialization of HPA failed ({i}/{maxInitializationAttempts}).")
+            print(f"Initialization of {autoscalerName} failed ({i}/{maxInitializationAttempts}).")
             traceback.print_exc()
             time.sleep(10)
     print("Maximum amount of initialization tries exceeded. Shutting down autoscaler.")

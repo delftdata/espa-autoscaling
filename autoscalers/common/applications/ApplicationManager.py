@@ -29,6 +29,10 @@ class ApplicationManager:
         self.prometheusManager = PrometheusManager(configurations)
         self.kubernetesManager = KubernetesManager(configurations)
 
+    def initialize(self):
+        self.kubernetesManager.initialize()
+
+
     def fetchCurrentOperatorParallelismInformation(self, knownOperators: [str] = None) -> {str, int}:
         """
         Get per-operator parallelism

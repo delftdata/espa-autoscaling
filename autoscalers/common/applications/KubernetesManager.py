@@ -18,6 +18,7 @@ class KubernetesManager:
     def __init__(self, configurations: Configurations):
         self.configurations = configurations
 
+    def initialize(self):
         if not self.configurations.RUN_LOCALLY:
             config.load_incluster_config()
             self.appsV1 = client.AppsV1Api()

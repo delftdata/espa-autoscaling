@@ -216,6 +216,13 @@ class PrometheusManager:
         subtask_busyTime = self.__extract_per_subtask_metrics(subtask_busyTime_data)
         return subtask_busyTime
 
+    def getSubtaskPendingRecords(self) -> {str, float}:
+        subtask_pending_records_query = f"sum(avg_over_time(flink_taskmanager_job_task_operator_pendingRecords" \
+                         f"[{self.configurations.METRIC_AGGREGATION_PERIOD_SECONDS}s]))"
+        subtask_pending_records_data = self.__getResultsFromPrometheus(subtask_pending_records_query)
+        subtask_pending_records = self.__extract_per_subtask_metrics(subtask_pending_records_data)
+        return subtask_pending_records
+
     # Get single value
     @staticmethod
     def __extract_all_values(prometheusResponse) -> [str]:
