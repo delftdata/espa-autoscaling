@@ -12,24 +12,14 @@ class MetricFetcher:
     file_writer: FileWriter
 
     # Metrics that are aggregated over the entire system. Results fetched from prometheus only contains a single column.
-    single_column_metric_queries = {
-        "input_rate": "sum(rate(kafka_server_brokertopicmetrics_messagesin_total{topic=''}[1m]))",
-        "latency": "avg(flink_taskmanager_job_task_operator_currentEmitEventTimeLag) / 1000",
-        "throughput": "sum(flink_taskmanager_job_task_numRecordsInPerSecond{task_name=~\".*ink.*\"}) by (task_name)",
-        "lag": "sum(flink_taskmanager_job_task_operator_KafkaSourceReader_KafkaConsumer_records_lag_max * "
-               "flink_taskmanager_job_task_operator_KafkaSourceReader_KafkaConsumer_assigned_partitions)",
-        "CPU_load": "avg(flink_taskmanager_Status_JVM_CPU_Load)",
-        "taskmanager": "sum(flink_jobmanager_numRegisteredTaskManagers)",
-        "backpressure": "max(avg_over_time(flink_taskmanager_job_task_backPressuredTimeMsPerSecond[1m]))",
-        "idle_time": "avg(avg_over_time(flink_taskmanager_job_task_idleTimeMsPerSecond[1m])) / 1000",
-        "busy_time": "avg(avg_over_time(flink_taskmanager_job_task_busyTimeMsPerSecond[1m])) / 1000"
-    }
+    single_column_metric_queries:  {str, str}
 
-    # Metrics that are aggregated per task_name. Results fetched form prometheus contain as many colums as the amount of
-    # tasks
-    task_specific_metric_queries = {
-        "task_parallelism": "count(flink_taskmanager_job_task_operator_numRecordsIn) by (task_name)",
-    }
+    # Metrics that are aggregated per task_name. Number of resulting columns is the number of tasks fetched from
+    # prometheus
+    task_specific_metric_queries: {str, str}
+
+    # Metrics that are aggregated per topic. Number of resulting columns is the number of topics fetched from prometheus
+    topic_specific_metric_queries: {str, str}
 
     def __init__(self, configurations: Configurations):
         """
@@ -39,6 +29,30 @@ class MetricFetcher:
         self.pandas_manager = PandasManager(self.configs)
         self.prometheus_manager = PrometheusManager(self.configs)
         self.file_writer = FileWriter(self.configs)
+
+        step_size_sec = self.configs.data_step_size_seconds
+        self.single_column_metric_queries = {
+            "input_rate":           f"sum(rate(kafka_server_brokertopicmetrics_messagesin_total{{topic=''}}[{step_size_sec}s]))",
+            "latency":              f"avg(avg_over_time(flink_taskmanager_job_task_operator_currentEmitEventTimeLag[{step_size_sec}s])) / 1000",
+            "input_throughput":     f"sum(avg_over_time(flink_taskmanager_job_task_numRecordsOutPerSecond{{task_name=~'.*ource.*'}}[{step_size_sec}s]))",
+            "output_throughput":    f"sum(avg_over_time(flink_taskmanager_job_task_numRecordsInPerSecond{{task_name=~'.*ink.*'}}[{step_size_sec}s]))",
+            "lag":                  f"sum(avg_over_time(flink_taskmanager_job_task_operator_pendingRecords[{step_size_sec}s]))",
+            "CPU_load":             f"avg(avg_over_time(flink_taskmanager_Status_JVM_CPU_Load[{step_size_sec}s]))",
+            "taskmanager":          f"sum(flink_jobmanager_numRegisteredTaskManagers)",
+            "backpressure":         f"max(avg_over_time(flink_taskmanager_job_task_backPressuredTimeMsPerSecond[{step_size_sec}s]))",
+            "idle_time":            f"avg(avg_over_time(flink_taskmanager_job_task_idleTimeMsPerSecond[{step_size_sec}s])) / 1000",
+            "busy_time":            f"avg(avg_over_time(flink_taskmanager_job_task_busyTimeMsPerSecond[{step_size_sec}s])) / 1000",
+        }
+
+        self.task_specific_metric_queries = {
+            "task_parallelism":         f"count(flink_taskmanager_job_task_operator_numRecordsIn) by (task_name)",
+            "source_input_throughput":  f"sum(avg_over_time(flink_taskmanager_job_task_numRecordsOutPerSecond{{task_name=~'.*ource.*'}}[{step_size_sec}s])) by (task_name)",
+            "source_pending_records":   f"avg(avg_over_time(flink_taskmanager_job_task_operator_pendingRecords[{step_size_sec}s])) by (task_name)",
+        }
+
+        self.topic_specific_metric_queries = {
+            "task_input_rate": f"sum(rate(kafka_server_brokertopicmetrics_messagesin_total{{topic!='__consumer_offsets', topic!=''}}[{step_size_sec}s])) by (topic)",
+        }
 
     def _fetch_experiment_start_end_timestamps(self, timestamp_file=None):
         """
@@ -68,15 +82,15 @@ class MetricFetcher:
                 traceback.print_exc()
         print(f"Saved individual metrics at {self.configs.get_individual_data_directory()}/")
 
-    def _fetch_task_specific_column_metrics(self, start_timestamp, end_timestamp):
+    def _fetch_label_specific_column_metrics(self, start_timestamp, end_timestamp, label_specific_metric_queries, label):
         """
         Fetch the data of the task_specific_metric_queries and write them to file.
         """
-        for metric_name, metric_query in self.task_specific_metric_queries.items():
+        for metric_name, metric_query in label_specific_metric_queries.items():
             try:
                 metric_data = self.prometheus_manager.get_pandas_dataframe_from_prometheus(
                     metric_query, start_timestamp=start_timestamp, end_timestamp=end_timestamp)
-                self.pandas_manager.write_task_specific_metric_data_to_file(metric_name, metric_data)
+                self.pandas_manager.write_label_specific_metric_data_to_file(metric_name, metric_data, label)
             except:
                 print(f"Error fetching task specific metric {metric_name}")
                 traceback.print_exc()
@@ -105,7 +119,11 @@ class MetricFetcher:
 
         print("Fetching task-specific data")
         # Fetch individual data
-        self._fetch_task_specific_column_metrics(start_timestamp, end_timestamp)
+        self._fetch_label_specific_column_metrics(start_timestamp, end_timestamp, self.task_specific_metric_queries, "task_name")
+
+        print("Fetching topic-specific data")
+        # Fetch individual data
+        self._fetch_label_specific_column_metrics(start_timestamp, end_timestamp, self.topic_specific_metric_queries, "topic")
 
         print("Combining individual data")
         # Combine individual data and write to file

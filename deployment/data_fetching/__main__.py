@@ -29,9 +29,6 @@ if __name__ == "__main__":
         data_directory: str = arguments[4]
         experiment_identifier: str = arguments[5]
         timestamp_file: str = ""
-        if len(arguments) >= 7:
-            timestamp_file: str = arguments[6]
-            print(f"Found timestamp file: {timestamp_file}")
 
         print(f"Starting experiment with data_directory={data_directory} and "
               f"experiment_identifier={experiment_identifier}")
@@ -40,6 +37,14 @@ if __name__ == "__main__":
             prometheus_ip, prometheus_port,
             experiment_length_minutes, data_step_size_seconds
         )
+
+        if len(arguments) >= 7:
+            arg_7 = arguments[6]
+            if arg_7 == "auto":
+                timestamp_file = configs.get_start_end_datetime_path()
+            else:
+                timestamp_file: str = arg_7
+            print(f"Found timestamp file: {timestamp_file}")
 
         metric_fetcher: MetricFetcher = MetricFetcher(configs)
         metric_fetcher.fetch_data(timestamp_file)
