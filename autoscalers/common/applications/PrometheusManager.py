@@ -115,6 +115,21 @@ class PrometheusManager:
         kafkaLag = self.__extract_per_operator_metrics(kafkaLag_data)
         return kafkaLag
 
+
+    def getSourceOperatorPendingRecords(self) -> {str, float}:
+        source_pending_records_query = f"sum(avg_over_time(flink_taskmanager_job_task_operator_pendingRecords" \
+                         f"[{self.configurations.METRIC_AGGREGATION_PERIOD_SECONDS}s])) by (task_name)"
+        source_pending_records_data = self.__getResultsFromPrometheus(source_pending_records_query)
+        source_pending_records = self.__extract_per_operator_metrics(source_pending_records_data)
+        return source_pending_records
+
+    def getSourceOperatorPendingRecordsRate(self) -> {str, float}:
+        source_pending_records_rate_query = f"sum(rate(flink_taskmanager_job_task_operator_pendingRecords" \
+                         f"[{self.configurations.METRIC_AGGREGATION_PERIOD_SECONDS}s])) by (task_name)"
+        source_pending_records_rate_data = self.__getResultsFromPrometheus(source_pending_records_rate_query)
+        source_pending_records_rate = self.__extract_per_operator_metrics(source_pending_records_rate_data)
+        return source_pending_records_rate
+
     ############################################
     # Taskmanager based substraction
     @staticmethod
@@ -216,12 +231,6 @@ class PrometheusManager:
         subtask_busyTime = self.__extract_per_subtask_metrics(subtask_busyTime_data)
         return subtask_busyTime
 
-    def getSubtaskPendingRecords(self) -> {str, float}:
-        subtask_pending_records_query = f"sum(avg_over_time(flink_taskmanager_job_task_operator_pendingRecords" \
-                         f"[{self.configurations.METRIC_AGGREGATION_PERIOD_SECONDS}s]))"
-        subtask_pending_records_data = self.__getResultsFromPrometheus(subtask_pending_records_query)
-        subtask_pending_records = self.__extract_per_subtask_metrics(subtask_pending_records_data)
-        return subtask_pending_records
 
     # Get single value
     @staticmethod

@@ -1,0 +1,1836 @@
+Instantiating autoscaler hpa-cpu.
+Getting autoscaler: 'hpa-cpu'
+Autoscaler hpa-cpu successfully instantiated.
+Running autoscaler with the following configurations:
+	USE_FLINK_REACTIVE: False
+	PROMETHEUS_SERVER: prometheus-server
+	FLINK_JOBMANAGER_SERVER: flink-jobmanager-rest:8081
+	AVAILABLE_TASKMANAGERS: 100
+	OVERPROVISIONING_FACTOR: 1.0
+	METRIC_AGGREGATION_PERIOD_SECONDS: 15
+	COOLDOWN_PERIOD_SECONDS: 120
+	ITERATION_PERIOD_SECONDS: 15
+	KUBERNETES_NAMESPACE: jkanis-space
+	NONREACTIVE_TIME_AFTER_SAVEPOINT: 4
+	NONREACTIVE_JOB: ch.ethz.systems.strymon.ds2.flink.nexmark.queries.updated.Query11KafkaSource
+	NONREACTIVE_CONTAINER: gsiachamis/flink-nexmark-queries:1.0
+	NONREACTIVE_ADJUST_ON_INSUFFICIENT_RESOURCES: True
+	HPA_SCALE_DOWN_WINDOW_SECONDS: 300
+	CPU_UTILIZATION_TARGET_VALUE: 0.7
+Setting initial metrics for autoscaler
+Initial metrics are set successfully. Starting autoscaler
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 13, 'Source:_BidsSource____BidsTimestampAssigner': 7}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 13, 'Source:_BidsSource____BidsTimestampAssigner': 7}
+Current parallelisms: {'LatencySink': 10, 'SessionWindow': 10, 'Source:_BidsSource____BidsTimestampAssigner': 10}
+Performing scaling operation. Scaling from {'LatencySink': 10, 'SessionWindow': 10, 'Source:_BidsSource____BidsTimestampAssigner': 10} to {'LatencySink': 1, 'SessionWindow': 13, 'Source:_BidsSource____BidsTimestampAssigner': 7}.
+Stopping job d16ed9aec619c14469bd1fb8e8f5a8aa with a savepoint.
+{'request-id': '177b0038adab60c3f15807c1faa252e8'}
+Triggered savepoint with trigger_id: 177b0038adab60c3f15807c1faa252e8
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-d16ed9-dc3580ce23de
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-qgv7p
+Deleted pod flink-jobmanager-qgv7p
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 21
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 16, 'Source:_BidsSource____BidsTimestampAssigner': 7}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 16, 'Source:_BidsSource____BidsTimestampAssigner': 7}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 13, 'Source:_BidsSource____BidsTimestampAssigner': 7}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 13, 'Source:_BidsSource____BidsTimestampAssigner': 7} to {'LatencySink': 1, 'SessionWindow': 16, 'Source:_BidsSource____BidsTimestampAssigner': 7}.
+Stopping job 61f364abe9be9352bfb8908d8564a296 with a savepoint.
+{'request-id': 'ecb96a73571015253d35841287b95747'}
+Triggered savepoint with trigger_id: ecb96a73571015253d35841287b95747
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-61f364-c9ad0f7eb020
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-7cb5p
+Deleted pod flink-jobmanager-7cb5p
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 24
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 20, 'Source:_BidsSource____BidsTimestampAssigner': 8}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 20, 'Source:_BidsSource____BidsTimestampAssigner': 8}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 16, 'Source:_BidsSource____BidsTimestampAssigner': 7}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 16, 'Source:_BidsSource____BidsTimestampAssigner': 7} to {'LatencySink': 1, 'SessionWindow': 20, 'Source:_BidsSource____BidsTimestampAssigner': 8}.
+Stopping job afc828e6e63c8f3998419f9d3c755429 with a savepoint.
+{'request-id': 'a9df2c6a35d4fcffa9d1ed1fa161d8ba'}
+Triggered savepoint with trigger_id: a9df2c6a35d4fcffa9d1ed1fa161d8ba
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-afc828-60b86eb045c6
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-6fps5
+Deleted pod flink-jobmanager-6fps5
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 29
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 24, 'Source:_BidsSource____BidsTimestampAssigner': 10}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 24, 'Source:_BidsSource____BidsTimestampAssigner': 10}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 20, 'Source:_BidsSource____BidsTimestampAssigner': 8}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 20, 'Source:_BidsSource____BidsTimestampAssigner': 8} to {'LatencySink': 1, 'SessionWindow': 24, 'Source:_BidsSource____BidsTimestampAssigner': 10}.
+Stopping job e1d77638d49f3c0b89053fa17dbb1525 with a savepoint.
+{'request-id': '738379da1e126d64957d1852881c75a3'}
+Triggered savepoint with trigger_id: 738379da1e126d64957d1852881c75a3
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-e1d776-f0bbf0f26e02
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-2qmht
+Deleted pod flink-jobmanager-2qmht
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 35
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 28, 'Source:_BidsSource____BidsTimestampAssigner': 12}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 28, 'Source:_BidsSource____BidsTimestampAssigner': 12}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 24, 'Source:_BidsSource____BidsTimestampAssigner': 10}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 24, 'Source:_BidsSource____BidsTimestampAssigner': 10} to {'LatencySink': 1, 'SessionWindow': 28, 'Source:_BidsSource____BidsTimestampAssigner': 12}.
+Stopping job 8ab6adfdfdc15a369561f1b25978003f with a savepoint.
+{'request-id': '670882ec896efd3a893f65d8e4324074'}
+Triggered savepoint with trigger_id: 670882ec896efd3a893f65d8e4324074
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-8ab6ad-c7fcacfd8a9a
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-n5fs5
+Deleted pod flink-jobmanager-n5fs5
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 41
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 29, 'Source:_BidsSource____BidsTimestampAssigner': 13}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 29, 'Source:_BidsSource____BidsTimestampAssigner': 13}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 28, 'Source:_BidsSource____BidsTimestampAssigner': 12}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 28, 'Source:_BidsSource____BidsTimestampAssigner': 12} to {'LatencySink': 1, 'SessionWindow': 29, 'Source:_BidsSource____BidsTimestampAssigner': 13}.
+Stopping job 5da609796d1efa5db9e72044876a14e1 with a savepoint.
+{'request-id': '3ed68da833965b29d9da10ba7df57323'}
+Triggered savepoint with trigger_id: 3ed68da833965b29d9da10ba7df57323
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-5da609-d9db7692de01
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-x8jw6
+Deleted pod flink-jobmanager-x8jw6
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 43
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 33, 'Source:_BidsSource____BidsTimestampAssigner': 14}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 33, 'Source:_BidsSource____BidsTimestampAssigner': 14}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 29, 'Source:_BidsSource____BidsTimestampAssigner': 13}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 29, 'Source:_BidsSource____BidsTimestampAssigner': 13} to {'LatencySink': 1, 'SessionWindow': 33, 'Source:_BidsSource____BidsTimestampAssigner': 14}.
+Stopping job f00dfde13f4e0bffb32be87234632ed5 with a savepoint.
+{'request-id': 'ffe5ea0d8096094f9e701a44285e8764'}
+Triggered savepoint with trigger_id: ffe5ea0d8096094f9e701a44285e8764
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-f00dfd-07688988f5e6
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-4d8wj
+Deleted pod flink-jobmanager-4d8wj
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 48
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 40, 'Source:_BidsSource____BidsTimestampAssigner': 16}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 40, 'Source:_BidsSource____BidsTimestampAssigner': 16}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 33, 'Source:_BidsSource____BidsTimestampAssigner': 14}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 33, 'Source:_BidsSource____BidsTimestampAssigner': 14} to {'LatencySink': 1, 'SessionWindow': 40, 'Source:_BidsSource____BidsTimestampAssigner': 16}.
+Stopping job f592de04241a9b395dbc9328018dfe6c with a savepoint.
+{'request-id': 'd58785c4ab19aed3be8b0a9d382060c9'}
+Triggered savepoint with trigger_id: d58785c4ab19aed3be8b0a9d382060c9
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-f592de-5a11826688d8
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-zt79d
+Deleted pod flink-jobmanager-zt79d
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 57
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 19, 'Source:_BidsSource____BidsTimestampAssigner': 12}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 40, 'Source:_BidsSource____BidsTimestampAssigner': 16}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 40, 'Source:_BidsSource____BidsTimestampAssigner': 16}
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 12, 'Source:_BidsSource____BidsTimestampAssigner': 9}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 40, 'Source:_BidsSource____BidsTimestampAssigner': 16}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 40, 'Source:_BidsSource____BidsTimestampAssigner': 16}
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 8, 'Source:_BidsSource____BidsTimestampAssigner': 7}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 40, 'Source:_BidsSource____BidsTimestampAssigner': 16}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 40, 'Source:_BidsSource____BidsTimestampAssigner': 16}
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 8, 'Source:_BidsSource____BidsTimestampAssigner': 6}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 40, 'Source:_BidsSource____BidsTimestampAssigner': 16}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 40, 'Source:_BidsSource____BidsTimestampAssigner': 16}
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 7, 'Source:_BidsSource____BidsTimestampAssigner': 5}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 40, 'Source:_BidsSource____BidsTimestampAssigner': 16}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 40, 'Source:_BidsSource____BidsTimestampAssigner': 16}
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 7, 'Source:_BidsSource____BidsTimestampAssigner': 5}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 40, 'Source:_BidsSource____BidsTimestampAssigner': 16}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 40, 'Source:_BidsSource____BidsTimestampAssigner': 16}
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 7, 'Source:_BidsSource____BidsTimestampAssigner': 5}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 40, 'Source:_BidsSource____BidsTimestampAssigner': 16}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 40, 'Source:_BidsSource____BidsTimestampAssigner': 16}
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 7, 'Source:_BidsSource____BidsTimestampAssigner': 5}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 40, 'Source:_BidsSource____BidsTimestampAssigner': 16}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 40, 'Source:_BidsSource____BidsTimestampAssigner': 16}
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 7, 'Source:_BidsSource____BidsTimestampAssigner': 5}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 40, 'Source:_BidsSource____BidsTimestampAssigner': 16}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 40, 'Source:_BidsSource____BidsTimestampAssigner': 16}
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 7, 'Source:_BidsSource____BidsTimestampAssigner': 5}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 40, 'Source:_BidsSource____BidsTimestampAssigner': 16}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 40, 'Source:_BidsSource____BidsTimestampAssigner': 16}
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 7, 'Source:_BidsSource____BidsTimestampAssigner': 5}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 40, 'Source:_BidsSource____BidsTimestampAssigner': 16}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 40, 'Source:_BidsSource____BidsTimestampAssigner': 16}
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 7, 'Source:_BidsSource____BidsTimestampAssigner': 5}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 19, 'Source:_BidsSource____BidsTimestampAssigner': 12}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 40, 'Source:_BidsSource____BidsTimestampAssigner': 16}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 40, 'Source:_BidsSource____BidsTimestampAssigner': 16} to {'LatencySink': 1, 'SessionWindow': 19, 'Source:_BidsSource____BidsTimestampAssigner': 12}.
+Stopping job 7be58f1c9e501f17057cc27eb7b3e0a7 with a savepoint.
+{'request-id': '8fec5a7c7c07fab8063d85118bc9bd17'}
+Triggered savepoint with trigger_id: 8fec5a7c7c07fab8063d85118bc9bd17
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-7be58f-bae10a5b3bb7
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-nqrtq
+Deleted pod flink-jobmanager-nqrtq
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 32
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 3, 'Source:_BidsSource____BidsTimestampAssigner': 3}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 12, 'Source:_BidsSource____BidsTimestampAssigner': 9}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 19, 'Source:_BidsSource____BidsTimestampAssigner': 12}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 19, 'Source:_BidsSource____BidsTimestampAssigner': 12} to {'LatencySink': 1, 'SessionWindow': 12, 'Source:_BidsSource____BidsTimestampAssigner': 9}.
+Stopping job 877d2fc3d933d824b480b7484111d76b with a savepoint.
+{'request-id': 'e3d9ab54bc6a7272eabced33ff08d890'}
+Triggered savepoint with trigger_id: e3d9ab54bc6a7272eabced33ff08d890
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-877d2f-9087baa9185a
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-v56jn
+Deleted pod flink-jobmanager-v56jn
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 22
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 3, 'Source:_BidsSource____BidsTimestampAssigner': 3}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 7, 'Source:_BidsSource____BidsTimestampAssigner': 5}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 12, 'Source:_BidsSource____BidsTimestampAssigner': 9}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 12, 'Source:_BidsSource____BidsTimestampAssigner': 9} to {'LatencySink': 1, 'SessionWindow': 7, 'Source:_BidsSource____BidsTimestampAssigner': 5}.
+Stopping job 95dbe26b0f028ed9c077e5e2b4dafeed with a savepoint.
+{'request-id': '43cb203a4768df4ee88be3a1059be8bb'}
+Triggered savepoint with trigger_id: 43cb203a4768df4ee88be3a1059be8bb
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-95dbe2-b403dba7c413
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-c8n5c
+Deleted pod flink-jobmanager-c8n5c
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 13
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 2, 'Source:_BidsSource____BidsTimestampAssigner': 2}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 3, 'Source:_BidsSource____BidsTimestampAssigner': 3}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 7, 'Source:_BidsSource____BidsTimestampAssigner': 5}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 7, 'Source:_BidsSource____BidsTimestampAssigner': 5} to {'LatencySink': 1, 'SessionWindow': 3, 'Source:_BidsSource____BidsTimestampAssigner': 3}.
+Stopping job 1619d9feab2ca98829e7ed384d5ab188 with a savepoint.
+{'request-id': 'e7ba901c144a9b8a2c84e5b073af4937'}
+Triggered savepoint with trigger_id: e7ba901c144a9b8a2c84e5b073af4937
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-1619d9-1f9091e7103c
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-blzdj
+Deleted pod flink-jobmanager-blzdj
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 7
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 2, 'Source:_BidsSource____BidsTimestampAssigner': 2}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 3, 'Source:_BidsSource____BidsTimestampAssigner': 3}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 3, 'Source:_BidsSource____BidsTimestampAssigner': 3}
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 2, 'Source:_BidsSource____BidsTimestampAssigner': 2}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 3, 'Source:_BidsSource____BidsTimestampAssigner': 3}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 3, 'Source:_BidsSource____BidsTimestampAssigner': 3}
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 2, 'Source:_BidsSource____BidsTimestampAssigner': 2}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 2, 'Source:_BidsSource____BidsTimestampAssigner': 2}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 3, 'Source:_BidsSource____BidsTimestampAssigner': 3}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 3, 'Source:_BidsSource____BidsTimestampAssigner': 3} to {'LatencySink': 1, 'SessionWindow': 2, 'Source:_BidsSource____BidsTimestampAssigner': 2}.
+Stopping job ed70fbe111f9287ecd297cd037a608c6 with a savepoint.
+{'request-id': '3314d109eae7063116be7d066281c300'}
+Triggered savepoint with trigger_id: 3314d109eae7063116be7d066281c300
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-ed70fb-af2095c801d0
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-4rw5s
+Deleted pod flink-jobmanager-4rw5s
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 5
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 3, 'Source:_BidsSource____BidsTimestampAssigner': 2}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 3, 'Source:_BidsSource____BidsTimestampAssigner': 2}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 2, 'Source:_BidsSource____BidsTimestampAssigner': 2}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 2, 'Source:_BidsSource____BidsTimestampAssigner': 2} to {'LatencySink': 1, 'SessionWindow': 3, 'Source:_BidsSource____BidsTimestampAssigner': 2}.
+Stopping job b76263f9de0af0d669196a302eaee4fb with a savepoint.
+{'request-id': 'ff1f8745b3e7d1183c34697c19c7dbf2'}
+Triggered savepoint with trigger_id: ff1f8745b3e7d1183c34697c19c7dbf2
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-b76263-959ce6ac8d7c
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-smz28
+Deleted pod flink-jobmanager-smz28
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 6
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 4, 'Source:_BidsSource____BidsTimestampAssigner': 3}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 4, 'Source:_BidsSource____BidsTimestampAssigner': 3}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 3, 'Source:_BidsSource____BidsTimestampAssigner': 2}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 3, 'Source:_BidsSource____BidsTimestampAssigner': 2} to {'LatencySink': 1, 'SessionWindow': 4, 'Source:_BidsSource____BidsTimestampAssigner': 3}.
+Stopping job 55fb5b66f88ce4cebcc3061c024026ae with a savepoint.
+{'request-id': '8b9d5e730cd75643427765301e9bd3e4'}
+Triggered savepoint with trigger_id: 8b9d5e730cd75643427765301e9bd3e4
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-55fb5b-3cd9b0bc4093
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-db2mb
+Deleted pod flink-jobmanager-db2mb
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 8
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 5, 'Source:_BidsSource____BidsTimestampAssigner': 4}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 5, 'Source:_BidsSource____BidsTimestampAssigner': 4}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 4, 'Source:_BidsSource____BidsTimestampAssigner': 3}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 4, 'Source:_BidsSource____BidsTimestampAssigner': 3} to {'LatencySink': 1, 'SessionWindow': 5, 'Source:_BidsSource____BidsTimestampAssigner': 4}.
+Stopping job 108a75cae09dd81f1b4ca3a57d5de984 with a savepoint.
+{'request-id': '3fe22e7dedf2a086a6928126156ffe61'}
+Triggered savepoint with trigger_id: 3fe22e7dedf2a086a6928126156ffe61
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-108a75-c0b6383279e0
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-bwht4
+Deleted pod flink-jobmanager-bwht4
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 10
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 6, 'Source:_BidsSource____BidsTimestampAssigner': 5}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 6, 'Source:_BidsSource____BidsTimestampAssigner': 5}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 5, 'Source:_BidsSource____BidsTimestampAssigner': 4}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 5, 'Source:_BidsSource____BidsTimestampAssigner': 4} to {'LatencySink': 1, 'SessionWindow': 6, 'Source:_BidsSource____BidsTimestampAssigner': 5}.
+Stopping job fc0acd14c68d35b05d707db2828bcb58 with a savepoint.
+{'request-id': '730d94d16f39b1335834df9cffdbbf48'}
+Triggered savepoint with trigger_id: 730d94d16f39b1335834df9cffdbbf48
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-fc0acd-bb52bd9f2fc7
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-r6w7k
+Deleted pod flink-jobmanager-r6w7k
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 12
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 7, 'Source:_BidsSource____BidsTimestampAssigner': 5}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 7, 'Source:_BidsSource____BidsTimestampAssigner': 5}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 6, 'Source:_BidsSource____BidsTimestampAssigner': 5}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 6, 'Source:_BidsSource____BidsTimestampAssigner': 5} to {'LatencySink': 1, 'SessionWindow': 7, 'Source:_BidsSource____BidsTimestampAssigner': 5}.
+Stopping job a5065f19d17a83aa348b2f794e4ebb9a with a savepoint.
+{'request-id': 'a150019ca19fade539f9e91bae6d1453'}
+Triggered savepoint with trigger_id: a150019ca19fade539f9e91bae6d1453
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-a5065f-e2ce73df99c5
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-lgpz4
+Deleted pod flink-jobmanager-lgpz4
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 13
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 9, 'Source:_BidsSource____BidsTimestampAssigner': 5}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 9, 'Source:_BidsSource____BidsTimestampAssigner': 5}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 7, 'Source:_BidsSource____BidsTimestampAssigner': 5}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 7, 'Source:_BidsSource____BidsTimestampAssigner': 5} to {'LatencySink': 1, 'SessionWindow': 9, 'Source:_BidsSource____BidsTimestampAssigner': 5}.
+Stopping job a143974c534a6bf2c2bea17392156f9e with a savepoint.
+{'request-id': 'babc22e6e4fb132f476cb2e5778c09e2'}
+Triggered savepoint with trigger_id: babc22e6e4fb132f476cb2e5778c09e2
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-a14397-3e765740e35e
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-n77rq
+Deleted pod flink-jobmanager-n77rq
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 15
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 12, 'Source:_BidsSource____BidsTimestampAssigner': 6}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 12, 'Source:_BidsSource____BidsTimestampAssigner': 6}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 9, 'Source:_BidsSource____BidsTimestampAssigner': 5}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 9, 'Source:_BidsSource____BidsTimestampAssigner': 5} to {'LatencySink': 1, 'SessionWindow': 12, 'Source:_BidsSource____BidsTimestampAssigner': 6}.
+Stopping job 6677d012a17a044ae60427a0c954f638 with a savepoint.
+{'request-id': '882ba0ec95a779d24b4dcc248a4e1609'}
+Triggered savepoint with trigger_id: 882ba0ec95a779d24b4dcc248a4e1609
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-6677d0-f85a00c0d031
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-f9fsd
+Deleted pod flink-jobmanager-f9fsd
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 19
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 13, 'Source:_BidsSource____BidsTimestampAssigner': 6}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 13, 'Source:_BidsSource____BidsTimestampAssigner': 6}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 12, 'Source:_BidsSource____BidsTimestampAssigner': 6}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 12, 'Source:_BidsSource____BidsTimestampAssigner': 6} to {'LatencySink': 1, 'SessionWindow': 13, 'Source:_BidsSource____BidsTimestampAssigner': 6}.
+Stopping job 635353a31fb998e5ae90f88416b8630f with a savepoint.
+{'request-id': '5ff8c064cc32e30e2a260247dec21260'}
+Triggered savepoint with trigger_id: 5ff8c064cc32e30e2a260247dec21260
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-635353-f00592a6454a
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-rwbcv
+Deleted pod flink-jobmanager-rwbcv
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 20
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 14, 'Source:_BidsSource____BidsTimestampAssigner': 6}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 14, 'Source:_BidsSource____BidsTimestampAssigner': 6}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 13, 'Source:_BidsSource____BidsTimestampAssigner': 6}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 13, 'Source:_BidsSource____BidsTimestampAssigner': 6} to {'LatencySink': 1, 'SessionWindow': 14, 'Source:_BidsSource____BidsTimestampAssigner': 6}.
+Stopping job 4860929c6edfe6f9c2efcfcc191f2c01 with a savepoint.
+{'request-id': '7a3426b6e3c3deeb7f930901126273c2'}
+Triggered savepoint with trigger_id: 7a3426b6e3c3deeb7f930901126273c2
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-486092-93f36772f7d1
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-zrgmj
+Deleted pod flink-jobmanager-zrgmj
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 21
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 14, 'Source:_BidsSource____BidsTimestampAssigner': 7}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 14, 'Source:_BidsSource____BidsTimestampAssigner': 7}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 14, 'Source:_BidsSource____BidsTimestampAssigner': 6}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 14, 'Source:_BidsSource____BidsTimestampAssigner': 6} to {'LatencySink': 1, 'SessionWindow': 14, 'Source:_BidsSource____BidsTimestampAssigner': 7}.
+Stopping job 59484bd740d5e06d1b26ddc02cb2cb80 with a savepoint.
+{'request-id': '3d1a763c89ed487d1da3fa38c73bb762'}
+Triggered savepoint with trigger_id: 3d1a763c89ed487d1da3fa38c73bb762
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-59484b-152bc00a0936
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-slhr8
+Deleted pod flink-jobmanager-slhr8
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 22
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 17, 'Source:_BidsSource____BidsTimestampAssigner': 8}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 17, 'Source:_BidsSource____BidsTimestampAssigner': 8}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 14, 'Source:_BidsSource____BidsTimestampAssigner': 7}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 14, 'Source:_BidsSource____BidsTimestampAssigner': 7} to {'LatencySink': 1, 'SessionWindow': 17, 'Source:_BidsSource____BidsTimestampAssigner': 8}.
+Stopping job c695d9e0c9a396ca5720cf50da6387e4 with a savepoint.
+{'request-id': '424a328284bbdc304e15e83324c53470'}
+Triggered savepoint with trigger_id: 424a328284bbdc304e15e83324c53470
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-c695d9-9a46ccee2304
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-lg48w
+Deleted pod flink-jobmanager-lg48w
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 26
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 19, 'Source:_BidsSource____BidsTimestampAssigner': 11}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 19, 'Source:_BidsSource____BidsTimestampAssigner': 11}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 17, 'Source:_BidsSource____BidsTimestampAssigner': 8}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 17, 'Source:_BidsSource____BidsTimestampAssigner': 8} to {'LatencySink': 1, 'SessionWindow': 19, 'Source:_BidsSource____BidsTimestampAssigner': 11}.
+Stopping job 0948babbe0faa80f66f30f686192326c with a savepoint.
+{'request-id': '1efa05bad02e31d0194c1504f9d034c7'}
+Triggered savepoint with trigger_id: 1efa05bad02e31d0194c1504f9d034c7
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-0948ba-88afbf7b1c77
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-p6w99
+Deleted pod flink-jobmanager-p6w99
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 31
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 22, 'Source:_BidsSource____BidsTimestampAssigner': 11}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 22, 'Source:_BidsSource____BidsTimestampAssigner': 11}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 19, 'Source:_BidsSource____BidsTimestampAssigner': 11}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 19, 'Source:_BidsSource____BidsTimestampAssigner': 11} to {'LatencySink': 1, 'SessionWindow': 22, 'Source:_BidsSource____BidsTimestampAssigner': 11}.
+Stopping job 67ad66943a6cf67d96c88608f52c1bc7 with a savepoint.
+{'request-id': '9a08a5c057acdc0ad641404c685d9295'}
+Triggered savepoint with trigger_id: 9a08a5c057acdc0ad641404c685d9295
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-67ad66-605a06bdc3d1
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-q6qdq
+Deleted pod flink-jobmanager-q6qdq
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 34
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 27, 'Source:_BidsSource____BidsTimestampAssigner': 14}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 27, 'Source:_BidsSource____BidsTimestampAssigner': 14}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 22, 'Source:_BidsSource____BidsTimestampAssigner': 11}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 22, 'Source:_BidsSource____BidsTimestampAssigner': 11} to {'LatencySink': 1, 'SessionWindow': 27, 'Source:_BidsSource____BidsTimestampAssigner': 14}.
+Stopping job 03473ff0489c091c69c4210c56d833e7 with a savepoint.
+{'request-id': 'e31d6aa50768ca7e489cc0d491b2a7ec'}
+Triggered savepoint with trigger_id: e31d6aa50768ca7e489cc0d491b2a7ec
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-03473f-3889282786d5
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-2z9vl
+Deleted pod flink-jobmanager-2z9vl
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 42
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 31, 'Source:_BidsSource____BidsTimestampAssigner': 14}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 31, 'Source:_BidsSource____BidsTimestampAssigner': 14}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 27, 'Source:_BidsSource____BidsTimestampAssigner': 14}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 27, 'Source:_BidsSource____BidsTimestampAssigner': 14} to {'LatencySink': 1, 'SessionWindow': 31, 'Source:_BidsSource____BidsTimestampAssigner': 14}.
+Stopping job 3e32f9d8a2404c937db8c62ce7c346f9 with a savepoint.
+{'request-id': 'd4509857d78fcf14bb7bb196222791e6'}
+Triggered savepoint with trigger_id: d4509857d78fcf14bb7bb196222791e6
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-3e32f9-8dc9bc200c1d
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-ghmfs
+Deleted pod flink-jobmanager-ghmfs
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 46
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 29, 'Source:_BidsSource____BidsTimestampAssigner': 10}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 31, 'Source:_BidsSource____BidsTimestampAssigner': 14}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 31, 'Source:_BidsSource____BidsTimestampAssigner': 14}
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 37, 'Source:_BidsSource____BidsTimestampAssigner': 14}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 37, 'Source:_BidsSource____BidsTimestampAssigner': 14}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 31, 'Source:_BidsSource____BidsTimestampAssigner': 14}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 31, 'Source:_BidsSource____BidsTimestampAssigner': 14} to {'LatencySink': 1, 'SessionWindow': 37, 'Source:_BidsSource____BidsTimestampAssigner': 14}.
+Stopping job 65583ce7800a10710616f909ebda1f56 with a savepoint.
+{'request-id': '864a284aa48d66f693889f0b77f61480'}
+Triggered savepoint with trigger_id: 864a284aa48d66f693889f0b77f61480
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-65583c-f12b80fbcf14
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-jw2h6
+Deleted pod flink-jobmanager-jw2h6
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 52
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 37, 'Source:_BidsSource____BidsTimestampAssigner': 14}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 37, 'Source:_BidsSource____BidsTimestampAssigner': 14}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 37, 'Source:_BidsSource____BidsTimestampAssigner': 14}
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 34, 'Source:_BidsSource____BidsTimestampAssigner': 12}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 37, 'Source:_BidsSource____BidsTimestampAssigner': 14}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 37, 'Source:_BidsSource____BidsTimestampAssigner': 14}
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 41, 'Source:_BidsSource____BidsTimestampAssigner': 16}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 41, 'Source:_BidsSource____BidsTimestampAssigner': 16}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 37, 'Source:_BidsSource____BidsTimestampAssigner': 14}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 37, 'Source:_BidsSource____BidsTimestampAssigner': 14} to {'LatencySink': 1, 'SessionWindow': 41, 'Source:_BidsSource____BidsTimestampAssigner': 16}.
+Stopping job eb69a61c63c952670cb75544cbedcb3b with a savepoint.
+{'request-id': '20f7152ce96e43c7b4f3149e10734f04'}
+Triggered savepoint with trigger_id: 20f7152ce96e43c7b4f3149e10734f04
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-eb69a6-67c1b2e1622b
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-5pcm6
+Deleted pod flink-jobmanager-5pcm6
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 58
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 43, 'Source:_BidsSource____BidsTimestampAssigner': 17}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 43, 'Source:_BidsSource____BidsTimestampAssigner': 17}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 41, 'Source:_BidsSource____BidsTimestampAssigner': 16}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 41, 'Source:_BidsSource____BidsTimestampAssigner': 16} to {'LatencySink': 1, 'SessionWindow': 43, 'Source:_BidsSource____BidsTimestampAssigner': 17}.
+Stopping job 223c33d0816543365ad8db5d34d33bba with a savepoint.
+{'request-id': '8592216034b8397690e1a70bc98b31bb'}
+Triggered savepoint with trigger_id: 8592216034b8397690e1a70bc98b31bb
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-223c33-ba1142573582
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-hbt2c
+Deleted pod flink-jobmanager-hbt2c
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 61
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 31, 'Source:_BidsSource____BidsTimestampAssigner': 14}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 43, 'Source:_BidsSource____BidsTimestampAssigner': 17}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 43, 'Source:_BidsSource____BidsTimestampAssigner': 17}
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 28, 'Source:_BidsSource____BidsTimestampAssigner': 13}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 43, 'Source:_BidsSource____BidsTimestampAssigner': 17}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 43, 'Source:_BidsSource____BidsTimestampAssigner': 17}
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 25, 'Source:_BidsSource____BidsTimestampAssigner': 13}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 43, 'Source:_BidsSource____BidsTimestampAssigner': 17}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 43, 'Source:_BidsSource____BidsTimestampAssigner': 17}
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 18, 'Source:_BidsSource____BidsTimestampAssigner': 11}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 43, 'Source:_BidsSource____BidsTimestampAssigner': 17}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 43, 'Source:_BidsSource____BidsTimestampAssigner': 17}
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 12, 'Source:_BidsSource____BidsTimestampAssigner': 9}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 43, 'Source:_BidsSource____BidsTimestampAssigner': 17}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 43, 'Source:_BidsSource____BidsTimestampAssigner': 17}
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 11, 'Source:_BidsSource____BidsTimestampAssigner': 8}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 43, 'Source:_BidsSource____BidsTimestampAssigner': 17}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 43, 'Source:_BidsSource____BidsTimestampAssigner': 17}
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 9, 'Source:_BidsSource____BidsTimestampAssigner': 6}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 43, 'Source:_BidsSource____BidsTimestampAssigner': 17}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 43, 'Source:_BidsSource____BidsTimestampAssigner': 17}
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 9, 'Source:_BidsSource____BidsTimestampAssigner': 6}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 43, 'Source:_BidsSource____BidsTimestampAssigner': 17}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 43, 'Source:_BidsSource____BidsTimestampAssigner': 17}
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 9, 'Source:_BidsSource____BidsTimestampAssigner': 6}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 43, 'Source:_BidsSource____BidsTimestampAssigner': 17}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 43, 'Source:_BidsSource____BidsTimestampAssigner': 17}
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 9, 'Source:_BidsSource____BidsTimestampAssigner': 6}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 43, 'Source:_BidsSource____BidsTimestampAssigner': 17}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 43, 'Source:_BidsSource____BidsTimestampAssigner': 17}
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 8, 'Source:_BidsSource____BidsTimestampAssigner': 5}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 43, 'Source:_BidsSource____BidsTimestampAssigner': 17}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 43, 'Source:_BidsSource____BidsTimestampAssigner': 17}
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 9, 'Source:_BidsSource____BidsTimestampAssigner': 5}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 31, 'Source:_BidsSource____BidsTimestampAssigner': 14}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 43, 'Source:_BidsSource____BidsTimestampAssigner': 17}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 43, 'Source:_BidsSource____BidsTimestampAssigner': 17} to {'LatencySink': 1, 'SessionWindow': 31, 'Source:_BidsSource____BidsTimestampAssigner': 14}.
+Stopping job 0577ae44022a05cecce18e3628266745 with a savepoint.
+{'request-id': 'dee68c9819ed1c0df2a6fde53fa1a828'}
+Triggered savepoint with trigger_id: dee68c9819ed1c0df2a6fde53fa1a828
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-0577ae-32bcd340ac6b
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-2gjgc
+Deleted pod flink-jobmanager-2gjgc
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 46
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 6, 'Source:_BidsSource____BidsTimestampAssigner': 4}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 28, 'Source:_BidsSource____BidsTimestampAssigner': 13}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 31, 'Source:_BidsSource____BidsTimestampAssigner': 14}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 31, 'Source:_BidsSource____BidsTimestampAssigner': 14} to {'LatencySink': 1, 'SessionWindow': 28, 'Source:_BidsSource____BidsTimestampAssigner': 13}.
+Stopping job 8be303818972f6dca3a299bba314a940 with a savepoint.
+{'request-id': 'f83bf33d43d23e03940c5b984ece6e08'}
+Triggered savepoint with trigger_id: f83bf33d43d23e03940c5b984ece6e08
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-8be303-9274f54a2a96
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-flg2s
+Deleted pod flink-jobmanager-flg2s
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 42
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 5, 'Source:_BidsSource____BidsTimestampAssigner': 4}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 9, 'Source:_BidsSource____BidsTimestampAssigner': 5}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 28, 'Source:_BidsSource____BidsTimestampAssigner': 13}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 28, 'Source:_BidsSource____BidsTimestampAssigner': 13} to {'LatencySink': 1, 'SessionWindow': 9, 'Source:_BidsSource____BidsTimestampAssigner': 5}.
+Stopping job a49552523dad25c5cbbe195a0aeb8c83 with a savepoint.
+{'request-id': '9e426d4f4ea56b66e97f895cfacc0980'}
+Triggered savepoint with trigger_id: 9e426d4f4ea56b66e97f895cfacc0980
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-a49552-e440ec736500
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-x9v9k
+Deleted pod flink-jobmanager-x9v9k
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 15
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 3, 'Source:_BidsSource____BidsTimestampAssigner': 2}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 6, 'Source:_BidsSource____BidsTimestampAssigner': 4}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 9, 'Source:_BidsSource____BidsTimestampAssigner': 5}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 9, 'Source:_BidsSource____BidsTimestampAssigner': 5} to {'LatencySink': 1, 'SessionWindow': 6, 'Source:_BidsSource____BidsTimestampAssigner': 4}.
+Stopping job 79f221f5fecebf7e93462f0fd76d5c9a with a savepoint.
+{'request-id': 'fbe013a2e7ab3d263ae2570d0e37c341'}
+Triggered savepoint with trigger_id: fbe013a2e7ab3d263ae2570d0e37c341
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-79f221-280f122aa582
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-w29ph
+Deleted pod flink-jobmanager-w29ph
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 11
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 2, 'Source:_BidsSource____BidsTimestampAssigner': 2}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 5, 'Source:_BidsSource____BidsTimestampAssigner': 4}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 6, 'Source:_BidsSource____BidsTimestampAssigner': 4}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 6, 'Source:_BidsSource____BidsTimestampAssigner': 4} to {'LatencySink': 1, 'SessionWindow': 5, 'Source:_BidsSource____BidsTimestampAssigner': 4}.
+Stopping job e940e39965dc30e9a31fd5491346d2ea with a savepoint.
+{'request-id': 'f7a3ad998c3ee9b0a978a0f754d23eb7'}
+Triggered savepoint with trigger_id: f7a3ad998c3ee9b0a978a0f754d23eb7
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-e940e3-8b4170a00114
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-dvhc9
+Deleted pod flink-jobmanager-dvhc9
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 10
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 3, 'Source:_BidsSource____BidsTimestampAssigner': 2}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 3, 'Source:_BidsSource____BidsTimestampAssigner': 2}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 5, 'Source:_BidsSource____BidsTimestampAssigner': 4}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 5, 'Source:_BidsSource____BidsTimestampAssigner': 4} to {'LatencySink': 1, 'SessionWindow': 3, 'Source:_BidsSource____BidsTimestampAssigner': 2}.
+Stopping job 3a515fb9dafd7119f7065f16bbf37013 with a savepoint.
+{'request-id': 'c5675f439a35c6fa0e2deb0fca8033ba'}
+Triggered savepoint with trigger_id: c5675f439a35c6fa0e2deb0fca8033ba
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-3a515f-9c324029ef88
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-fl82n
+Deleted pod flink-jobmanager-fl82n
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 6
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 2, 'Source:_BidsSource____BidsTimestampAssigner': 2}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 3, 'Source:_BidsSource____BidsTimestampAssigner': 2}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 3, 'Source:_BidsSource____BidsTimestampAssigner': 2}
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 2, 'Source:_BidsSource____BidsTimestampAssigner': 2}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 3, 'Source:_BidsSource____BidsTimestampAssigner': 2}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 3, 'Source:_BidsSource____BidsTimestampAssigner': 2}
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 3, 'Source:_BidsSource____BidsTimestampAssigner': 2}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 3, 'Source:_BidsSource____BidsTimestampAssigner': 2}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 3, 'Source:_BidsSource____BidsTimestampAssigner': 2}
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 3, 'Source:_BidsSource____BidsTimestampAssigner': 2}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 3, 'Source:_BidsSource____BidsTimestampAssigner': 2}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 3, 'Source:_BidsSource____BidsTimestampAssigner': 2}
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 3, 'Source:_BidsSource____BidsTimestampAssigner': 3}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 3, 'Source:_BidsSource____BidsTimestampAssigner': 3}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 3, 'Source:_BidsSource____BidsTimestampAssigner': 2}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 3, 'Source:_BidsSource____BidsTimestampAssigner': 2} to {'LatencySink': 1, 'SessionWindow': 3, 'Source:_BidsSource____BidsTimestampAssigner': 3}.
+Stopping job b2781354798bc51a0f0d61ffbc785f90 with a savepoint.
+{'request-id': '9f767922d5da65ebdb01a19d0de37d5f'}
+Triggered savepoint with trigger_id: 9f767922d5da65ebdb01a19d0de37d5f
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-b27813-a4bf15072f4b
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-cwl8m
+Deleted pod flink-jobmanager-cwl8m
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 7
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 4, 'Source:_BidsSource____BidsTimestampAssigner': 3}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 4, 'Source:_BidsSource____BidsTimestampAssigner': 3}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 3, 'Source:_BidsSource____BidsTimestampAssigner': 3}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 3, 'Source:_BidsSource____BidsTimestampAssigner': 3} to {'LatencySink': 1, 'SessionWindow': 4, 'Source:_BidsSource____BidsTimestampAssigner': 3}.
+Stopping job 3a59983025a29aaad0da75350f969345 with a savepoint.
+{'request-id': 'e48867d2813aca045c7fd93d0febb736'}
+Triggered savepoint with trigger_id: e48867d2813aca045c7fd93d0febb736
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-3a5998-5e7d0c5de511
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-wn7kx
+Deleted pod flink-jobmanager-wn7kx
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 8
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 5, 'Source:_BidsSource____BidsTimestampAssigner': 4}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 5, 'Source:_BidsSource____BidsTimestampAssigner': 4}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 4, 'Source:_BidsSource____BidsTimestampAssigner': 3}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 4, 'Source:_BidsSource____BidsTimestampAssigner': 3} to {'LatencySink': 1, 'SessionWindow': 5, 'Source:_BidsSource____BidsTimestampAssigner': 4}.
+Stopping job 856a3e5266a12432874b75e8a3f2bfea with a savepoint.
+{'request-id': 'e2966fe4fd88f2ab0203d4cfc46dd48b'}
+Triggered savepoint with trigger_id: e2966fe4fd88f2ab0203d4cfc46dd48b
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-856a3e-f100a8110f98
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-qc54x
+Deleted pod flink-jobmanager-qc54x
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 10
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 6, 'Source:_BidsSource____BidsTimestampAssigner': 4}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 6, 'Source:_BidsSource____BidsTimestampAssigner': 4}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 5, 'Source:_BidsSource____BidsTimestampAssigner': 4}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 5, 'Source:_BidsSource____BidsTimestampAssigner': 4} to {'LatencySink': 1, 'SessionWindow': 6, 'Source:_BidsSource____BidsTimestampAssigner': 4}.
+Stopping job 795aa9983b46c290f8bf8db5404116d2 with a savepoint.
+{'request-id': 'b2af72970d0d68811f1ef2f4f5a31d44'}
+Triggered savepoint with trigger_id: b2af72970d0d68811f1ef2f4f5a31d44
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-795aa9-04935bc098a5
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-rswxc
+Deleted pod flink-jobmanager-rswxc
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 11
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 7, 'Source:_BidsSource____BidsTimestampAssigner': 5}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 7, 'Source:_BidsSource____BidsTimestampAssigner': 5}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 6, 'Source:_BidsSource____BidsTimestampAssigner': 4}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 6, 'Source:_BidsSource____BidsTimestampAssigner': 4} to {'LatencySink': 1, 'SessionWindow': 7, 'Source:_BidsSource____BidsTimestampAssigner': 5}.
+Stopping job 5387e2515d24e9578deb42e18e1f649f with a savepoint.
+{'request-id': '75047b369e5acfffa5a3bcddefbd1347'}
+Triggered savepoint with trigger_id: 75047b369e5acfffa5a3bcddefbd1347
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-5387e2-100a120044a3
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-kw5cj
+Deleted pod flink-jobmanager-kw5cj
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 13
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 9, 'Source:_BidsSource____BidsTimestampAssigner': 5}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 9, 'Source:_BidsSource____BidsTimestampAssigner': 5}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 7, 'Source:_BidsSource____BidsTimestampAssigner': 5}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 7, 'Source:_BidsSource____BidsTimestampAssigner': 5} to {'LatencySink': 1, 'SessionWindow': 9, 'Source:_BidsSource____BidsTimestampAssigner': 5}.
+Stopping job 67b4307e756acd666fa093fd1b4e3ab1 with a savepoint.
+{'request-id': 'fbf6e94bba3fe91bad553dc526d72624'}
+Triggered savepoint with trigger_id: fbf6e94bba3fe91bad553dc526d72624
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-67b430-bb03c4003f93
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-k9hw5
+Deleted pod flink-jobmanager-k9hw5
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 15
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 11, 'Source:_BidsSource____BidsTimestampAssigner': 5}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 11, 'Source:_BidsSource____BidsTimestampAssigner': 5}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 9, 'Source:_BidsSource____BidsTimestampAssigner': 5}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 9, 'Source:_BidsSource____BidsTimestampAssigner': 5} to {'LatencySink': 1, 'SessionWindow': 11, 'Source:_BidsSource____BidsTimestampAssigner': 5}.
+Stopping job c5bf2fc2bca317eadbc9ecc9df36fd2d with a savepoint.
+{'request-id': '5f47e2e08e8726d567e922ca08c31d61'}
+Triggered savepoint with trigger_id: 5f47e2e08e8726d567e922ca08c31d61
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-c5bf2f-ddcd3168dd43
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-9tspk
+Deleted pod flink-jobmanager-9tspk
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 17
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 12, 'Source:_BidsSource____BidsTimestampAssigner': 7}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 12, 'Source:_BidsSource____BidsTimestampAssigner': 7}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 11, 'Source:_BidsSource____BidsTimestampAssigner': 5}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 11, 'Source:_BidsSource____BidsTimestampAssigner': 5} to {'LatencySink': 1, 'SessionWindow': 12, 'Source:_BidsSource____BidsTimestampAssigner': 7}.
+Stopping job 57854db02fe103ae9020c2682a92db36 with a savepoint.
+{'request-id': '0406513b43d169e1914d1b15c31a143e'}
+Triggered savepoint with trigger_id: 0406513b43d169e1914d1b15c31a143e
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-57854d-f82edc36a740
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-qntjh
+Deleted pod flink-jobmanager-qntjh
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 20
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 12, 'Source:_BidsSource____BidsTimestampAssigner': 5}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 12, 'Source:_BidsSource____BidsTimestampAssigner': 7}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 12, 'Source:_BidsSource____BidsTimestampAssigner': 7}
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 15, 'Source:_BidsSource____BidsTimestampAssigner': 7}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 15, 'Source:_BidsSource____BidsTimestampAssigner': 7}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 12, 'Source:_BidsSource____BidsTimestampAssigner': 7}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 12, 'Source:_BidsSource____BidsTimestampAssigner': 7} to {'LatencySink': 1, 'SessionWindow': 15, 'Source:_BidsSource____BidsTimestampAssigner': 7}.
+Stopping job a16595b641609ead0986c4203d4db8be with a savepoint.
+{'request-id': '4f511ed08812f367a4b4a52b7a96e898'}
+Triggered savepoint with trigger_id: 4f511ed08812f367a4b4a52b7a96e898
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-a16595-8f373a8891ad
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-4d6fw
+Deleted pod flink-jobmanager-4d6fw
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 23
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 18, 'Source:_BidsSource____BidsTimestampAssigner': 9}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 18, 'Source:_BidsSource____BidsTimestampAssigner': 9}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 15, 'Source:_BidsSource____BidsTimestampAssigner': 7}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 15, 'Source:_BidsSource____BidsTimestampAssigner': 7} to {'LatencySink': 1, 'SessionWindow': 18, 'Source:_BidsSource____BidsTimestampAssigner': 9}.
+Stopping job f48854babef14123136b0cca9bca1d6a with a savepoint.
+{'request-id': 'dd198a3b705a0795ec98942421dc53cb'}
+Triggered savepoint with trigger_id: dd198a3b705a0795ec98942421dc53cb
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-f48854-409540adac6c
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-8tzgj
+Deleted pod flink-jobmanager-8tzgj
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 28
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 20, 'Source:_BidsSource____BidsTimestampAssigner': 11}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 20, 'Source:_BidsSource____BidsTimestampAssigner': 11}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 18, 'Source:_BidsSource____BidsTimestampAssigner': 9}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 18, 'Source:_BidsSource____BidsTimestampAssigner': 9} to {'LatencySink': 1, 'SessionWindow': 20, 'Source:_BidsSource____BidsTimestampAssigner': 11}.
+Stopping job 7a2840e860809e5c525dadfc8c2ba772 with a savepoint.
+{'request-id': '10a6c48382cab6811dc5bb0ab0942392'}
+Triggered savepoint with trigger_id: 10a6c48382cab6811dc5bb0ab0942392
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-7a2840-03b9756e7036
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-8grrr
+Deleted pod flink-jobmanager-8grrr
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 32
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 23, 'Source:_BidsSource____BidsTimestampAssigner': 13}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 23, 'Source:_BidsSource____BidsTimestampAssigner': 13}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 20, 'Source:_BidsSource____BidsTimestampAssigner': 11}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 20, 'Source:_BidsSource____BidsTimestampAssigner': 11} to {'LatencySink': 1, 'SessionWindow': 23, 'Source:_BidsSource____BidsTimestampAssigner': 13}.
+Stopping job 9d55d97631be91aa5d8fe31a960b2c52 with a savepoint.
+{'request-id': 'b6f6a0d51300957858ecb8210ba0f320'}
+Triggered savepoint with trigger_id: b6f6a0d51300957858ecb8210ba0f320
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-9d55d9-db098e6bc1dc
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-56m7k
+Deleted pod flink-jobmanager-56m7k
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 37
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 27, 'Source:_BidsSource____BidsTimestampAssigner': 14}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 27, 'Source:_BidsSource____BidsTimestampAssigner': 14}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 23, 'Source:_BidsSource____BidsTimestampAssigner': 13}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 23, 'Source:_BidsSource____BidsTimestampAssigner': 13} to {'LatencySink': 1, 'SessionWindow': 27, 'Source:_BidsSource____BidsTimestampAssigner': 14}.
+Stopping job 0bfed23ab0d436e3d20706c8cd8fc4de with a savepoint.
+{'request-id': 'aeabb283f67d155365c92c3d0376ee55'}
+Triggered savepoint with trigger_id: aeabb283f67d155365c92c3d0376ee55
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-0bfed2-2baea23e50ad
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-867fb
+Deleted pod flink-jobmanager-867fb
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 42
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 31, 'Source:_BidsSource____BidsTimestampAssigner': 13}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 31, 'Source:_BidsSource____BidsTimestampAssigner': 14}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 27, 'Source:_BidsSource____BidsTimestampAssigner': 14}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 27, 'Source:_BidsSource____BidsTimestampAssigner': 14} to {'LatencySink': 1, 'SessionWindow': 31, 'Source:_BidsSource____BidsTimestampAssigner': 14}.
+Stopping job b5d88273b81c91d2c2c6e66e11f41e18 with a savepoint.
+{'request-id': '54dffe031f08d4378a8475a12486ec91'}
+Triggered savepoint with trigger_id: 54dffe031f08d4378a8475a12486ec91
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-b5d882-d2615680a00e
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-wkk4z
+Deleted pod flink-jobmanager-wkk4z
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 46
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 38, 'Source:_BidsSource____BidsTimestampAssigner': 16}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 38, 'Source:_BidsSource____BidsTimestampAssigner': 16}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 31, 'Source:_BidsSource____BidsTimestampAssigner': 14}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 31, 'Source:_BidsSource____BidsTimestampAssigner': 14} to {'LatencySink': 1, 'SessionWindow': 38, 'Source:_BidsSource____BidsTimestampAssigner': 16}.
+Stopping job c44de2702c1eea5b077f884c2ae6664d with a savepoint.
+{'request-id': 'c1f4eb668a43b8c01714213a2ab5ce23'}
+Triggered savepoint with trigger_id: c1f4eb668a43b8c01714213a2ab5ce23
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-c44de2-7940b5b2a3ec
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-nhmrp
+Deleted pod flink-jobmanager-nhmrp
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 55
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 39, 'Source:_BidsSource____BidsTimestampAssigner': 14}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 39, 'Source:_BidsSource____BidsTimestampAssigner': 16}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 38, 'Source:_BidsSource____BidsTimestampAssigner': 16}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 38, 'Source:_BidsSource____BidsTimestampAssigner': 16} to {'LatencySink': 1, 'SessionWindow': 39, 'Source:_BidsSource____BidsTimestampAssigner': 16}.
+Stopping job c09753f573b7be8ecc1d7f9651972eca with a savepoint.
+{'request-id': 'd5ed6920df31747773abe026e2735e9e'}
+Triggered savepoint with trigger_id: d5ed6920df31747773abe026e2735e9e
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-c09753-e9ec25f8e09b
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-tvhwj
+Deleted pod flink-jobmanager-tvhwj
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 56
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 41, 'Source:_BidsSource____BidsTimestampAssigner': 15}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 41, 'Source:_BidsSource____BidsTimestampAssigner': 16}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 39, 'Source:_BidsSource____BidsTimestampAssigner': 16}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 39, 'Source:_BidsSource____BidsTimestampAssigner': 16} to {'LatencySink': 1, 'SessionWindow': 41, 'Source:_BidsSource____BidsTimestampAssigner': 16}.
+Stopping job 75d0f2a5fa84b1814827a7337b398e73 with a savepoint.
+{'request-id': '29f3266f003d512168d1cad82abbd53e'}
+Triggered savepoint with trigger_id: 29f3266f003d512168d1cad82abbd53e
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-75d0f2-80ebb75a43b0
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-zmxwp
+Deleted pod flink-jobmanager-zmxwp
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 58
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 39, 'Source:_BidsSource____BidsTimestampAssigner': 15}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 41, 'Source:_BidsSource____BidsTimestampAssigner': 15}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 41, 'Source:_BidsSource____BidsTimestampAssigner': 16}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 41, 'Source:_BidsSource____BidsTimestampAssigner': 16} to {'LatencySink': 1, 'SessionWindow': 41, 'Source:_BidsSource____BidsTimestampAssigner': 15}.
+Stopping job 3c1baeb7c051a78aae5b8487554471ad with a savepoint.
+{'request-id': '6f6b2fd37d938190fd09a1a6d9139b90'}
+Triggered savepoint with trigger_id: 6f6b2fd37d938190fd09a1a6d9139b90
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-3c1bae-02e38a9a8b0c
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-4v56v
+Deleted pod flink-jobmanager-4v56v
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 57
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 28, 'Source:_BidsSource____BidsTimestampAssigner': 12}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 41, 'Source:_BidsSource____BidsTimestampAssigner': 15}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 41, 'Source:_BidsSource____BidsTimestampAssigner': 15}
+
+Starting next HPA-CPU iteration.
+Desired parallelisms: {'LatencySink': 1, 'SessionWindow': 13, 'Source:_BidsSource____BidsTimestampAssigner': 6}
+Maximum desired parallelisms: {'LatencySink': 1, 'SessionWindow': 39, 'Source:_BidsSource____BidsTimestampAssigner': 15}
+Current parallelisms: {'LatencySink': 1, 'SessionWindow': 41, 'Source:_BidsSource____BidsTimestampAssigner': 15}
+Performing scaling operation. Scaling from {'LatencySink': 1, 'SessionWindow': 41, 'Source:_BidsSource____BidsTimestampAssigner': 15} to {'LatencySink': 1, 'SessionWindow': 39, 'Source:_BidsSource____BidsTimestampAssigner': 15}.
+Stopping job 796b0329c864088c17cdabb0edde5135 with a savepoint.
+{'request-id': 'b4df12591092262aea05ef22e60cb71c'}
+Triggered savepoint with trigger_id: b4df12591092262aea05ef22e60cb71c
+Savepoint status: IN_PROGRESS
+Savepoint status: COMPLETED
+Savepoint is saved at file:/opt/flink/savepoints/savepoint-796b03-5faaa14f0534
+Found key 'LatencySink' in operatorName 'LatencySink' 
+Found key 'SessionWindow' in operatorName 'SessionWindow' 
+Found key 'BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Found key 'Source:_BidsSource____BidsTimestampAssigner' in operatorName 'Source:_BidsSource____BidsTimestampAssigner' 
+Deleted jobmanager job
+Waiting until jobmanager job is removed.
+Jobmanager job is removed.
+Found jobmanager pod id: flink-jobmanager-4gcht
+Deleted pod flink-jobmanager-4gcht
+Waiting until jobmanager pod is removed.
+Waiting until jobmanager pod is removed.
+Jobmanager pod is removed.
+Scaling total amount of taskmanagers to 55
+All taskmanager pods are running.
+Deploying new jobmanager from file resources/tmp/jobmanager_from_savepoint.yaml
+Performed scaling operation. Entering 120s cooldown-period.

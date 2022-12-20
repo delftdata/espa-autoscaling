@@ -59,8 +59,7 @@ class Dhalion(Autoscaler, ABC):
         return False
 
 
-    @staticmethod
-    def calculateScaleUpFactor(operator: str, backpressureTimeMetrics: {str, float}, topology: (str, str))\
+    def calculateScaleUpFactor(self, operator: str, backpressureTimeMetrics: {str, float}, topology: (str, str))\
             -> float:
         """
         Calculate the scaleUpFactor for operator {operator}.
@@ -74,30 +73,35 @@ class Dhalion(Autoscaler, ABC):
         :param topology: Topology of the current query. Should contain a list of directed edges.
         :return: ScaleUpFactor
         """
-        if operator in backpressureTimeMetrics.keys():
-            backpressureValues = []
-            for op1, op2 in topology:
-                if op2 == operator:
-                    if op1 in backpressureTimeMetrics.keys():
-                        backpressureValues.append(backpressureTimeMetrics[op1])
-                    else:
-                        print(
-                            f"Error: {operator} from ({op1}, {op2}) not found in backpressure metrics: "
-                            f"{backpressureTimeMetrics}")
-            backpressureTime = 0
-            if backpressureValues is not None:
-                backpressureTime = max(backpressureValues)
+        if not self.configurations.experimentData.operatorIsASource(operator):
+            print(f"Calculating scale factor of regular operator: {operator}")
+            if operator in backpressureTimeMetrics.keys():
+                backpressureValues = []
+                for op1, op2 in topology:
+                    if op2 == operator:
+                        if op1 in backpressureTimeMetrics.keys():
+                            backpressureValues.append(backpressureTimeMetrics[op1])
+                        else:
+                            print(
+                                f"Error: {operator} from ({op1}, {op2}) not found in backpressure metrics: "
+                                f"{backpressureTimeMetrics}")
+                backpressureTime = 0
+                if backpressureValues is not None:
+                    backpressureTime = max(backpressureValues)
+                else:
+                    print(f"Warning: no backpressure cause found for {operator}")
+
+                backpressureTime = min(0.9, backpressureTime)
+                normalTime = 1 - backpressureTime
+                scaleUpFactor = 1 + backpressureTime / normalTime
+
+                return scaleUpFactor
             else:
-                print(f"Warning: no backpressure cause found for {operator}")
-
-            backpressureTime = min(0.9, backpressureTime)
-            normalTime = 1 - backpressureTime
-            scaleUpFactor = 1 + backpressureTime / normalTime
-
-            return scaleUpFactor
+                print(f"Error: {operator} not found in backpressure metrics: {backpressureTimeMetrics}")
+                return 1
         else:
-            print(f"Error: {operator} not found in backpressure metrics: {backpressureTimeMetrics}")
-            return 1
+            print(f"Calculating scale factor of soucre operator: {operator}")
+
 
     @staticmethod
     def calculateDesiredParallelism(operator: str, currentParallelisms: {str, int}, scaling_factor: float):
@@ -124,35 +128,44 @@ class Dhalion(Autoscaler, ABC):
 
     def runAutoscalerIteration(self):
         """
-                    Single Dhalion Autoscaler Iterator. It follows the following pseudo code:
-                    Wait for monitoring period
-                    If backpressure exists:
-                        If backpressure cannot be contributed to slow instances or skew (it can't:
-                            Find bottleneck causing the backpressure
-                            Scale up bottleneck
-                    else if no backpressure exists:
-                        if for all instances of operator, the average number of pending packets is almost 0:
-                            scale down with {underprovisioning system}
-                    if after scaling down, backpressure is observed:
-                        undo action and blacklist action
-                    :return: None
-                    """
+        Single Dhalion Autoscaler Iterator. It follows the following pseudo code:
+        Wait for monitoring period
+        If backpressure exists:
+            If backpressure cannot be contributed to slow instances or skew (it can't:
+                Find bottleneck causing the backpressure
+                Scale up bottleneck
+        else if no backpressure exists:
+            if for all instances of operator, the average number of pending packets is almost 0:
+                scale down with {underprovisioning system}
+        if after scaling down, backpressure is observed:
+            undo action and blacklist action
+        :return: None
+        """
         print("\nStarting new Dhalion iteration.")
         time.sleep(self.configurations.ITERATION_PERIOD_SECONDS)
 
         # Get Backpressure information of every operator
-        backpressureStatusMetrics = self.applicationManager.gatherBackpressureStatusMetrics()
+
+        operatorBackpressureStatusMetrics = self.applicationManager.gatherOperatorBackpressureStatusMetrics()
+        sourceOperatorBackpressureStatusMetrics = self.applicationManager\
+            .gatherSourceOperatorBackpressureStatusMetrics()
+        print(operatorBackpressureStatusMetrics)
+        print(sourceOperatorBackpressureStatusMetrics)
+
         currentParallelisms: {str, int} = self.applicationManager.fetchCurrentOperatorParallelismInformation(
             knownOperators=self.operators
         )
 
         # If backpressure exist, assume unhealthy state and investigate scale up possibilities
-        if self.applicationManager.isSystemBackpressured(backpressureStatusMetrics=backpressureStatusMetrics):
+        if self.applicationManager.isSystemBackpressured(
+                operatorBackpressureStatusMetrics=operatorBackpressureStatusMetrics,
+                sourceOperatorBackpressureStatusMetrics=sourceOperatorBackpressureStatusMetrics):
             print("Backpressure detected. System is in a unhealthy state. Investigating scale-up possibilities.")
 
             # Get operators causing backpressure
             bottleneckOperators: [str] = self.applicationManager.gatherBottleneckOperators(
-                backpressureStatusMetrics=backpressureStatusMetrics,
+                operatorBackpressureStatusMetrics=operatorBackpressureStatusMetrics,
+                sourceOperatorBackpressureStatusMetrics=sourceOperatorBackpressureStatusMetrics,
                 topology=self.topology
             )
             print(f"The following operators are found to cause a possible bottleneck: {bottleneckOperators}")

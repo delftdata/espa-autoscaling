@@ -15,7 +15,6 @@ INPUT_RATE_MEAN=""
 INPUT_RATE_MAX_DIVERGENCE=""
 NAMESPACE=""
 EXPERIMENT_LABEL=""
-
 # Additional identifier of an experiment that adds [{EXPIMENT_TAG}] to the identifier. This can be used to distinguish
 # similar experimental runs from each other.
 EXPERIMENT_TAG=""
@@ -31,6 +30,7 @@ function parseLine() {
   INPUT_RATE_MAX_DIVERGENCE=""
   NAMESPACE=""
   EXPERIMENT_LABEL=""
+  EXPERIMENT_TAG=""
   i=0
   for w in $(echo "$line" | tr ";" "\n"); do
     if [ "$i" -eq 0 ]
@@ -60,6 +60,9 @@ function parseLine() {
     elif [ "$i" -eq 8 ]
     then
       EXPERIMENT_LABEL="$w"
+    elif [ "$i" -eq 9 ]
+    then
+      EXPERIMENT_TAG="$w"
     fi
     i=$((i+1))
   done
