@@ -1,7 +1,7 @@
 import argparse
 
 from DataClasses import Autoscalers, Metrics
-from Plotting import plotDataFile
+from Plotting import plotDataFile, scatterPlotDataFrame
 from ParameterProcessing import SingleFolderPlotParameters, StaticPlotFunctions
 
 
@@ -21,18 +21,31 @@ def plotIndividualExperiments(parameters: SingleFolderPlotParameters):
         if parameters.getMetrics() == Metrics.getDefaultMetricClasses():
             parameters.setMetrics(Metrics.getAllMetricClassesForAutoscaler(experimentFile.getAutoscaler()))
 
-        plotDataFile(
-            file=experimentFile,
-            saveDirectory=parameters.getResultFolder(),
-            saveName=getSaveName(),
-            metrics=parameters.getMetrics(),
-            metric_ranges=parameters.getMetricRanges(),
-            plotThresholds=parameters.getPlotThresholds(),
-        )
+        if parameters.getCreateScatterPlot():
+            # Create a scatter plot of the data
+            scatterPlotDataFrame(
+                file=experimentFile,
+                saveDirectory=parameters.getResultFolder(),
+                saveName=getSaveName(),
+                metrics=parameters.getMetrics(),
+                metric_ranges=parameters.getMetricRanges(),
+                plotThresholds=parameters.getPlotThresholds(),
+            )
+        else:
+            # Create a normal plot of the data
+            plotDataFile(
+                file=experimentFile,
+                saveDirectory=parameters.getResultFolder(),
+                saveName=getSaveName(),
+                metrics=parameters.getMetrics(),
+                metric_ranges=parameters.getMetricRanges(),
+                plotThresholds=parameters.getPlotThresholds(),
+            )
 
 
 def parseArguments():
-    parameters: SingleFolderPlotParameters = SingleFolderPlotParameters("individual-plots")
+    parameters: SingleFolderPlotParameters = SingleFolderPlotParameters("individual-plots",
+                                                                        option_create_scatter_plot=True)
 
     # Parse arguments
     parser = argparse.ArgumentParser(description='Plot individual experiments')
