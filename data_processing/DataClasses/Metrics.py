@@ -13,8 +13,10 @@ class Metrics:
     LATENCY_DEFAULT_RANGE = (0, None)
     LAG = "lag"
     LAG_DEFAULT_RANGE = (0, None)
-    THROUGHPUT = "throughput"
-    THROUGHPUT_DEFAULT_RANGE = (0, None)
+    INPUT_THROUGHPUT = "input_throughput"
+    INPUT_THROUGHPUT_DEFAULT_RANGE = (0, None)
+    OUTPUT_THROUGHPUT = "output_throughput"
+    OUTPUT_THROUGHPUT_DEFAULT_RANGE = (0, None)
     CPU_LOAD = "CPU_load"
     CPU_LOAD_DEFAULT_RANGE = (0, 1)
     BACKPRESSURE = "backpressure"
@@ -39,8 +41,10 @@ class Metrics:
             return Metrics.LATENCY_DEFAULT_RANGE
         elif metric == Metrics.LAG:
             return Metrics.LAG_DEFAULT_RANGE
-        elif metric == Metrics.THROUGHPUT:
-            return Metrics.THROUGHPUT_DEFAULT_RANGE
+        elif metric == Metrics.INPUT_THROUGHPUT:
+            return Metrics.INPUT_THROUGHPUT_DEFAULT_RANGE
+        elif metric == Metrics.OUTPUT_THROUGHPUT:
+            return Metrics.OUTPUT_THROUGHPUT_DEFAULT_RANGE
         elif metric == Metrics.CPU_LOAD:
             return Metrics.CPU_LOAD_DEFAULT_RANGE
         elif metric == Metrics.BACKPRESSURE:
@@ -65,7 +69,8 @@ class Metrics:
             Metrics.TASKMANAGER,
             Metrics.LATENCY,
             Metrics.LAG,
-            Metrics.THROUGHPUT,
+            Metrics.INPUT_THROUGHPUT,
+            Metrics.OUTPUT_THROUGHPUT,
             Metrics.CPU_LOAD,
             Metrics.BACKPRESSURE,
             Metrics.BUSY_TIME,
@@ -83,7 +88,8 @@ class Metrics:
             Metrics.TASKMANAGER,
             Metrics.LATENCY,
             Metrics.LAG,
-            Metrics.THROUGHPUT,
+            Metrics.INPUT_THROUGHPUT,
+            Metrics.OUTPUT_THROUGHPUT,
             Metrics.CPU_LOAD,
             Metrics.BACKPRESSURE,
             Metrics.BUSY_TIME,

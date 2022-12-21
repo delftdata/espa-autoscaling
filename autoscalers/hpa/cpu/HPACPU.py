@@ -1,5 +1,6 @@
 import statistics
 import time
+from abc import ABC
 
 from .HPACPUConfigurations import HPACPUConfigurations
 from .HPACPUApplicationManager import HPACPUApplicationManager
@@ -7,7 +8,7 @@ from hpa.HPA import HPA
 from common import ScaleManager
 
 
-class HPACPU(HPA):
+class HPACPU(HPA, ABC):
     configurations: HPACPUConfigurations
     applicationManager: HPACPUApplicationManager
     scaleManager: ScaleManager

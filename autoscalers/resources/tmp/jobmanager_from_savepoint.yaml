@@ -1,3 +1,4 @@
+# Requires: OPERATOR_PARALLELISM
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -7,6 +8,7 @@ spec:
     metadata:
       annotations:
         prometheus.io/port: '9249'
+        # prometheus.io/scrape: 'true'
         ververica.com/scrape_every_2s: 'true'
       labels:
         app: flink
@@ -28,7 +30,7 @@ spec:
           image: gsiachamis/flink-nexmark-queries:1.0
           imagePullPolicy: Always
           env:
-          args: ['standalone-job', '--job-classname', 'ch.ethz.systems.strymon.ds2.flink.nexmark.queries.updated.Query1KafkaSource', '--fromSavepoint', 'file:/opt/flink/savepoints/savepoint-617ed9-37d0ada1c31b', '--p-person-source', '1', '--p-auction-source', '1', '--p-join', '1']
+          args: ['standalone-job', '--job-classname', 'ch.ethz.systems.strymon.ds2.flink.nexmark.queries.updated.Query1KafkaSource', '--fromSavepoint', 'file:/opt/flink/savepoints/savepoint-6eb60c-409f09ff0930', '--slot-sharing', 'true', '--p-sink', '10', '--p-window', '24', '--p-bids-source', '10']
           ports:
             - containerPort: 6123
               name: rpc
@@ -48,6 +50,8 @@ spec:
               mountPath: /opt/flink/savepoints
           securityContext:
             runAsUser: 0  # refers to user _flink_ from official flink image, change if necessary
+      securityContext:
+        fsGroup: 1000
       volumes:
         - name: flink-config-volume
           configMap:

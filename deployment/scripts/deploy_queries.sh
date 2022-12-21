@@ -81,6 +81,6 @@ then
   envsubst < ../yamls/queries/workbench/auction-person-workbench.yaml| kubectl apply -f -
 else
   # For query 1, 2, 5, 11: Generate bids stream
-  kubectl exec kafka-2 -- /opt/kafka/bin/kafka-topics.sh --create -zookeeper zoo1:2181  --replication-factor 1 --partitions 24 --topic bids_topic
+  kubectl exec kafka-2 -- /opt/kafka/bin/kafka-topics.sh --create -zookeeper zoo1:2181  --replication-factor 1 --partitions "$AVAILABLE_TASKMANAGERS" --topic bids_topic
   envsubst < ../yamls/queries/workbench/bid-workbench.yaml| kubectl apply -f -
 fi

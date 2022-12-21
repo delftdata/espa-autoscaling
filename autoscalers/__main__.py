@@ -29,6 +29,7 @@ def setAutoscalerDeveloperConfigurations(autoscaler: Autoscaler):
     autoscaler.configurations.PROMETHEUS_SERVER = "localhost" + ":9090"
     autoscaler.configurations.FLINK_JOBMANAGER_SERVER = "localhost" + ":8081"
     autoscaler.configurations.ITERATION_PERIOD_SECONDS = 15
+    autoscaler.configurations.AVAILABLE_TASKMANAGERS = 100
     print(autoscaler.configurations.RUN_LOCALLY)
 
 

@@ -82,9 +82,6 @@ public class Query11KafkaSource {
 
         // enable latency tracking
         // env.getConfig().setLatencyTrackingInterval(5000);
-
-        final int max_parallelism_source = params.getInt("source-max-parallelism", 20);
-
         KafkaSource<Bid> source =
                 KafkaSource.<Bid>builder()
                         .setBootstrapServers("kafka-service:9092")
@@ -99,7 +96,6 @@ public class Query11KafkaSource {
                 env.fromSource(source, WatermarkStrategy.noWatermarks(), "BidsSource")
                         .slotSharingGroup(sourceSSG)
                         .setParallelism(params.getInt("p-bids-source", 1))
-                        .setMaxParallelism(max_parallelism_source)
                         .assignTimestampsAndWatermarks(new Query11KafkaSource.BidTimestampAssigner())
                         .slotSharingGroup(sourceSSG)
                         .uid("BidsSource")

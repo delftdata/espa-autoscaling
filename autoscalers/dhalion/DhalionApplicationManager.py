@@ -3,33 +3,62 @@ from common import ApplicationManager
 
 class DhalionApplicationManager(ApplicationManager):
 
-    def gatherOperatorPendingRecordsMetrics(self) -> {str, float}:
-        return self.prometheusManager.getSourceOperatorPendingRecords()
-
-    def gatherOperatorPendingRecordsRateMetrics(self) -> {str, float}:
-        return self.prometheusManager.getSourceOperatorPendingRecordsRate()
-
     def gatherOperatorBackpressureStatusMetrics(self) -> {str, bool}:
+        """
+        Get the backpressure status metrics of all operators from prometheus.
+        This is used to detect backpressure in the system and to find the operator causing the backpressure.
+        """
         return self.prometheusManager.getOperatorBackpressureStatusMetrics()
 
-    def gatherSourceOperatorBackpressureStatusMetrics(self) -> {str, bool}:
+    def gatherOperatorPendingRecordsRateMetrics(self) -> {str, float}:
+        """
+        Get the rate of change in pending records from prometheus.
+        This is used to determine the scale-factor of a source operator.
+        """
+        return self.prometheusManager.getSourceOperatorPendingRecordsRate()
+
+    def gatherOperatorConsumedRecordsRateMetrics(self) -> {str, float}:
+        """
+        Get the rate of change in consumed records from prometheus.
+        This is used to determine the scale-factor of a source operator.
+        """
+        return self.prometheusManager.getSourceOperatorConsumedRecordsRate()
+
+    def gatherSourceOperatorBackpressureStatusMetrics(self, kafka_source_is_backpressured_threshold: int) -> {str, bool}:
+        """
+        Get a list of source operators, whose upstream kafka source is experiencing backpressure.
+        An upstream kafka source is experiencing backpressure if its pendingRecordsRate is positive
+        """
         sourceOperatorPendingRecordsRateMetrics = self.gatherOperatorPendingRecordsRateMetrics()
 
         sourceBackpressureStatusMetrics: {str, bool} = {}
         for source, pendingRecordsRate in sourceOperatorPendingRecordsRateMetrics.items():
-            # source is backpressured if pendingRecordsRate is positive (increasing)
-            sourceBackpressureStatusMetrics[source] = pendingRecordsRate > 0
+            # source is backpressured if pendingRecordsRate is larger than threshold
+            sourceBackpressureStatusMetrics[source] = pendingRecordsRate > kafka_source_is_backpressured_threshold
         return sourceBackpressureStatusMetrics
 
     def gatherBackpressureTimeMetrics(self, monitoringPeriodSeconds=None):
+        """
+        Get the backpressure-time metrics from prometheus. If a monitoring period is provided, we aggregate the
+        backpressure-time over that period. If not provided, use the METRIC_AGGREGATION_PERIOD_SECONDS configuration.
+        """
         if monitoringPeriodSeconds is not None:
             return self.prometheusManager.getOperatorBackpressureTimeMetrics(
                 monitoringPeriodSeconds=monitoringPeriodSeconds)
         else:
             return self.prometheusManager.getOperatorBackpressureTimeMetrics()
 
+    def gatherSourceOperatorPendingRecordMetrics(self):
+        """
+        Get the total amount of pending records for all source-operators from prometheus.
+        """
+        return self.prometheusManager.getSourceOperatorPendingRecords()
+
     def gatherBuffersInUsageMetrics(self):
-        return self.prometheusManager.getOperatorMaximumBuffersInUsageMetrics()
+        """
+        Get the buffersInUsage metrics from Prometheus.
+        """
+        return self.prometheusManager.getOperatorAverageBufferInUsageMetrics()
 
     def isSystemBackpressured(self, operatorBackpressureStatusMetrics: {str, bool}=None,
                               sourceOperatorBackpressureStatusMetrics: {str, bool}=None) -> bool:

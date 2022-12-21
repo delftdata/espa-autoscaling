@@ -57,23 +57,15 @@ class PrometheusManager:
         return idleTimeMsPerSecond
 
     # Buffer In usage
-    def getOperatorSumBufferInUsageMetrics(self) -> {str, float}:
-        inputBufferUsageSum_query = f"sum(avg_over_time(flink_taskmanager_job_task_buffers_inPoolUsage" \
+    def getOperatorAverageBufferInUsageMetrics(self) -> {str, float}:
+        """
+        Get the average of bufferin-usage of every operator from prometheus
+        """
+        inputBufferUsageSum_query = f"avg(avg_over_time(flink_taskmanager_job_task_buffers_inPoolUsage" \
                                     f"[{self.configurations.METRIC_AGGREGATION_PERIOD_SECONDS}s])) by (task_name)"
         inputBufferUsageSum_data = self.__getResultsFromPrometheus(inputBufferUsageSum_query)
         inputBufferUsageSum = self.__extract_per_operator_metrics(inputBufferUsageSum_data)
         return inputBufferUsageSum
-
-    def getOperatorMaximumBuffersInUsageMetrics(self) -> {str, float}:
-        """
-        Fetch maximum inputBuffer usage of every operator
-        :return: A directory with the maximum input buffer usage of every operator.
-        """
-        input_usage_maximum_query = f"max(avg_over_time(flink_taskmanager_job_task_buffers_inPoolUsage" \
-                                    f"[{self.configurations.METRIC_AGGREGATION_PERIOD_SECONDS}s])) by (task_name)"
-        input_usage_maximum_data = self.__getResultsFromPrometheus(input_usage_maximum_query)
-        input_usage_maximum = self.__extract_per_operator_metrics(input_usage_maximum_data)
-        return input_usage_maximum
 
     # Get operators Backpressure time per second
     def getOperatorBackpressureTimeMetrics(self, monitoringPeriodSeconds=None) -> {str, float}:
@@ -106,25 +98,39 @@ class PrometheusManager:
             results[k] = v == 1.0
         return results
 
-
     def getOperatorKafkaLag(self) -> {str, int}:
-        kafkaLag_query = "sum(flink_taskmanager_job_task_operator_KafkaSourceReader_KafkaConsumer_records_lag_max * "\
-                         "flink_taskmanager_job_task_operator_KafkaSourceReader_KafkaConsumer_assigned_partitions) " \
-                         "by (task_name)"
+        """
+        Get the total number of kafka lag from prometheus. This is done by fetching the total amount of pending records
+        per source operator.
+        """
+        return self.getSourceOperatorPendingRecords()
+
+    def getSourceOperatorPendingRecords(self) -> {str, int}:
+        """
+        Get the total number of kafka lag from prometheus. This is fetched by summing the total number of pending
+        records per task_name
+        """
+        kafkaLag_query = f"sum(avg_over_time(flink_taskmanager_job_task_operator_pendingRecords" \
+                         f"[{self.configurations.METRIC_AGGREGATION_PERIOD_SECONDS}s])) by (task_name)"
         kafkaLag_data = self.__getResultsFromPrometheus(kafkaLag_query)
         kafkaLag = self.__extract_per_operator_metrics(kafkaLag_data)
         return kafkaLag
 
-
-    def getSourceOperatorPendingRecords(self) -> {str, float}:
-        source_pending_records_query = f"sum(avg_over_time(flink_taskmanager_job_task_operator_pendingRecords" \
-                         f"[{self.configurations.METRIC_AGGREGATION_PERIOD_SECONDS}s])) by (task_name)"
-        source_pending_records_data = self.__getResultsFromPrometheus(source_pending_records_query)
-        source_pending_records = self.__extract_per_operator_metrics(source_pending_records_data)
-        return source_pending_records
-
     def getSourceOperatorPendingRecordsRate(self) -> {str, float}:
+        """
+        Get the rate of the pending records of the source operators
+        """
         source_pending_records_rate_query = f"sum(rate(flink_taskmanager_job_task_operator_pendingRecords" \
+                         f"[{self.configurations.METRIC_AGGREGATION_PERIOD_SECONDS}s])) by (task_name)"
+        source_pending_records_rate_data = self.__getResultsFromPrometheus(source_pending_records_rate_query)
+        source_pending_records_rate = self.__extract_per_operator_metrics(source_pending_records_rate_data)
+        return source_pending_records_rate
+
+    def getSourceOperatorConsumedRecordsRate(self) -> {str, float}:
+        """
+        Get the rate of the consumed records of the source operators
+        """
+        source_pending_records_rate_query = f"sum(rate(flink_taskmanager_job_task_operator_KafkaSourceReader_KafkaConsumer_records_consumed_total" \
                          f"[{self.configurations.METRIC_AGGREGATION_PERIOD_SECONDS}s])) by (task_name)"
         source_pending_records_rate_data = self.__getResultsFromPrometheus(source_pending_records_rate_query)
         source_pending_records_rate = self.__extract_per_operator_metrics(source_pending_records_rate_data)

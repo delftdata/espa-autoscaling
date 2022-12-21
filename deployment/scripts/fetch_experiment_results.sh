@@ -49,6 +49,11 @@ AUTOSCALER_LOG_FILE="$LOG_DIRECTORY/$AUTOSCALER_POD.log"
 kubectl logs "$AUTOSCALER_POD" > "$AUTOSCALER_LOG_FILE"
 echo "Successfully saved logs of $AUTOSCALER_POD at $AUTOSCALER_LOG_FILE"
 
+JOBMANAGER_POD=$(kubectl get pods | grep "flink-jobmanager-" | awk '{print $1}')
+JOBMANAGER_LOG_FILE="$LOG_DIRECTORY/$JOBMANAGER_POD.log"
+kubectl logs "$JOBMANAGER_POD" > "$JOBMANAGER_LOG_FILE"
+echo "Successfully saved logs of final jobmanager $JOBMANAGER_POD at $JOBMANAGER_LOG_FILE"
+
 # Fetch snapshot of prometheus deploy
 echo "Fetching prometheus snapshot..."
 RESPONSE=$(curl -XPOST http://localhost:9090/api/v1/admin/tsdb/snapshot)

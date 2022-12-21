@@ -11,7 +11,7 @@ data:
     blob.server.port: 6124
     jobmanager.rpc.port: 6123
     taskmanager.rpc.port: 6122
-    jobmanager.memory.process.size: 1600m
+    jobmanager.memory.process.size: 8000m
     taskmanager.memory.process.size: 4000m  
     taskmanager.memory.managed.fraction: 0.2
     restart-strategy: fixeddelay
