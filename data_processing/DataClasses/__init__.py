@@ -3,3 +3,4 @@ from .Queries import Queries
 from .Metrics import Metrics
 from .Experiment import Experiment
 from .ExperimentFile import ExperimentFile
+from .ExperimentFileGenerator import ExperimentFileGenerator

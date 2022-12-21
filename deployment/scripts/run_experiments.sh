@@ -94,7 +94,7 @@ do
   deployExperiment
   echo "Finished deploying all containers"
 
-  sleep 140m
+  sleep 5m
 
   echo "Collect all data"
   fetchExperiments
