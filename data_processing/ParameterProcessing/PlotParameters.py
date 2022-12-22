@@ -12,7 +12,8 @@ class PlotParameters():
 
     # Metric limits
     __metrics = Metrics.get_all_metric_classes()
-    # __metric_ranges: {str, (float, float)} = Metrics.metric_range_mapping
+    __metric_ranges: {str, (float, float)} = Metrics.metric_range_mapping
+
     # __option_metric_ranges = True
     #
     # def __init__(self, option_metric_ranges=True):
@@ -58,11 +59,11 @@ class PlotParameters():
             self.__metrics = metrics
 
     # Get and set metric ranges
-    # def setMetricRanges(self, metric_ranges: {str, (float, float)}):
-    #     self.__metric_ranges = metric_ranges
-    #
-    # def getMetricRanges(self):
-    #     return self.__metric_ranges
+    def setMetricRanges(self, metric_ranges: {str, (float, float)}):
+        self.__metric_ranges = metric_ranges
+
+    def getMetricRanges(self):
+        return self.__metric_ranges
 
     def include_arguments_in_parser(self, argument_parser: argparse.ArgumentParser):
 

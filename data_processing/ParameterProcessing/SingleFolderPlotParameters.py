@@ -9,17 +9,13 @@ class SingleFolderPlotParameters(PlotParameters):
 
     # plot_folder_name is the folder where to save the result. This is saved at {graph_folder}/{graph_folder_name}
     __plot_folder_name: str
+
     # plot postfix label is a postfix for the filename. {name}_{graph_postfix_label}
     __plot_postfix_label = ""
 
-    # Whether to create a scatter_plot or a regular plot
-    __create_scatter_plot = False
-    __option_create_scatter_plot = False
-
-    def __init__(self, default_plot_folder_name: str, option_create_scatter_plot=False):
+    def __init__(self, default_plot_folder_name: str):
         super().__init__()
         self.__plot_folder_name = default_plot_folder_name
-        self.__option_create_scatter_plot = option_create_scatter_plot
 
     # getter and setter for main_folder
     def get_main_folder(self) -> str:
@@ -60,21 +56,6 @@ class SingleFolderPlotParameters(PlotParameters):
         """
         self.__plot_postfix_label = plot_postfix_label
 
-    # getter and setter for create_scatter_plot
-    def get_create_scatter_plot(self) -> bool:
-        """
-        Get create_scatter_plot
-        """
-        return self.__create_scatter_plot
-
-    def __set_create_scatter_plot(self, create_scatter_plot: bool):
-        """
-        Set create_scatter_plot if its option is enabled.
-        Else keep it at its default value.
-        """
-        if self.__option_create_scatter_plot:
-            self.create_scatter_plot = create_scatter_plot
-
     def fetch_experiment_files_from_combined_data_folder(self):
         """
         Fetch all experiment files with the specified queries, autoscalers, modes and tags from the combined_data_folder
@@ -109,15 +90,9 @@ class SingleFolderPlotParameters(PlotParameters):
                                 help=f"Add a postfix to the filename of the generated plots. "
                                      f"Default=\"{self.get_plot_postfix_label()}\"")
 
-        def include_create_scatter_plot_in_parser(parser: argparse.ArgumentParser):
-            parser.add_argument('--create_scatter_plot', action='store_true',
-                                help=f"Add argument to create a scatter-plot of the data instead of a regular plot")
-
         include_main_folder_in_parser(argument_parser)
         include_plot_folder_name_in_parser(argument_parser)
         include_plot_postfix_label_in_parser(argument_parser)
-        if self.__option_create_scatter_plot:
-            include_create_scatter_plot_in_parser(argument_parser)
 
     def fetch_arguments_from_namespace(self, namespace: argparse.Namespace):
         """
@@ -143,15 +118,6 @@ class SingleFolderPlotParameters(PlotParameters):
                 # set plot_postfix_label
                 self.__set_plot_postfix_label(plot_postfix_label)
 
-        def fetch_create_scatter_plot_from_namespace(args: argparse.Namespace):
-            create_scatter_plot = args.create_scatter_plot
-            # if provided
-            if create_scatter_plot is not None:
-                self.__set_create_scatter_plot(create_scatter_plot)
-
         fetch_main_folder_from_namespace(namespace)
         fetch_plot_folder_name_from_namespace(namespace)
         fetch_plot_postfix_label_from_namespace(namespace)
-        if self.__option_create_scatter_plot:
-            fetch_create_scatter_plot_from_namespace(namespace)
-

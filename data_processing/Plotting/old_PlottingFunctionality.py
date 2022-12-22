@@ -8,25 +8,7 @@ from DataClasses import ExperimentFile, Autoscalers, Metrics, Experiment
 import os.path
 
 
-def stylePlots():
-    plt.style.use('seaborn-dark-palette')
 
-
-def savePlot(plt, saveDirectory, saveName, bbox_inches=None, dpi=None):
-    if not os.path.exists(saveDirectory):
-        print(f"Creating save-directory {saveDirectory}")
-        os.makedirs(saveDirectory)
-    fileLocation = f"{saveDirectory}/{saveName}.png"
-    plt.savefig(fileLocation, bbox_inches=bbox_inches, dpi=dpi)
-    print(f"Saved graph at: {fileLocation}")
-
-
-def getMetricColumn(metric, data):
-    if metric in data:
-        return data[metric]
-    else:
-        print(f"Warning: metric {metric} not found")
-        return None
 
 #
 # def addThresholdLine(ax, experiment: Experiment, metric: str, time_column, dataFrame):
@@ -81,24 +63,6 @@ def getMetricColumn(metric, data):
 #             ax.axhline(1, color=color, linewidth=1.5)
 
 #
-# def getYrange(metricName: str, min_val, max_val, metric_ranges) -> Tuple[float, float]:
-#     # If specific range is specified
-#     for metric_range in metric_ranges:
-#         if metric_range[0] == metricName:
-#             return metric_range[1], metric_range[2]
-#
-#     # Else we fetch the default ranges
-#     min_range, max_range = Metrics.getDefaultRange(metricName)
-#     if min_range is None:
-#         min_range = min_val
-#     if max_range is None:
-#         max_range = max_val
-#     return min_range, max_range
-
-
-
-
-
 
 
 # def overlapAndPlotMultipleDataFiles(
@@ -180,34 +144,7 @@ def getMetricColumn(metric, data):
 #         plt.show()
 
 
-# def getAverageMetricFromData(data, metricName):
-#     metric_column = data[metricName]
-#     return sum(metric_column) / len(metric_column)
-#
-#
-# def getAverageMetric(experimentFile: ExperimentFile, metricName: str):
-#     data = pd.read_csv(experimentFile.datafile)
-#     return getAverageMetricFromData(data, metricName)
-#
-#
-# def getAverageMetrics(experimentFile: ExperimentFile, metrics):
-#     data = pd.read_csv(experimentFile.datafile)
-#     results = []
-#     for metric in metrics:
-#         results.append(getAverageMetricFromData(data, metric))
-#     return results
-#
-#
-# def getTotalRescalingActions(experimentFile: ExperimentFile):
-#     data = pd.read_csv(experimentFile.datafile)
-#     taskmanagers = data['taskmanager'].tolist()
-#     previous_number_taskmanagers = taskmanagers[0]
-#     scaling_events = 0
-#     for val in taskmanagers:
-#         if val != previous_number_taskmanagers:
-#             scaling_events += 1
-#         previous_number_taskmanagers = val
-#     return scaling_events
+
 #
 #
 # def pareto_plot(experimentFiles: [ExperimentFile], xMetric=Metrics.TASKMANAGER, xMetricLimit=None,
@@ -272,68 +209,7 @@ def getMetricColumn(metric, data):
 #     else:
 #         plt.show()
 
-def plotDataFile(
-        file: ExperimentFile,
-        save_directory=None,
-        experiment_name=None,
-        metrics=None,
-        # metric_ranges: {str, (float, float)} = None,
-):
-    """
-    Create a plot of a datafile with the provided metrics
-    :param file: ExperimentFile to plot
-    :param save_directory: directory to save the plot in. If left None, the plot is only shown.
-    :param experiment_name: name of the experiment to create a plot from
-    :param metrics: Metrics to visualise in the plot. if left None, all available metrics will be used.
-    :return: None
-    """
-    if not file:
-        print(f"Error: no datafile found.")
 
-    if metrics is None:
-        metrics = Metrics.get_all_metric_classes()
-
-    data = pd.read_csv(file.file_path)
-    time_column = data["minutes"]
-
-    stylePlots()
-    fig, axs = plt.subplots(len(metrics), 1, figsize=(20, 10), facecolor='w', edgecolor='k', sharex='all')
-    fig.subplots_adjust(hspace=.5, wspace=.001)
-    fig.suptitle(f"Plot of {experiment_name}")
-
-    for i in range(len(metrics)):
-
-        # Get metricName, Column and Axis (use axs instead of axs[i] if only one metric)
-        metricName = metrics[i]
-        metric_column = getMetricColumn(metricName, data)
-        if metric_column is None:
-            continue
-
-        # Interpolate and fill NaN with 0
-        metric_column = metric_column.interpolate()
-        metric_column = metric_column.fillna(0)
-
-        axis = axs[i] if len(metrics) > 1 else axs
-
-        # yLim_min, yLim_max = getYrange(metricName, min_range, max_range, metric_ranges)
-
-        # Set axis
-        axis.plot(time_column, metric_column)
-        axis.title.set_text(metricName)
-        max_range = 1.2 * max(metric_column)
-        min_range = 1.2 * min(metric_column)
-        axis.set_ylim([min_range, max_range])
-        axis.grid()
-
-        # Set xlabel on final subplot
-        if i == len(metrics) - 1:
-            axis.set_xlabel("Minutes")
-
-    if save_directory and experiment_name:
-        savePlot(plt, save_directory, experiment_name)
-        plt.close()
-    else:
-        plt.show()
 
 
 # def scatterPlotDataFrame(

@@ -1,6 +1,6 @@
-11;non-reactive;10;80;dhalion;1200000;1000000;jkanis-space;workshop-experiments;c5m,r2;
-11;non-reactive;10;80;hpa-cpu;1200000;1000000;jkanis-space;workshop-experiments;c5m;
-1;non-reactive;5;80;dhalion;1200000;1000000;jkanis-space;workshop-experiments;c5m,r2;
-1;non-reactive;5;80;hpa-cpu;1200000;1000000;jkanis-space;workshop-experiments;c5m;
-2;non-reactive;5;80;dhalion;1200000;1000000;jkanis-space;workshop-experiments;c5m,r2;
-2;non-reactive;5;80;hpa-cpu;1200000;1000000;jkanis-space;workshop-experiments;c5m;
+11;non-reactive;10;80;dhalion;1200000;1000000;jkanis-space;workshop-experiments;c5m,r3;
+11;non-reactive;10;80;hpa-cpu;1200000;1000000;jkanis-space;workshop-experiments;c5m,r3;
+1;non-reactive;5;80;dhalion;1200000;1000000;jkanis-space;workshop-experiments;c5m,r3;
+1;non-reactive;5;80;hpa-cpu;1200000;1000000;jkanis-space;workshop-experiments;c5m,r3;
+2;non-reactive;5;80;dhalion;1200000;1000000;jkanis-space;workshop-experiments;c5m,r3;
+2;non-reactive;5;80;hpa-cpu;1200000;1000000;jkanis-space;workshop-experiments;c5m,r3;
