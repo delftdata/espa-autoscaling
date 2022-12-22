@@ -1,4 +1,4 @@
-from Experiment import Experiment
+from .Experiment import Experiment
 import os
 import os.path
 

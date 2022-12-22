@@ -1,7 +1,7 @@
 import argparse
 
 from DataClasses import FileManager
-from Plotting import plotDataFile, scatterPlotDataFrame
+from Plotting import plotDataFile
 from ParameterProcessing import SingleFolderPlotParameters
 
 
@@ -13,24 +13,22 @@ def plotIndividualExperiments(parameters: SingleFolderPlotParameters):
                                                              parameters.get_plot_postfix_label())
 
         if parameters.get_create_scatter_plot():
+            pass
             # Create a scatter plot of the data
-            scatterPlotDataFrame(
-                file=experimentFile,
-                saveDirectory=parameters.getResultFolder(),
-                saveName=experiment_save_name,
-                metrics=parameters.get_metrics(),
-                metric_ranges=parameters.getMetricRanges(),
-            )
+            # scatterPlotDataFrame(
+            #     file=experimentFile,
+            #     saveDirectory=parameters.getResultFolder(),
+            #     saveName=experiment_save_name,
+            #     metrics=parameters.get_metrics()
+            # )
         else:
             # Create a normal plot of the data
             plotDataFile(
                 file=experimentFile,
-                saveDirectory=parameters.getResultFolder(),
-                saveName=experiment_save_name,
-                metrics=parameters.get_metrics(),
-                metric_ranges=parameters.getMetricRanges(),
+                save_directory=parameters.get_plot_save_folder(),
+                experiment_name=experiment_save_name,
+                metrics=parameters.get_metrics()
             )
-
 
 def parseArguments():
     parameters: SingleFolderPlotParameters = SingleFolderPlotParameters("individual-plots",
@@ -38,11 +36,11 @@ def parseArguments():
 
     # Parse arguments
     parser = argparse.ArgumentParser(description='Plot individual experiments')
-    parameters.includeArgumentsInParser(parser)
+    parameters.include_arguments_in_parser(parser)
 
     # Fetch results from arguments
     namespace = parser.parse_args()
-    parameters.fetchArgumentsFromNamespace(namespace)
+    parameters.fetch_arguments_from_namespace(namespace)
 
     # Call plot function
     plotIndividualExperiments(parameters)

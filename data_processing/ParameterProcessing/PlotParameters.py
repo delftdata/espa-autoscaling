@@ -12,7 +12,7 @@ class PlotParameters():
 
     # Metric limits
     __metrics = Metrics.get_all_metric_classes()
-    __metric_ranges: {str, (float, float)} = Metrics.metric_range_mapping
+    # __metric_ranges: {str, (float, float)} = Metrics.metric_range_mapping
     # __option_metric_ranges = True
     #
     # def __init__(self, option_metric_ranges=True):
@@ -58,11 +58,11 @@ class PlotParameters():
             self.__metrics = metrics
 
     # Get and set metric ranges
-    def setMetricRanges(self, metric_ranges: {str, (float, float)}):
-        self.__metric_ranges = metric_ranges
-
-    def getMetricRanges(self):
-        return self.__metric_ranges
+    # def setMetricRanges(self, metric_ranges: {str, (float, float)}):
+    #     self.__metric_ranges = metric_ranges
+    #
+    # def getMetricRanges(self):
+    #     return self.__metric_ranges
 
     def include_arguments_in_parser(self, argument_parser: argparse.ArgumentParser):
 
@@ -105,7 +105,7 @@ class PlotParameters():
                     invalid_args.append(argument)
             if invalid_args:
                 print(f"The following provided arguments of '{arg_name}' are invalid: {invalid_args}")
-                print(f"Use any of the following available arguments: {supported_args}")
+                print(f"Use any of the following available arguments: {all_supported_arguments}")
             return supported_args
 
 
@@ -121,14 +121,14 @@ class PlotParameters():
             if args.queries:
                 provided_queries = args.queries
                 queries = filter_out_unsupported_arguments(provided_queries, all_queries, "queries")
-                self.set_autoscalers(queries)
+                self.set_queries(queries)
 
         def fetch_modes_from_namespace(args: argparse.Namespace):
             all_modes = Modes.get_all_modes()
             if args.modes:
                 provided_modes = args.modes
                 modes = filter_out_unsupported_arguments(provided_modes, all_modes, "modes")
-                self.set_autoscalers(modes)
+                self.set_modes(modes)
 
         def fetch_tags_from_namespace(args: argparse.Namespace):
             if args.tags:

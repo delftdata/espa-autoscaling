@@ -1,14 +1,16 @@
-from typing import Tuple
+# from typing import Tuple
 
-import numpy as np
+# import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from matplotlib.transforms import Bbox
+# from matplotlib.transforms import Bbox
 from DataClasses import ExperimentFile, Autoscalers, Metrics, Experiment
 import os.path
 
+
 def stylePlots():
     plt.style.use('seaborn-dark-palette')
+
 
 def savePlot(plt, saveDirectory, saveName, bbox_inches=None, dpi=None):
     if not os.path.exists(saveDirectory):
@@ -20,97 +22,78 @@ def savePlot(plt, saveDirectory, saveName, bbox_inches=None, dpi=None):
 
 
 def getMetricColumn(metric, data):
-    if metric in Metrics.getDefaultMetricClasses():
+    if metric in data:
         return data[metric]
     else:
-        if metric == Metrics.VARGA_RELATIVE_LAG_CHANGE_RATE:
-            # todo: Varga uses the derivative of the lag using a prometheus function. We cannot recreate this function,
-            # so only the .diff() is implemented here
-            input_rate_column = data[Metrics.INPUT_RATE]
-            lag_column = data[Metrics.LAG]
+        print(f"Warning: metric {metric} not found")
+        return None
 
-            lag_derivative_column = lag_column.diff()
-            prefix = ((lag_column - 50000).divide(abs(lag_column - 50000))) / 60
-            newColumn = (lag_derivative_column.divide(input_rate_column)) * prefix
-            newColumn = newColumn.replace(np.inf, 0).replace(np.NaN, 0) + 1
-            print(newColumn)
-            return newColumn
-        if metric == Metrics.DS2_OPTIMAL_PARALLELISM:
-            # todo: DS2 calculates the optimal pararallelsim by using the individaul input rate per operator
-            # here we take the average of all operators, which gives some different results.
-            busyTime_column = data[Metrics.BUSY_TIME]
-            inputRate_column = data[Metrics.INPUT_RATE]
-            trueProcessingRate_column = inputRate_column * busyTime_column
-            return trueProcessingRate_column / inputRate_column
-        else:
-            print(f"Error: could not get metric column for {metric}.")
+#
+# def addThresholdLine(ax, experiment: Experiment, metric: str, time_column, dataFrame):
+#     if experiment.autoscaler == Autoscalers.DHALION:
+#         # Overprovisioning
+#         color = "green"
+#         if metric == Metrics.CPU_LOAD:
+#             # CPU_Load < 0.6
+#             ax.axhline(0.6, color=color, linewidth=2.5)
+#         elif metric == Metrics.BACKPRESSURE:
+#             # Backpressure < 100
+#             ax.axhline(100, color=color, linewidth=2.5)
+#         elif metric == Metrics.LAG:
+#             throughput_dataframe = dataFrame[Metrics.INPUT_RATE]
+#             taskmanager_dataframe = dataFrame[Metrics.TASKMANAGER]
+#             threshold_data = 0.2 * taskmanager_dataframe * throughput_dataframe
+#             ax.plot(time_column, threshold_data, color=color)
+#
+#         # Underprovisioning
+#         color = "red"
+#         if metric == Metrics.LATENCY:
+#             # Average event time lag < flink_taskmanager_job_task_operator_currentEmitEventTimeLag
+#             # latench = variable
+#             val = experiment.variable
+#             ax.axhline(float(val), color=color, linewidth=2.5)
+#
+#     if experiment.autoscaler == Autoscalers.HPA:
+#         color = "red"
+#         if metric == Metrics.CPU_LOAD:
+#             val = float(f"0.{experiment.variable}")
+#             ax.axhline(val, color=color, linestyle='dotted', linewidth=2.5)
+#
+#     if experiment.autoscaler in [Autoscalers.VARGA1, Autoscalers.VARGA2]:
+#         color = "red"
+#         if metric == Metrics.IDLE_TIME:
+#             value = 1 - float(experiment.variable)
+#             ax.axhline(value, color=color, linestyle='dotted', linewidth=2.5)
+#         if metric == Metrics.LAG:
+#             ax.axhline(50000, color=color, linewidth=2.5)
+#         if metric == Metrics.VARGA_RELATIVE_LAG_CHANGE_RATE:
+#             ax.axhline(1.0, color=color, linestyle='dotted', linewidth=2.5)
+#
+#     if experiment.autoscaler == Autoscalers.DS2_UPDATED:
+#         # Underprovisioning
+#         color = "red"
+#         if metric == Metrics.LATENCY:
+#             ax.axhline(5, color=color, linewidth=1.5)
+#
+#         # Overprovisioning
+#         color = "green"
+#         if metric == Metrics.LATENCY:
+#             ax.axhline(1, color=color, linewidth=1.5)
 
-
-def addThresholdLine(ax, experiment: Experiment, metric: str, time_column, dataFrame):
-    if experiment.autoscaler == Autoscalers.DHALION:
-        # Overprovisioning
-        color = "green"
-        if metric == Metrics.CPU_LOAD:
-            # CPU_Load < 0.6
-            ax.axhline(0.6, color=color, linewidth=2.5)
-        elif metric == Metrics.BACKPRESSURE:
-            # Backpressure < 100
-            ax.axhline(100, color=color, linewidth=2.5)
-        elif metric == Metrics.LAG:
-            throughput_dataframe = dataFrame[Metrics.INPUT_RATE]
-            taskmanager_dataframe = dataFrame[Metrics.TASKMANAGER]
-            threshold_data = 0.2 * taskmanager_dataframe * throughput_dataframe
-            ax.plot(time_column, threshold_data, color=color)
-
-        # Underprovisioning
-        color = "red"
-        if metric == Metrics.LATENCY:
-            # Average event time lag < flink_taskmanager_job_task_operator_currentEmitEventTimeLag
-            # latench = variable
-            val = experiment.variable
-            ax.axhline(float(val), color=color, linewidth=2.5)
-
-    if experiment.autoscaler == Autoscalers.HPA:
-        color = "red"
-        if metric == Metrics.CPU_LOAD:
-            val = float(f"0.{experiment.variable}")
-            ax.axhline(val, color=color, linestyle='dotted', linewidth=2.5)
-
-    if experiment.autoscaler in [Autoscalers.VARGA1, Autoscalers.VARGA2]:
-        color = "red"
-        if metric == Metrics.IDLE_TIME:
-            value = 1 - float(experiment.variable)
-            ax.axhline(value, color=color, linestyle='dotted', linewidth=2.5)
-        if metric == Metrics.LAG:
-            ax.axhline(50000, color=color, linewidth=2.5)
-        if metric == Metrics.VARGA_RELATIVE_LAG_CHANGE_RATE:
-            ax.axhline(1.0, color=color, linestyle='dotted', linewidth=2.5)
-
-    if experiment.autoscaler == Autoscalers.DS2_UPDATED:
-        # Underprovisioning
-        color = "red"
-        if metric == Metrics.LATENCY:
-            ax.axhline(5, color=color, linewidth=1.5)
-
-        # Overprovisioning
-        color = "green"
-        if metric == Metrics.LATENCY:
-            ax.axhline(1, color=color, linewidth=1.5)
-
-
-def getYrange(metricName: str, min_val, max_val, metric_ranges) -> Tuple[float, float]:
-    # If specific range is specified
-    for metric_range in metric_ranges:
-        if metric_range[0] == metricName:
-            return metric_range[1], metric_range[2]
-
-    # Else we fetch the default ranges
-    min_range, max_range = Metrics.getDefaultRange(metricName)
-    if min_range is None:
-        min_range = min_val
-    if max_range is None:
-        max_range = max_val
-    return min_range, max_range
+#
+# def getYrange(metricName: str, min_val, max_val, metric_ranges) -> Tuple[float, float]:
+#     # If specific range is specified
+#     for metric_range in metric_ranges:
+#         if metric_range[0] == metricName:
+#             return metric_range[1], metric_range[2]
+#
+#     # Else we fetch the default ranges
+#     min_range, max_range = Metrics.getDefaultRange(metricName)
+#     if min_range is None:
+#         min_range = min_val
+#     if max_range is None:
+#         max_range = max_val
+#     return min_range, max_range
 
 
 
@@ -323,6 +306,8 @@ def plotDataFile(
         # Get metricName, Column and Axis (use axs instead of axs[i] if only one metric)
         metricName = metrics[i]
         metric_column = getMetricColumn(metricName, data)
+        if metric_column is None:
+            continue
 
         # Interpolate and fill NaN with 0
         metric_column = metric_column.interpolate()

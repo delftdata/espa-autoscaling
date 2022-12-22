@@ -16,9 +16,9 @@ class SingleFolderPlotParameters(PlotParameters):
     __create_scatter_plot = False
     __option_create_scatter_plot = False
 
-    def __init__(self, default_graph_folder_name: str, option_create_scatter_plot=False):
+    def __init__(self, default_plot_folder_name: str, option_create_scatter_plot=False):
         super().__init__()
-        self.__graph_folder_name = default_graph_folder_name
+        self.__plot_folder_name = default_plot_folder_name
         self.__option_create_scatter_plot = option_create_scatter_plot
 
     # getter and setter for main_folder
@@ -82,7 +82,10 @@ class SingleFolderPlotParameters(PlotParameters):
         """
         combined_data_folder = FileManager.get_combined_data_folder(self.__main_folder)
         return ExperimentFileGenerator.get_specific_experiment_files_from_combined_data_folder(
-            combined_data_folder, self.get_queries(), self.get_autoscalers(), self.get_modes(), self.get_tags)
+            combined_data_folder, self.get_queries(), self.get_autoscalers(), self.get_modes(), self.get_tags())
+
+    def get_plot_save_folder(self):
+        return FileManager.get_plot_folder(self.get_main_folder(), self.get_plot_folder_name())
 
     def include_arguments_in_parser(self, argument_parser: argparse.ArgumentParser):
         """
@@ -92,20 +95,19 @@ class SingleFolderPlotParameters(PlotParameters):
 
         def include_main_folder_in_parser(parser: argparse.ArgumentParser):
             parser.add_argument('main_directory', type=str,
-                                help="Main directory containing all information fetched from experiments. Data is saved at"
-                                     "main_directory/data and combined_data is saved at main_directory/data/combined_data."
-                                     "Graphs will be saved at main_directory/graphs")
+                                help=f"Main directory containing all information fetched from experiments. Data is saved at "
+                                     f"{{main_directory}}/data and graphs will be saved at {{main_directory}}/graphs")
 
         def include_plot_folder_name_in_parser(parser: argparse.ArgumentParser):
             parser.add_argument("--plot_folder_name", type=str, nargs="?",
                                 help=f"Define the name of the directory the plots will be saved in. This directory will "
-                                     f"be placed in main_directory/graphs/[plot_folder_name]. "
+                                     f"be placed in {{main_directory}}/graphs/{{plot_folder_name}}. "
                                      f"Default={self.get_plot_folder_name()}")
 
         def include_plot_postfix_label_in_parser(parser: argparse.ArgumentParser):
             parser.add_argument("--plot_postfix_label", type=str, nargs="?",
                                 help=f"Add a postfix to the filename of the generated plots. "
-                                     f"Default={self.get_plot_postfix_label()}")
+                                     f"Default=\"{self.get_plot_postfix_label()}\"")
 
         def include_create_scatter_plot_in_parser(parser: argparse.ArgumentParser):
             parser.add_argument('--create_scatter_plot', action='store_true',

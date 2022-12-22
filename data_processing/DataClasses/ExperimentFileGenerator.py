@@ -1,9 +1,9 @@
-from Queries import Queries
-from Autoscalers import Autoscalers
-from Modes import Modes
-from Experiment import Experiment
-from ExperimentFile import ExperimentFile
-from FileManager import FileManager
+from .Queries import Queries
+from .Autoscalers import Autoscalers
+from .Modes import Modes
+from .Experiment import Experiment
+from .ExperimentFile import ExperimentFile
+from .FileManager import FileManager
 
 
 class ExperimentFileGenerator:
@@ -36,7 +36,6 @@ class ExperimentFileGenerator:
         Get a list of ExperimentFile classes from a combined_data_folder folder. All provided ExperimentFile classes
         contain a valid experiment configuration.
         """
-        combined_data_folder = FileManager.get_combined_data_folder(combined_data_folder)
         file_path_mapping = FileManager.get_all_files_and_paths_in_folder(combined_data_folder)
         experiment_files = []
         for experiment, experiment_path in file_path_mapping.items():

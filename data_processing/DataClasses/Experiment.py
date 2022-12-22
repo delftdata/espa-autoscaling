@@ -1,6 +1,6 @@
-from Autoscalers import Autoscalers
-from Queries import Queries
-from Modes import Modes
+from .Autoscalers import Autoscalers
+from .Queries import Queries
+from .Modes import Modes
 
 
 class Experiment:
@@ -82,9 +82,9 @@ class Experiment:
         """
         # Any tag is supported
         return (
-                Queries.isQuery(query) and
-                Autoscalers.isAutoscaler(autoscaler) and
-                Modes.isMode(mode)
+                Queries.is_query(query) and
+                Autoscalers.is_autoscaler(autoscaler) and
+                Modes.is_mode(mode)
         )
 
     @staticmethod

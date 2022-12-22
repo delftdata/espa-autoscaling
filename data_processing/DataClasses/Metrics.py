@@ -21,15 +21,15 @@ class Metrics:
 
     @staticmethod
     def get_default_metric_range_of_metric(metric: str):
-        if Metrics.isMetricClass(metric):
+        if Metrics.is_metric_class(metric):
             return Metrics.metric_range_mapping[metric]
         else:
             print(f"Error: did not recognize metric {metric}. Returning (None, None) ranges instead.")
             return None, None
 
     @staticmethod
-    def get_all_metric_classes():
-        return Metrics.metric_range_mapping.keys()
+    def get_all_metric_classes() -> [str]:
+        return list(Metrics.metric_range_mapping.keys())
 
     @staticmethod
     def is_metric_class(metric: str):
