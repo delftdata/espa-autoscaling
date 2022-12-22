@@ -10,7 +10,7 @@ class Autoscalers:
 
 
     @staticmethod
-    def getAllAutoscalers() -> [str]:
+    def get_all_autoscalers() -> [str]:
         return [
             Autoscalers.DHALION,
             Autoscalers.DS2,
@@ -19,6 +19,6 @@ class Autoscalers:
         ]
 
     @staticmethod
-    def isAutoscaler(autoscaler) -> bool:
-        return Autoscalers.getAllAutoscalers().__contains__(autoscaler)
+    def is_autoscaler(autoscaler) -> bool:
+        return Autoscalers.get_all_autoscalers().__contains__(autoscaler)
 

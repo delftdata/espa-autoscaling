@@ -1,45 +1,34 @@
 import argparse
 
-from DataClasses import Autoscalers, Metrics
+from DataClasses import FileManager
 from Plotting import plotDataFile, scatterPlotDataFrame
-from ParameterProcessing import SingleFolderPlotParameters, StaticPlotFunctions
+from ParameterProcessing import SingleFolderPlotParameters
 
 
 def plotIndividualExperiments(parameters: SingleFolderPlotParameters):
-    def getSaveName():
-        prefixName = parameters.getResultLabel()
-        postFixName = "thresholds" if parameters.getPlotThresholds() else ""
 
-        prefix = StaticPlotFunctions.getNamingPrefix(prefixName)
-        postfix = StaticPlotFunctions.getNamingPostfix(postFixName)
-        experimentName = experimentFile.getExperimentName()
-        return f"{prefix}{experimentName}{postfix}"
-
-    experimentFiles = parameters.getExperimentFiles()
+    experimentFiles = parameters.fetch_experiment_files_from_combined_data_folder()
     for experimentFile in experimentFiles:
+        experiment_save_name = FileManager.get_plot_filename(experimentFile.get_experiment_name(),
+                                                             parameters.get_plot_postfix_label())
 
-        if parameters.getMetrics() == Metrics.getDefaultMetricClasses():
-            parameters.setMetrics(Metrics.getAllMetricClassesForAutoscaler(experimentFile.getAutoscaler()))
-
-        if parameters.getCreateScatterPlot():
+        if parameters.get_create_scatter_plot():
             # Create a scatter plot of the data
             scatterPlotDataFrame(
                 file=experimentFile,
                 saveDirectory=parameters.getResultFolder(),
-                saveName=getSaveName(),
-                metrics=parameters.getMetrics(),
+                saveName=experiment_save_name,
+                metrics=parameters.get_metrics(),
                 metric_ranges=parameters.getMetricRanges(),
-                plotThresholds=parameters.getPlotThresholds(),
             )
         else:
             # Create a normal plot of the data
             plotDataFile(
                 file=experimentFile,
                 saveDirectory=parameters.getResultFolder(),
-                saveName=getSaveName(),
-                metrics=parameters.getMetrics(),
+                saveName=experiment_save_name,
+                metrics=parameters.get_metrics(),
                 metric_ranges=parameters.getMetricRanges(),
-                plotThresholds=parameters.getPlotThresholds(),
             )
 
 

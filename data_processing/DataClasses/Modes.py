@@ -8,7 +8,7 @@ class Modes:
     NON_REACTIVE = 'non-reactive'
 
     @staticmethod
-    def getAllModes() -> [str]:
+    def get_all_modes() -> [str]:
         return [
             Modes.DEFAULT,
             Modes.REACTIVE,
@@ -16,6 +16,6 @@ class Modes:
         ]
 
     @staticmethod
-    def isMode(mode: str) -> bool:
-        return Modes.getAllModes().__contains__(mode)
+    def is_mode(mode: str) -> bool:
+        return Modes.get_all_modes().__contains__(mode)
 

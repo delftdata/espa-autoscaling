@@ -1,148 +1,178 @@
 import argparse
-from typing import Tuple
 
-from .StaticPlotFunctions import StaticPlotFunctions
-from DataClasses import Queries, Autoscalers, Metrics, Experiment
+from DataClasses import Queries, Autoscalers, Metrics, Modes
 
 
-class PlotParameters(StaticPlotFunctions):
-    # Overall queries, autoscalers, metrics
-    __queries = Queries.getAllQueries()
-    __autoscalers = Autoscalers.getAllAutoscalers()
-    __metrics = Metrics.getDefaultMetricClasses()
+class PlotParameters():
+    # Queries, autoscalers, metrics, tags
+    __queries = Queries.get_all_queries()
+    __autoscalers = Autoscalers.get_all_autoscalers()
+    __modes = Modes.get_all_modes()
+    __tags = []
 
     # Metric limits
-    __metric_ranges: [Tuple[str, float, float]] = []
-    __option_metric_ranges = True
+    __metrics = Metrics.get_all_metric_classes()
+    __metric_ranges: {str, (float, float)} = Metrics.metric_range_mapping
+    # __option_metric_ranges = True
+    #
+    # def __init__(self, option_metric_ranges=True):
+    #     self.__option_metric_ranges = option_metric_ranges
 
-    def __init__(self, option_metric_ranges=True):
-        self.__option_metric_ranges = option_metric_ranges
-
-    def setQueries(self, queries: [str]):
+    # Queries getter and setter
+    def set_queries(self, queries: [str]):
         if queries:
             self.__queries = queries
 
-    def getQueries(self):
+    def get_queries(self) -> [str]:
         return self.__queries
 
-    def setAutoscalers(self, autoscalers: [str]):
+    # Autoscalers getter and setter
+    def set_autoscalers(self, autoscalers: [str]):
         if autoscalers:
             self.__autoscalers = autoscalers
 
-    def getAutoscalers(self):
+    def get_autoscalers(self) -> [str]:
         return self.__autoscalers
 
-    def getMetrics(self):
+    # Modes getter and setter
+    def set_modes(self, modes: [str]):
+        if modes:
+            self.__modes = modes
+
+    def get_modes(self) -> str:
+        return self.__modes
+
+    # Tags getter and setter
+    def set_tags(self, tags: [str]):
+        self.__tags = tags
+
+    def get_tags(self) -> str:
+        return self.__tags
+
+    # Metrics getter and setter
+    def get_metrics(self) -> [str]:
         return self.__metrics
 
-    def setMetrics(self, metrics: [str]):
+    def set_metrics(self, metrics: [str]):
         if metrics:
             self.__metrics = metrics
 
-    def setMetricRanges(self, metric_ranges: [Tuple[str, float, float]]):
+    # Get and set metric ranges
+    def setMetricRanges(self, metric_ranges: {str, (float, float)}):
         self.__metric_ranges = metric_ranges
 
     def getMetricRanges(self):
         return self.__metric_ranges
 
-    def getExperimentsWithDatalabel(self, data_label: str):
-        return Experiment.getAllExperiments(self.__queries, self.__autoscalers, label=data_label)
+    def include_arguments_in_parser(self, argument_parser: argparse.ArgumentParser):
 
-    # ArgParse
-    def includeArgumentsInParser(self, argumentParser: argparse.ArgumentParser):
-
-        def includeMetricsInParser(parser: argparse.ArgumentParser):
+        def include_metrics_in_parser(parser: argparse.ArgumentParser):
             parser.add_argument('--metrics', nargs='*', type=str)
 
-        def includeQueriesInParser(parser: argparse.ArgumentParser):
+        def include_queries_in_parser(parser: argparse.ArgumentParser):
             parser.add_argument('--queries', nargs='*', type=str)
 
-        def includeAutoscalersInParser(parser: argparse.ArgumentParser):
+        def include_autoscalers_in_parser(parser: argparse.ArgumentParser):
             parser.add_argument('--autoscalers', nargs='*', type=str)
 
-        def includeMetricRangesInParser(parser: argparse.ArgumentParser):
-            parser.add_argument('--metric_range', nargs=3, action='append')
+        def include_modes_in_parser(parser: argparse.ArgumentParser):
+            parser.add_argument('--modes', nargs='*', type=str)
+
+        def include_tags_in_parser(parser: argparse.ArgumentParser):
+            parser.add_argument('--tags', nargs='*', type=str)
+
+        # def includeMetricRangesInParser(parser: argparse.ArgumentParser):
+        #     parser.add_argument('--metric_range', nargs=3, action='append')
+
+        include_metrics_in_parser(argument_parser)
+        include_queries_in_parser(argument_parser)
+        include_autoscalers_in_parser(argument_parser)
+        include_modes_in_parser(argument_parser)
+        include_tags_in_parser(argument_parser)
+
+        # if self.__option_metric_ranges:
+        #     includeMetricRangesInParser(argumentParser)
+
+    def fetch_arguments_from_namespace(self, namespace: argparse.Namespace):
+
+        def filter_out_unsupported_arguments(provided_arguments, all_supported_arguments: [], arg_name="undefined"):
+            supported_args = []
+            invalid_args = []
+            for argument in provided_arguments:
+                if argument in all_supported_arguments:
+                    supported_args.append(argument)
+                else:
+                    invalid_args.append(argument)
+            if invalid_args:
+                print(f"The following provided arguments of '{arg_name}' are invalid: {invalid_args}")
+                print(f"Use any of the following available arguments: {supported_args}")
+            return supported_args
 
 
-        includeMetricsInParser(argumentParser)
-        includeQueriesInParser(argumentParser)
-        includeAutoscalersInParser(argumentParser)
-
-        if self.__option_metric_ranges:
-            includeMetricRangesInParser(argumentParser)
-
-    def fetchArgumentsFromNamespace(self, namespace: argparse.Namespace):
-        def fetchMetricsFromNamespace(args: argparse.Namespace):
-            if args.metrics:
-                metrics = []
-                invalid_metrics = []
-                for arg in args.metrics:
-                    if Metrics.isMetricClass(arg):
-                        metrics.append(arg)
-                    else:
-                        invalid_metrics.append(arg)
-                if invalid_metrics:
-                    print(f"The following provided metrics are invalid: {invalid_metrics}")
-                    print(f"Use any of the following available metrics: {Metrics.getAllMetricClasses()}")
-                self.setMetrics(metrics)
-
-        def fetchQueriesFromNamespace(args: argparse.Namespace):
-            if args.queries:
-                queries = []
-                invalid_queries = []
-                for arg in args.queries:
-                    if Queries.isQuery(arg):
-                        queries.append(arg)
-                    else:
-                        invalid_queries.append(arg)
-                if invalid_queries:
-                    print(f"The following provided metrics are invalid: {invalid_queries}")
-                    print(f"Use any of the following available metrics: {Queries.getAllQueries()}")
-                self.setQueries(queries)
-
-        def fetchAutoscalersFromNamespace(args: argparse.Namespace):
+        def fetch_autoscalers_from_namespace(args: argparse.Namespace):
+            all_autoscalers = Autoscalers.get_all_autoscalers()
             if args.autoscalers:
-                autoscalers = []
-                invalid_autoscalers = []
-                for arg in args.autoscalers:
-                    if Autoscalers.isAutoscaler(arg):
-                        autoscalers.append(arg)
-                    else:
-                        invalid_autoscalers.append(arg)
-                if invalid_autoscalers:
-                    print(f"The following provided metrics are invalid: {invalid_autoscalers}")
-                    print(f"Use any of the following available metrics: {Autoscalers.getAllAutoscalers()}")
-                self.setAutoscalers(autoscalers)
+                provided_autoscalers = args.autoscalers
+                autoscalers = filter_out_unsupported_arguments(provided_autoscalers, all_autoscalers, "autoscalers")
+                self.set_autoscalers(autoscalers)
 
-        def fetchMetricRanges(args: argparse.Namespace):
-            if args.metric_range:
-                ranges = []
-                for limit in args.metric_range:
-                    metric = limit[0]
-                    min_val = limit[1]
-                    max_val = limit[2]
+        def fetch_queries_from_namespace(args: argparse.Namespace):
+            all_queries = Queries.get_all_queries()
+            if args.queries:
+                provided_queries = args.queries
+                queries = filter_out_unsupported_arguments(provided_queries, all_queries, "queries")
+                self.set_autoscalers(queries)
 
-                    if not Metrics.isMetricClass(metric):
-                        print(f"Error: metric {metric} is not a valid metric. Ignoring provided metric-limit")
-                        print(f"Use any of the following available metrics: {Metrics.getAllMetricClasses()}")
-                        continue
-                    try:
-                        min_val = float(min_val)
-                        max_val = float(max_val)
-                    except ValueError:
-                        print(f"Error: {min_val} and {max_val} should be of type float. Ignoring provided metric-limit")
-                        continue
+        def fetch_modes_from_namespace(args: argparse.Namespace):
+            all_modes = Modes.get_all_modes()
+            if args.modes:
+                provided_modes = args.modes
+                modes = filter_out_unsupported_arguments(provided_modes, all_modes, "modes")
+                self.set_autoscalers(modes)
 
-                    if max_val <= min_val:
-                        print(f"Error: {min_val} is not smaller than {max_val}. Ignoring provided metric-limit")
-                        continue
-                    ranges.append((metric, min_val, max_val))
-                self.setMetricRanges(ranges)
+        def fetch_tags_from_namespace(args: argparse.Namespace):
+            if args.tags:
+                provided_tags = args.tags
+                self.set_tags(provided_tags)
 
-        fetchMetricsFromNamespace(namespace)
-        fetchQueriesFromNamespace(namespace)
-        fetchAutoscalersFromNamespace(namespace)
+        def fetch_metrics_from_namespace(args: argparse.Namespace):
+            all_metric_classes = Metrics.get_all_metric_classes()
+            if args.metrics:
+                provided_metric_classes = args.metrics
+                metric_classes = filter_out_unsupported_arguments(provided_metric_classes, all_metric_classes,
+                                                                  "metrics")
+                self.set_metrics(metric_classes)
 
-        if self.__option_metric_ranges:
-            fetchMetricRanges(namespace)
+        # def fetchMetricRanges(args: argparse.Namespace):
+        #     if args.metric_range:
+        #         ranges = []
+        #         for limit in args.metric_range:
+        #             metric = limit[0]
+        #             min_val = limit[1]
+        #             max_val = limit[2]
+        #
+        #             if not Metrics.isMetricClass(metric):
+        #                 print(f"Error: metric {metric} is not a valid metric. Ignoring provided metric-limit")
+        #                 print(f"Use any of the following available metrics: {Metrics.getAllMetricClasses()}")
+        #                 continue
+        #             try:
+        #                 min_val = float(min_val)
+        #                 max_val = float(max_val)
+        #             except ValueError:
+        #                 print(f"Error: {min_val} and {max_val} should be of type float. Ignoring provided metric-limit")
+        #                 continue
+        #
+        #             if max_val <= min_val:
+        #                 print(f"Error: {min_val} is not smaller than {max_val}. Ignoring provided metric-limit")
+        #                 continue
+        #             ranges.append((metric, min_val, max_val))
+        #         self.setMetricRanges(ranges)
+
+        fetch_autoscalers_from_namespace(namespace)
+        fetch_queries_from_namespace(namespace)
+        fetch_modes_from_namespace(namespace)
+        fetch_tags_from_namespace(namespace)
+        fetch_metrics_from_namespace(namespace)
+        # if self.__option_metric_ranges:
+        #     fetchMetricRanges(namespace)
 

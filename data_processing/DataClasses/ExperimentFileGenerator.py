@@ -1,50 +1,43 @@
 from Queries import Queries
 from Autoscalers import Autoscalers
 from Modes import Modes
-
-
 from Experiment import Experiment
 from ExperimentFile import ExperimentFile
-import os
-import sys
+from FileManager import FileManager
 
 
 class ExperimentFileGenerator:
-    main_folder: str
-    graph_folder: str
-    data_folder: str
-    combined_data_folder: str
 
+    @staticmethod
+    def get_all_experiment_files_from_main_folder(main_folder):
+        """
+        Get a list of ExperimentFile classes from the combined data folder in the provided main_folder.
+        All provided ExperimentFile classes contain a valid experiment configuration.
+        """
+        combined_data_folder = FileManager.get_combined_data_folder(main_folder)
+        return ExperimentFileGenerator.get_all_experiment_files_from_combined_data_folder(combined_data_folder)
 
-    def __init__(self, main_folder: str):
-        self.main_folder = main_folder
-        self.graph_folder = f"{main_folder}/graphs"
-        self.data_folder = f"{main_folder}/data"
-        self.combined_data_folder = f"{main_folder}/data/combined_data"
+    @staticmethod
+    def get_specific_experiment_files_from_main_folder(main_folder: str,
+                                                       selected_queries=None, selected_autoscalers=None,
+                                                       selected_modes=None, selected_tags=None):
+        """
+        Get a list of ExperimentFiles from the combined data folder in the provided main_folder. The method will ensure
+        only selected queries, autoscalers, modes or tags are contained in the list. When a selected configuration is
+        not provided, all known configurations are supported.
+        """
+        combined_data_folder = FileManager.get_combined_data_folder(main_folder)
+        return ExperimentFileGenerator.get_specific_experiment_files_from_combined_data_folder(
+            combined_data_folder, selected_queries, selected_autoscalers, selected_modes, selected_tags)
 
-    def get_files_in_folder(self, folder: str):
+    @staticmethod
+    def get_all_experiment_files_from_combined_data_folder(combined_data_folder):
         """
-        Get a list of all files in a specific folder.
+        Get a list of ExperimentFile classes from a combined_data_folder folder. All provided ExperimentFile classes
+        contain a valid experiment configuration.
         """
-        files = os.listdir(folder)
-        return files
-
-    def get_all_files_and_paths_in_folder(self, folder: str):
-        """
-        Get a dictionary with as key the filename and as value the location of the file found in a folder.
-        """
-        files = self.get_files_in_folder(folder)
-        file_path_mapping = {}
-        for file in files:
-            file_path_mapping[file] = f"{folder}/{file}"
-        return file_path_mapping
-
-    def get_all_experiment_files_from_folder(self, folder):
-        """
-        Get a list of ExperimentFile classes from a specific folder. All provided ExperimentFile classes contain a valid
-        experiment configuration.
-        """
-        file_path_mapping = self.get_all_files_and_paths_in_folder(folder)
+        combined_data_folder = FileManager.get_combined_data_folder(combined_data_folder)
+        file_path_mapping = FileManager.get_all_files_and_paths_in_folder(combined_data_folder)
         experiment_files = []
         for experiment, experiment_path in file_path_mapping.items():
             experiment_name = experiment.replace("_data.csv", "")
@@ -54,18 +47,21 @@ class ExperimentFileGenerator:
                 experiment_files.append(experiment_file)
         return experiment_files
 
-    def get_specific_experiment_files_from_folder(self, folder: str, selected_queries=None, selected_autoscalers=None,
-                                                  selected_modes=None, selected_tags=None):
+    @staticmethod
+    def get_specific_experiment_files_from_combined_data_folder(combined_data_folder: str,
+                                                                selected_queries=None, selected_autoscalers=None,
+                                                                selected_modes=None, selected_tags=None):
         """
         Get a list of ExperimentFiles from a specific folder and ensure only selected queries, autoscalers, modes or
         tags are contained in the list. When a selected configuration is not provided, all known configurations are
         supported.
         """
-        selected_queries = selected_queries or Queries.getAllQueries()
-        selected_autoscalers = selected_autoscalers or Autoscalers.getAllAutoscalers()
-        selected_modes = selected_modes or Modes.getAllModes()
+        selected_queries = selected_queries or Queries.get_all_queries()
+        selected_autoscalers = selected_autoscalers or Autoscalers.get_all_autoscalers()
+        selected_modes = selected_modes or Modes.get_all_modes()
 
-        all_experiment_files: [ExperimentFile] = self.get_all_experiment_files_from_folder(folder)
+        all_experiment_files: [ExperimentFile] = ExperimentFileGenerator.\
+            get_all_experiment_files_from_combined_data_folder(combined_data_folder)
         filtered_experiment_files = []
         for experiment_file in all_experiment_files:
             if (
@@ -78,11 +74,26 @@ class ExperimentFileGenerator:
         return filtered_experiment_files
 
 
-if __name__ == "__main__":
-    # Temporary main function for testing the application
-    arguments = sys.argv[1:]
-    fileGenerator = ExperimentFileGenerator(arguments[0])
-    print(fileGenerator.get_specific_experiment_files_from_folder(
-        fileGenerator.combined_data_folder,
-        selected_tags=["rerun", "c5m"]
-    ))
+    @staticmethod
+    def fastCombineSimilarExperiments(experimentFiles: [ExperimentFile], ignoreLabel=True):
+        """
+        Function combines all similar experiments in a single list.
+        :param experimentFiles: ExperimentFiles to combine all similar experiments
+        :param ignoreLabel: Whether to ignor ethe label recognizing simmilar experiments
+        :return: List of lists containing all similar experiments
+        """
+        combinations = []
+        for experimentFile in experimentFiles:
+            found = False
+            for combination in combinations:
+                if experimentFile.experiment.isSimilarExperiment(combination[0].experiment, ignoreLabel=ignoreLabel):
+                    combination.append(experimentFile)
+                    found = True
+                    break
+            if not found:
+                combinations.append([experimentFile])
+        return combinations
+
+    @staticmethod
+    def deleteTooSmallLists(experimentFiles: [[ExperimentFile]], minimumSize: int):
+        return list(filter(lambda l: len(l) >= minimumSize, experimentFiles))
