@@ -80,7 +80,11 @@ def parseArguments():
     parameters: SingleFolderPlotParameters = SingleFolderPlotParameters("combined-plots")
 
     # Parse arguments
-    parser = argparse.ArgumentParser(description='Plot similar experiments in the same plots')
+    parser = argparse.ArgumentParser(description=f"This script fetches all data from the provided folder and plots "
+                                                 f"together the results of the experiments with similar "
+                                                 f"characteristics: ({experiment_characteristics}). Select some "
+                                                 f"characteristics with the --ignore_experiment_characteristics tags "
+                                                 f"to exclude them from the similarity comparison.")
     parameters.include_arguments_in_parser(parser)
     include_additional_arguments_in_parser(parser)
 
