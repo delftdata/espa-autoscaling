@@ -147,7 +147,8 @@ class Dhalion(Autoscaler, ABC):
                   f" {operator}")
 
     @staticmethod
-    def calculateDesiredParallelism(operator: str, currentParallelisms: {str, int}, scaling_factor: float):
+    def calculateDesiredParallelism(operator: str, currentParallelisms: {str, int}, scalingFactor: float,
+                                    maximumParallelismIncrease: int):
         """
         Get the desired parallelsim of an operator based on its current parallelism, a scaling facotr and whether it is
         scaling up or down.
@@ -157,13 +158,16 @@ class Dhalion(Autoscaler, ABC):
         :return: The desired parallelisms of the operator
         """
         if operator in currentParallelisms.keys():
-            parallelism = currentParallelisms[operator]
-            if scaling_factor >= 1:
-                desiredParallelism = math.ceil(parallelism * scaling_factor)
+            currentParallelism = currentParallelisms[operator]
+            if scalingFactor >= 1:
+                desiredParallelism = math.ceil(currentParallelism * scalingFactor)
             else:
-                desiredParallelism = math.floor(parallelism * scaling_factor)
+                desiredParallelism = math.floor(currentParallelism * scalingFactor)
             desiredParallelism = max(desiredParallelism, 1)
-            return desiredParallelism
+            maximumAllowedDesiredParallelism = currentParallelism + maximumParallelismIncrease
+            print(f"Desired parallelism: {desiredParallelism} - Max allowed desired parallelism: "
+                  f"{maximumAllowedDesiredParallelism}")
+            return min(desiredParallelism, maximumAllowedDesiredParallelism)
         else:
             print(f"Error: {operator} not found in parallelism: {currentParallelisms}")
             return -1
@@ -235,7 +239,8 @@ class Dhalion(Autoscaler, ABC):
                 operatorDesiredParallelism = self.calculateDesiredParallelism(
                     operator,
                     currentParallelisms,
-                    operatorScaleUpFactor
+                    operatorScaleUpFactor,
+                    self.configurations.DHALION_OPERATOR_MAXIMUM_PARALLELISM_INCREASE
                 )
                 print(f"Determined a scale-up factor of {operatorScaleUpFactor} for operator {operator}, which resulted"
                       f" in desired parallelism {operatorDesiredParallelism}")
@@ -277,7 +282,8 @@ class Dhalion(Autoscaler, ABC):
                     operatorDesiredParallelism = self.calculateDesiredParallelism(
                         operator,
                         currentParallelisms,
-                        self.configurations.DHALION_SCALE_DOWN_FACTOR
+                        self.configurations.DHALION_SCALE_DOWN_FACTOR,
+                        self.configurations.DHALION_OPERATOR_MAXIMUM_PARALLELISM_INCREASE
                     )
 
                     self.setDesiredParallelism(operator, operatorDesiredParallelism)
