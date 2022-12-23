@@ -104,10 +104,7 @@ def plot_and_overlap_data_files(
 
         # Finalise plot style when handling the last metric
         if i == len(metric_names) - 1:
-            if len(metric_names) > 1:
-                axis.legend(loc='lower right', bbox_to_anchor=(1.11, -0.2))
-            else:
-                axis.legend(loc='lower right', bbox_to_anchor=(1.12, 0))
+            axis.legend(loc='upper center', bbox_to_anchor=(0.5, -0.08 * len(metric_names)), fancybox=True, shadow=True, ncol=5)
 
     if save_directory and experiment_name and result_filetype:
         PlotWriter.save_plot(plt, save_directory, experiment_name, extension=result_filetype)

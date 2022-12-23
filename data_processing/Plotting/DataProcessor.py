@@ -1,5 +1,6 @@
 from DataClasses import ExperimentFile
 import pandas as pd
+import numpy as np
 
 
 def get_data_frame(experiment_file: ExperimentFile):
@@ -20,6 +21,22 @@ def getMetricColumn(metric, data):
         return None
 
 
+def get_experiment_dataframe_mapping(experiment_files: [ExperimentFile]):
+    experiment_dataframe_mapping = {}
+    for experiment_file in experiment_files:
+        data_frame = get_data_frame(experiment_file)
+        experiment_dataframe_mapping[experiment_file] = data_frame
+    return experiment_dataframe_mapping
+
+
+def get_shared_metrics_from_dataframes(metric_names: [str], dataframes):
+    for dataframe in dataframes:
+        metric_names = filter_out_missing_metric_names(metric_names, dataframe)
+    return metric_names
+
+
+
+
 def filter_out_missing_metric_names(metric_names, data, print_missing_metrics=False):
     existing_metric_names = []
     for metric_name in metric_names:
@@ -38,21 +55,32 @@ def interpolate_data_column(data_column):
 
 
 # Calculate metrics
-def getAverageMetricFromData(data, metricName):
-    metric_column = data[metricName]
+def __get_average_metric_from_dataframe(data_frame, metric_name):
+    metric_column = getMetricColumn(metric_name, data_frame)
+    metric_column = metric_column[~np.isnan(metric_column)]
     return sum(metric_column) / len(metric_column)
 
 
-def getAverageMetric(experimentFile: ExperimentFile, metricName: str):
-    data = pd.read_csv(experimentFile.file_path)
-    return getAverageMetricFromData(data, metricName)
-
-
-def getAverageMetrics(experimentFile: ExperimentFile, metrics):
-    data = pd.read_csv(experimentFile.file_path)
+def get_average_metrics_from_dataframe(data_frame, metric_names: [str]):
+    metric_names = filter_out_missing_metric_names(metric_names, data_frame)
     results = []
-    for metric in metrics:
-        results.append(getAverageMetricFromData(data, metric))
+    for metric in metric_names:
+        results.append(__get_average_metric_from_dataframe(data_frame, metric))
+    return results
+
+
+# Calculate metrics
+def __get_maximum_metric_from_dataframe(data_frame, metric_name):
+    metric_column = getMetricColumn(metric_name, data_frame)
+    metric_column = metric_column[~np.isnan(metric_column)]
+    return max(metric_column)
+
+
+def get_maximum_metrics_from_dataframe(data_frame, metric_names: [str]):
+    metric_names = filter_out_missing_metric_names(metric_names, data_frame)
+    results = []
+    for metric in metric_names:
+        results.append(__get_maximum_metric_from_dataframe(data_frame, metric))
     return results
 
 

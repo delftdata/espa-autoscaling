@@ -23,3 +23,10 @@ def show_plot(plt):
     plt.show()
 
 
+def save_data(save_directory, save_name: str, data_string: str, extension="log"):
+    __ensure_directory_exists(save_directory)
+    file_path = __get_file_location(save_directory, save_name, extension)
+    with open(file_path, 'w+', newline='') as f:
+        f.write(data_string)
+    print(f"Successfully saved data at {file_path}")
+

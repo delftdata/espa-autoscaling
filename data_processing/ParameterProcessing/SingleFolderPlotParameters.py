@@ -14,11 +14,11 @@ class SingleFolderPlotParameters(PlotParameters):
     __plot_postfix_label = ""
 
     # filetype of the result
-    __result_filetype = "pdf"
+    __result_filetype: str
 
-    def __init__(self, default_plot_folder_name: str):
-        super().__init__()
+    def __init__(self, default_plot_folder_name: str, default_result_filetype: str = "png"):
         self.__plot_folder_name = default_plot_folder_name
+        self.__result_filetype = default_result_filetype
 
     # getter and setter for main_folder
     def get_main_folder(self) -> str:
@@ -108,8 +108,8 @@ class SingleFolderPlotParameters(PlotParameters):
 
         def include_result_filetype_in_parser(parser: argparse.ArgumentParser):
             parser.add_argument("--result_filetype", type=str, nargs="?",
-                                help=f"Filetype (as extension) as which the plots should be saved as."
-                                     f"Known supported types: [pdf, png, jpg]")
+                                help=f"Filetype (as extension) as which the plots should be saved as. "
+                                     f"Known supported types: [png, pdf, jpg]. Default=png")
 
         include_main_folder_in_parser(argument_parser)
         include_plot_folder_name_in_parser(argument_parser)
