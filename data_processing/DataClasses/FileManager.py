@@ -44,3 +44,4 @@ class FileManager:
     def get_plot_filename(experiment_name, plot_postfix_label):
         plot_postfix_label = f"_{plot_postfix_label}" if plot_postfix_label else ""
         return f"{experiment_name}{plot_postfix_label}"
+

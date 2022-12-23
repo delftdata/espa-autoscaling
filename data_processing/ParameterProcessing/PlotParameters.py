@@ -11,8 +11,8 @@ class PlotParameters():
     __tags = []
 
     # Metric limits
-    __metrics = Metrics.get_all_metric_classes()
-    __metric_ranges: {str, (float, float)} = Metrics.metric_range_mapping
+    __metrics = Metrics.get_all_metrics()
+    __metric_ranges: {str, (float, float)} = Metrics.get_metric_range_mapping()
 
     # __option_metric_ranges = True
     #
@@ -94,41 +94,42 @@ class PlotParameters():
         # if self.__option_metric_ranges:
         #     includeMetricRangesInParser(argumentParser)
 
+    @staticmethod
+    def filter_out_unsupported_arguments(provided_arguments, all_supported_arguments: [], arg_name="undefined"):
+        supported_args = []
+        invalid_args = []
+        for argument in provided_arguments:
+            if argument in all_supported_arguments:
+                supported_args.append(argument)
+            else:
+                invalid_args.append(argument)
+        if invalid_args:
+            print(f"The following provided arguments of '{arg_name}' are invalid: {invalid_args}")
+            print(f"Use any of the following available arguments: {all_supported_arguments}")
+        return supported_args
+
     def fetch_arguments_from_namespace(self, namespace: argparse.Namespace):
-
-        def filter_out_unsupported_arguments(provided_arguments, all_supported_arguments: [], arg_name="undefined"):
-            supported_args = []
-            invalid_args = []
-            for argument in provided_arguments:
-                if argument in all_supported_arguments:
-                    supported_args.append(argument)
-                else:
-                    invalid_args.append(argument)
-            if invalid_args:
-                print(f"The following provided arguments of '{arg_name}' are invalid: {invalid_args}")
-                print(f"Use any of the following available arguments: {all_supported_arguments}")
-            return supported_args
-
 
         def fetch_autoscalers_from_namespace(args: argparse.Namespace):
             all_autoscalers = Autoscalers.get_all_autoscalers()
             if args.autoscalers:
                 provided_autoscalers = args.autoscalers
-                autoscalers = filter_out_unsupported_arguments(provided_autoscalers, all_autoscalers, "autoscalers")
+                autoscalers = PlotParameters.filter_out_unsupported_arguments(provided_autoscalers, all_autoscalers,
+                                                                              "autoscalers")
                 self.set_autoscalers(autoscalers)
 
         def fetch_queries_from_namespace(args: argparse.Namespace):
             all_queries = Queries.get_all_queries()
             if args.queries:
                 provided_queries = args.queries
-                queries = filter_out_unsupported_arguments(provided_queries, all_queries, "queries")
+                queries = PlotParameters.filter_out_unsupported_arguments(provided_queries, all_queries, "queries")
                 self.set_queries(queries)
 
         def fetch_modes_from_namespace(args: argparse.Namespace):
             all_modes = Modes.get_all_modes()
             if args.modes:
                 provided_modes = args.modes
-                modes = filter_out_unsupported_arguments(provided_modes, all_modes, "modes")
+                modes = PlotParameters.filter_out_unsupported_arguments(provided_modes, all_modes, "modes")
                 self.set_modes(modes)
 
         def fetch_tags_from_namespace(args: argparse.Namespace):
@@ -137,11 +138,11 @@ class PlotParameters():
                 self.set_tags(provided_tags)
 
         def fetch_metrics_from_namespace(args: argparse.Namespace):
-            all_metric_classes = Metrics.get_all_metric_classes()
+            all_metric_classes = Metrics.get_all_metrics()
             if args.metrics:
                 provided_metric_classes = args.metrics
-                metric_classes = filter_out_unsupported_arguments(provided_metric_classes, all_metric_classes,
-                                                                  "metrics")
+                metric_classes = PlotParameters.filter_out_unsupported_arguments(provided_metric_classes,
+                                                                                 all_metric_classes, "metrics")
                 self.set_metrics(metric_classes)
 
         # def fetchMetricRanges(args: argparse.Namespace):
@@ -176,4 +177,3 @@ class PlotParameters():
         fetch_metrics_from_namespace(namespace)
         # if self.__option_metric_ranges:
         #     fetchMetricRanges(namespace)
-

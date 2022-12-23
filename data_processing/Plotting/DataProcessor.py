@@ -20,6 +20,16 @@ def getMetricColumn(metric, data):
         return None
 
 
+def filter_out_missing_metric_names(metric_names, data, print_missing_metrics=False):
+    existing_metric_names = []
+    for metric_name in metric_names:
+        if metric_name in data:
+            existing_metric_names.append(metric_name)
+        elif print_missing_metrics:
+            print(f"Warning: metric {metric_name} is not present in the provided data.")
+    return existing_metric_names
+
+
 def interpolate_data_column(data_column):
     # Interpolate and fill NaN with 0
     data_column = data_column.interpolate()

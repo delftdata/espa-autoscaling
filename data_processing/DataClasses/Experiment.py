@@ -53,16 +53,17 @@ class Experiment:
         return Experiment.get_experiment_name_from_data(self.get_query(), self.get_autoscaler(), self.get_mode(),
                                                         self.get_tag())
 
-    def is_similar_experiment(self, other, ignore_tag=False):
+    def is_similar_experiment(self, other, ignore_query=False, ignore_autoscaler=False, ignore_mode=False,
+                              ignore_tag=False):
         """
         Check whether other is a similar experiment as this one.
         If ignoreTag is set to True, the tag is not compared.
         """
         if type(other) == Experiment:
             is_similar = True
-            is_similar = is_similar and self.get_query() == other.get_query()
-            is_similar = is_similar and self.get_autoscaler() == other.get_autoscaler()
-            is_similar = is_similar and self.get_mode() == other.get_mode()
+            is_similar = is_similar and (ignore_query or self.get_query() == other.get_query())
+            is_similar = is_similar and (ignore_autoscaler or self.get_autoscaler() == other.get_autoscaler())
+            is_similar = is_similar and (ignore_mode or self.get_mode() == other.get_mode())
             is_similar = is_similar and (ignore_tag or self.get_tag() == other.get_tag())
             return is_similar
         return False
@@ -96,6 +97,35 @@ class Experiment:
         mode = f"_{mode}" if mode else ""
         experiment_name = f"{tag}q{query}_{autoscaler}{mode}"
         return experiment_name
+
+    @staticmethod
+    def get_experiment_name_from_data_leave_missing_data_out(query: str, autoscaler: str, mode: str, tag: str = None):
+        """
+        Get experiment_name from the provided data. If data is not provided out, it is used in the name.
+        :param query: Query of the experiment
+        :param autoscaler: Autoscaler of the experiment
+        :param mode: Mode of the experiment
+        :param tag: Tag of the experiment
+        :return:
+        """
+        result = ""
+        if tag:
+            result = f"[{tag}]"
+
+        items = []
+        if query:
+            items.append(f"q{query}")
+        if autoscaler:
+            items.append(f"{autoscaler}")
+        if mode:
+            items.append(f"{mode}")
+
+        for item in items:
+            result = f"{result}_" if result else ""
+            if item:
+                result = f"{result}{item}"
+        return result
+
 
     @staticmethod
     def get_experiment_class_from_experiment_name(experiment_name: str):

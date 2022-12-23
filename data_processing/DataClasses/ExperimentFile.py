@@ -22,17 +22,20 @@ class ExperimentFile:
     def fileExists(file_path: str) -> bool:
         return os.path.isfile(file_path)
 
-    def get_query(self):
+    def get_query(self) -> str:
         return self.experiment.get_query()
 
-    def get_autoscaler(self):
+    def get_autoscaler(self) -> str:
         return self.experiment.get_autoscaler()
 
-    def get_mode(self):
+    def get_mode(self) -> str:
         return self.experiment.get_mode()
 
-    def get_tag(self):
+    def get_tag(self) -> str:
         return self.experiment.get_tag()
+
+    def get_experiment(self) -> Experiment:
+        return self.experiment
 
     def get_experiment_name(self):
         return self.experiment.get_experiment_name()

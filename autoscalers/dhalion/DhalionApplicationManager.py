@@ -60,23 +60,19 @@ class DhalionApplicationManager(ApplicationManager):
         """
         return self.prometheusManager.getOperatorAverageBufferInUsageMetrics()
 
-    def isSystemBackpressured(self, operatorBackpressureStatusMetrics: {str, bool}=None,
-                              sourceOperatorBackpressureStatusMetrics: {str, bool}=None) -> bool:
+    def isSystemBackpressured(self, operatorBackpressureStatusMetrics: {str, bool},
+                              sourceOperatorBackpressureStatusMetrics: {str, bool}) -> bool:
         """
         Check whether one of the operators is experiencing backpressure
         :return: Whether at leas tone of the operators is experiencing backpressure.
         """
-        if not operatorBackpressureStatusMetrics:
-            operatorBackpressureStatusMetrics = self.gatherOperatorBackpressureStatusMetrics()
-        if not sourceOperatorBackpressureStatusMetrics:
-            sourceOperatorBackpressureStatusMetrics = self.gatherSourceOperatorBackpressureStatusMetrics()
         isSystemBackpressured: bool = True in operatorBackpressureStatusMetrics.values() or \
                                       True in sourceOperatorBackpressureStatusMetrics.values()
         return isSystemBackpressured
 
-    def gatherBottleneckOperators(self, operatorBackpressureStatusMetrics: {str, bool}=None,
-                                  sourceOperatorBackpressureStatusMetrics: {str, bool}=None,
-                                  topology: [(str, str)]=None) -> [str]:
+    def gatherBottleneckOperators(self, operatorBackpressureStatusMetrics: {str, bool},
+                                  sourceOperatorBackpressureStatusMetrics: {str, bool},
+                                  topology: [(str, str)]) -> [str]:
         """
         Get all operators that are causing backpressure in the system.
         An operator is said to cause backpressure if it is not experiencing backpressure itself, but at least one of its
@@ -87,13 +83,6 @@ class DhalionApplicationManager(ApplicationManager):
         :param topology: The topology of the system, containing directed edges (lop -> rop)
         :return: A list of operators causing backpressure.
         """
-        if not operatorBackpressureStatusMetrics:
-            operatorBackpressureStatusMetrics = self.gatherOperatorBackpressureStatusMetrics()
-        if not sourceOperatorBackpressureStatusMetrics:
-            sourceOperatorBackpressureStatusMetrics = self.gatherSourceOperatorBackpressureStatusMetrics()
-        if not topology:
-            topology = self.gatherTopology(False)
-
         bottleNeckOperatorsSet: set = set()
         for lOperator, rOperator in topology:
             if lOperator not in operatorBackpressureStatusMetrics:

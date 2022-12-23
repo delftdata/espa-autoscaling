@@ -39,7 +39,7 @@ class MetricFetcher:
             "lag":                  f"sum(avg_over_time(flink_taskmanager_job_task_operator_pendingRecords[{step_size_sec}s]))",
             "CPU_load":             f"avg(avg_over_time(flink_taskmanager_Status_JVM_CPU_Load[{step_size_sec}s]))",
             "taskmanager":          f"sum(flink_jobmanager_numRegisteredTaskManagers)",
-            "backpressure":         f"max(avg_over_time(flink_taskmanager_job_task_backPressuredTimeMsPerSecond[{step_size_sec}s]))",
+            "backpressure_time":    f"max(avg_over_time(flink_taskmanager_job_task_backPressuredTimeMsPerSecond[{step_size_sec}s])) / 1000",
             "idle_time":            f"avg(avg_over_time(flink_taskmanager_job_task_idleTimeMsPerSecond[{step_size_sec}s])) / 1000",
             "busy_time":            f"avg(avg_over_time(flink_taskmanager_job_task_busyTimeMsPerSecond[{step_size_sec}s])) / 1000",
         }

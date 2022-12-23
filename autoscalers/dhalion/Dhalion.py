@@ -205,10 +205,7 @@ class Dhalion(Autoscaler, ABC):
 
             # Get operators causing backpressure
             bottleneckOperators: [str] = self.applicationManager.gatherBottleneckOperators(
-                operatorBackpressureStatusMetrics=operatorBackpressureStatusMetrics,
-                sourceOperatorBackpressureStatusMetrics=sourceOperatorBackpressureStatusMetrics,
-                topology=self.topology
-            )
+                operatorBackpressureStatusMetrics, sourceOperatorBackpressureStatusMetrics,self.topology)
             print(f"The following operators are found to cause a possible bottleneck: {bottleneckOperators}")
 
             # Fetching metrics: operator_backpressure_times, source_pending_record_rates, source_consumed_record_rates
