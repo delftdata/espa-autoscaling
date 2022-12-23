@@ -9,6 +9,7 @@ def plot_experiment_file(
         experiment_file: ExperimentFile,
         metric_names,
         metric_ranges: {str, (float, float)},
+        result_filetype=None,
         save_directory=None,
         experiment_name=None
 ):
@@ -44,16 +45,17 @@ def plot_experiment_file(
         # Set titles of axis
         PlotStyler.set_axis_titles(axis, metric_name, add_unit_to_y_axis=False, add_time_unit=i == len(metric_names) - 1)
 
-    if save_directory and experiment_name:
-        PlotWriter.savePlot(plt, save_directory, experiment_name)
+    if save_directory and experiment_name and result_filetype:
+        PlotWriter.save_plot(plt, save_directory, experiment_name, extension=result_filetype)
     else:
-        PlotWriter.showPlot(plt)
+        PlotWriter.show_plot(plt)
 
 
 def plot_and_overlap_data_files(
         experiment_files: [ExperimentFile],
         metric_names: [str],
         metric_ranges: {str, (float, float)},
+        result_filetype: str,
         save_directory=None,
         experiment_name=None
 ):
@@ -107,7 +109,7 @@ def plot_and_overlap_data_files(
             else:
                 axis.legend(loc='lower right', bbox_to_anchor=(1.12, 0))
 
-    if save_directory and experiment_name:
-        PlotWriter.savePlot(plt, save_directory, experiment_name)
+    if save_directory and experiment_name and result_filetype:
+        PlotWriter.save_plot(plt, save_directory, experiment_name, extension=result_filetype)
     else:
-        PlotWriter.showPlot(plt)
+        PlotWriter.show_plot(plt)

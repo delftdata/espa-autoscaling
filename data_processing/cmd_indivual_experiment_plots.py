@@ -15,6 +15,7 @@ def plotIndividualExperiments(parameters: SingleFolderPlotParameters):
             experiment_file=experimentFile,
             metric_names=parameters.get_metrics(),
             metric_ranges=parameters.getMetricRanges(),
+            result_filetype=parameters.get_result_filetype(),
             save_directory=parameters.get_plot_save_folder(),
             experiment_name=experiment_save_name,
         )

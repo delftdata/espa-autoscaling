@@ -13,6 +13,9 @@ class SingleFolderPlotParameters(PlotParameters):
     # plot postfix label is a postfix for the filename. {name}_{graph_postfix_label}
     __plot_postfix_label = ""
 
+    # filetype of the result
+    __result_filetype = "pdf"
+
     def __init__(self, default_plot_folder_name: str):
         super().__init__()
         self.__plot_folder_name = default_plot_folder_name
@@ -56,6 +59,19 @@ class SingleFolderPlotParameters(PlotParameters):
         """
         self.__plot_postfix_label = plot_postfix_label
 
+    def get_result_filetype(self) -> str:
+        """
+        Get result_filetype
+        """
+        return self.__result_filetype
+
+    def __set_result_filetype(self, result_filetype: str):
+        """
+        Set result_filetype to result_filetype
+        :param result_filetype: type the result should be written in
+        """
+        self.__result_filetype = result_filetype
+
     def fetch_experiment_files_from_combined_data_folder(self):
         """
         Fetch all experiment files with the specified queries, autoscalers, modes and tags from the combined_data_folder
@@ -90,9 +106,15 @@ class SingleFolderPlotParameters(PlotParameters):
                                 help=f"Add a postfix to the filename of the generated plots. "
                                      f"Default=\"{self.get_plot_postfix_label()}\"")
 
+        def include_result_filetype_in_parser(parser: argparse.ArgumentParser):
+            parser.add_argument("--result_filetype", type=str, nargs="?",
+                                help=f"Filetype (as extension) as which the plots should be saved as."
+                                     f"Known supported types: [pdf, png, jpg]")
+
         include_main_folder_in_parser(argument_parser)
         include_plot_folder_name_in_parser(argument_parser)
         include_plot_postfix_label_in_parser(argument_parser)
+        include_result_filetype_in_parser(argument_parser)
 
     def fetch_arguments_from_namespace(self, namespace: argparse.Namespace):
         """
@@ -118,6 +140,14 @@ class SingleFolderPlotParameters(PlotParameters):
                 # set plot_postfix_label
                 self.__set_plot_postfix_label(plot_postfix_label)
 
+        def fetch_result_filetype_from_namespace(args: argparse.Namespace):
+            result_filetype = args.result_filetype
+            # if result_filetype is provided
+            if result_filetype:
+                # set result_filetype
+                self.__set_result_filetype(result_filetype)
+
         fetch_main_folder_from_namespace(namespace)
         fetch_plot_folder_name_from_namespace(namespace)
         fetch_plot_postfix_label_from_namespace(namespace)
+        fetch_result_filetype_from_namespace(namespace)

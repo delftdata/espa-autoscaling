@@ -56,6 +56,7 @@ def plotCombinedExperiments(parameters: SingleFolderPlotParameters, ignore_exper
             experiment_files=similar_experiment_files_bucket,
             metric_names=parameters.get_metrics(),
             metric_ranges=parameters.getMetricRanges(),
+            result_filetype=parameters.get_result_filetype(),
             save_directory=parameters.get_plot_save_folder(),
             experiment_name=bucket_experiment_name
         )
