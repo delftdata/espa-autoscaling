@@ -10,7 +10,6 @@ def plotIndividualExperiments(parameters: SingleFolderPlotParameters):
     for experimentFile in experimentFiles:
         experiment_save_name = FileManager.get_plot_filename(
             experimentFile.get_experiment_name(), parameters.get_plot_postfix_label())
-
         Plotter.plot_experiment_file(
             experiment_file=experimentFile,
             metric_names=parameters.get_metrics(),

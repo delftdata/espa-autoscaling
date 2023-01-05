@@ -1,4 +1,4 @@
-# Requires: AVAILABLE_TASKMANAGERS, QUERY, NAMESPACE
+# Requires: AVAILABLE_TASKMANAGERS, QUERY, NAMESPACE, CONFIGURATION
 kind: Deployment
 apiVersion: apps/v1
 metadata:
@@ -68,4 +68,4 @@ spec:
 
           # CPU configurations
         - name: CPU_UTILIZATION_TARGET_VALUE # 0.7 is default
-          value: "0.7"
+          value: "${CONFIGURATION}"

@@ -4,10 +4,11 @@ QUERY=$1                      # {1, 2, 3, 5, 8, 11}
 MODE=$2                       # {reactive, non-reactive}
 INITIAL_PARALLELISM=$3        # Parallelism of topology (per operator for non-reactive, #taskmanagers for reactive)
 AVAILABLE_TASKMANAGERS=$4     # Maximum available taskmanagers
-INPUT_RATE_MEAN=$5            # Mean of Cosinus pattern
-INPUT_RATE_MAX_DIVERGENCE=$6  # Maximum divergence from Cosinus pattern
+LOAD_PATTERN=$5               # {cosinus, cosinus-spikes, random}
+INPUT_RATE_MEAN=$6            # Mean of Cosinus pattern
+INPUT_RATE_MAX_DIVERGENCE=$7  # Maximum divergence from Cosinus pattern
 
-echo "Deploying query $QUERY with $MODE mode with the following parameters: INITIAL_PARALLELISM=$INITIAL_PARALLELISM AVAILABLE_TASKMANAGERS=$AVAILABLE_TASKMANAGERS INPUT_RATE_MEAN=$INPUT_RATE_MEAN INPUT_RATE_MAX_DIVERGENCE=$INPUT_RATE_MAX_DIVERGENCE."
+echo "Deploying query $QUERY with $MODE mode with the following parameters: INITIAL_PARALLELISM=$INITIAL_PARALLELISM AVAILABLE_TASKMANAGERS=$AVAILABLE_TASKMANAGERS LOAD_PATTERN=$LOAD_PATTERN INPUT_RATE_MEAN=$INPUT_RATE_MEAN INPUT_RATE_MAX_DIVERGENCE=$INPUT_RATE_MAX_DIVERGENCE."
 
 # Deploy flink configuration
 if [ "$MODE" == "reactive" ]
@@ -78,9 +79,9 @@ then
   # For query 3 and 8: Generate auction and person stream
   kubectl exec kafka-2 -- /opt/kafka/bin/kafka-topics.sh --create -zookeeper zoo1:2181  --replication-factor 1 --partitions "$AVAILABLE_TASKMANAGERS" --topic auction_topic
   kubectl exec kafka-2 -- /opt/kafka/bin/kafka-topics.sh --create -zookeeper zoo1:2181  --replication-factor 1 --partitions "$AVAILABLE_TASKMANAGERS" --topic person_topic
-  envsubst < ../yamls/queries/workbench/auction-person-workbench.yaml| kubectl apply -f -
+  envsubst < ../yamls/workbench/auction-person-workbench.yaml| kubectl apply -f -
 else
   # For query 1, 2, 5, 11: Generate bids stream
   kubectl exec kafka-2 -- /opt/kafka/bin/kafka-topics.sh --create -zookeeper zoo1:2181  --replication-factor 1 --partitions "$AVAILABLE_TASKMANAGERS" --topic bids_topic
-  envsubst < ../yamls/queries/workbench/bid-workbench.yaml| kubectl apply -f -
+  envsubst < ../yamls/workbench/bid-"${LOAD_PATTERN}-"workbench.yaml| kubectl apply -f -
 fi

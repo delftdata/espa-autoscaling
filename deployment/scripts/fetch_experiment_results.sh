@@ -7,13 +7,20 @@ DATA_STEP_SIZE_SECONDS=15
 
 QUERY=$1
 MODE=$2
-AUTOSCALER=$3
-EXPERIMENT_LABEL=$4
-# Label is an additional non-required identifier of the current experiment run. This can be used to distinguish 2
+LOAD_PATTERN=$3
+AUTOSCALER=$4
+AUTOSCALER_CONFIGURATION=$5
+
+# Overall identifier shared by multiple experiments. Experiment_label is used as the name of the folder in which the
+# experiment's results are stored
+EXPERIMENT_LABEL=$6
+
+# Tag is an additional non-required identifier of the current experiment run. This can be used to distinguish 2
 # similar experiments with the same experiment_label from each other. EXPERIMENT_TAG={", "none", "undef", "undefined"}
 # will disable the tag
-EXPERIMENT_TAG=$5
+EXPERIMENT_TAG=$7
 
+# If experiment_tag
 if [ "$EXPERIMENT_TAG" = "" ] || [ "$EXPERIMENT_TAG" = "none" ] || [ "$EXPERIMENT_TAG" = "undef" ] || [ "$EXPERIMENT_TAG" = "undefined" ]
 then
   EXPERIMENT_TAG=""
@@ -21,6 +28,7 @@ else
   EXPERIMENT_TAG="[$EXPERIMENT_TAG]"
 fi
 
+# Only add mode to experiment_identifier when not default value (non-reactive)
 if [ "$MODE" = "non-reactive" ]
 then
   MODE=""
@@ -28,7 +36,15 @@ else
   MODE="_$MODE"
 fi
 
-EXPERIMENT_IDENTIFIER="${EXPERIMENT_TAG}q${QUERY}_${AUTOSCALER}${MODE}"
+# Only add load_pattern to experiment_identifier when not default value (cosinus)
+if [ "$LOAD_PATTERN" = "cosinus" ]
+then
+  LOAD_PATTERN=""
+else
+  LOAD_PATTERN="($LOAD_PATTERN)"
+fi
+
+EXPERIMENT_IDENTIFIER="${EXPERIMENT_TAG}q${QUERY}${LOAD_PATTERN}_${AUTOSCALER}($AUTOSCALER_CONFIGURATION)${MODE}"
 echo "Fetching data for $EXPERIMENT_IDENTIFIER"
 
 SAVE_DIRECTORY="$HOME/results/$EXPERIMENT_LABEL"
@@ -53,6 +69,11 @@ JOBMANAGER_POD=$(kubectl get pods | grep "flink-jobmanager-" | awk '{print $1}')
 JOBMANAGER_LOG_FILE="$LOG_DIRECTORY/$JOBMANAGER_POD.log"
 kubectl logs "$JOBMANAGER_POD" > "$JOBMANAGER_LOG_FILE"
 echo "Successfully saved logs of final jobmanager $JOBMANAGER_POD at $JOBMANAGER_LOG_FILE"
+
+WORKBENCH_POD=$(kubectl get pods | grep "workbench" | awk '{print $1}')
+WORKBENCH_LOG_FILE="$LOG_DIRECTORY/$WORKBENCH_POD.log"
+kubectl logs "$WORKBENCH_POD" > "$WORKBENCH_LOG_FILE"
+echo "Successfully saved logs of workbench $WORKBENCH_POD at $WORKBENCH_LOG_FILE"
 
 # Fetch snapshot of prometheus deploy
 echo "Fetching prometheus snapshot..."

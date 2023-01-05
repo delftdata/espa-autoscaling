@@ -227,7 +227,8 @@ public class BidPersonGeneratorKafka {
             int initialInputRate = params.getInt("initial-input-rate");
             int minDivergence = params.getInt("min-divergence");
             int maxDivergence = params.getInt("max-divergence");
-            return new RandomLoadPattern(query, experimentLength, initialInputRate, minDivergence, maxDivergence);
+            int maxInputRate = params.getInt("max-input-rate", Integer.MAX_VALUE);
+            return new RandomLoadPattern(query, experimentLength, initialInputRate, minDivergence, maxDivergence, maxInputRate);
         }
     }
 
@@ -350,6 +351,8 @@ public class BidPersonGeneratorKafka {
          */
         LoadPattern loadPatternConfiguration = this.getLoadPattern(params);
         List<Integer> loadPattern = loadPatternConfiguration.getLoadPattern().f1;
+        System.out.println("Running workbench with the following loadpattern:\n\"\"\"\n" +
+                loadPatternConfiguration.getLoadPatternTitle() + "\n\"\"\"");
         if (this.debuggingEnabled) { loadPatternConfiguration.plotLoadPattern(); }
 
         String kafkaServer = params.get("kafka-server", "kafka-service:9092");

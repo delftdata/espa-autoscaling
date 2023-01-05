@@ -1,4 +1,4 @@
-# Requires: AVAILABLE_TASKMANAGERS, QUERY
+# Requires: AVAILABLE_TASKMANAGERS, QUERY, CONFIGURATION
 kind: Deployment
 apiVersion: apps/v1
 metadata:
@@ -64,9 +64,9 @@ spec:
 
         # Dhalion configurations
         - name: DHALION_SCALE_DOWN_FACTOR # 0.8 is default
-          value: "0.8"
+          value: "${CONFIGURATION}"
         - name: DHALION_OPERATOR_MAXIMUM_PARALLELISM_INCREASE # 50 is default
-          value: "40"
+          value: "10"
         - name: DHALION_KAFKA_LAG_RATE_TO_BE_BACKPRESSURED_THRESHOLD # 1000 is default
           value: "1000"
         - name: DHALION_KAFKA_LAG_CLOSE_TO_ZERO_THRESHOLD # 10000 is default

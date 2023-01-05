@@ -84,7 +84,7 @@ class DS2(Autoscaler):
                 row = [operator, 0, 1, timestamp, 1, 1, 1, 1]
                 writer.writerow(row)
 
-            if len(operatorParallelisms) >= min(len(subtaskTrueProcessingRates), len(subtaskOutputRates),
+            if len(operatorParallelisms) > min(len(subtaskTrueProcessingRates), len(subtaskOutputRates),
                                                len(subtaskInputRates), len(subtaskOutputRates)):
                 print("Error: subtask metrics contained less subtasks than operators in the topology.")
                 something_went_wrong = True

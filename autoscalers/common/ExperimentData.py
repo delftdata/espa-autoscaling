@@ -57,7 +57,7 @@ class ExperimentData:
         :param operatorName: Operatorname to replace characters with.
         :return: Operator name that has all forbidden characters replaced with a "_"
         """
-        unsupportedCharacters = ["-&gt", " ", ",", ".", "-", ";", "/", ">"]
+        unsupportedCharacters = ["-&gt", " ", ",", ".", "-", ";", "/", ">", "(", ")"]
         for unsupportedCharacter in unsupportedCharacters:
             operatorName = operatorName.replace(unsupportedCharacter, "_")
         return operatorName

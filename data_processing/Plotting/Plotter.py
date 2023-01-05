@@ -1,3 +1,4 @@
+import matplotlib as mpl
 from matplotlib import pyplot as plt
 from DataClasses import ExperimentFile
 import Plotting.PlotWriter as PlotWriter
@@ -110,3 +111,106 @@ def plot_and_overlap_data_files(
         PlotWriter.save_plot(plt, save_directory, experiment_name, extension=result_filetype)
     else:
         PlotWriter.show_plot(plt)
+
+
+def _add_individual_metric_plot_to_axis(axis, metric_name: str, data_frame, metric_ranges: {str, (float, float)},
+                                        add_time_unit: bool, title_label=None, title_size=None, label_size=None):
+    time_column = DataProcessor.get_time_column_from_data_frame(data_frame)
+    data_column = DataProcessor.getMetricColumn(metric_name, data_frame)
+    data_column = DataProcessor.interpolate_data_column(data_column)
+
+    # Set y-axis ranges
+    l_range, r_range = PlotStyler.get_y_axis_range_of_metric(metric_name, data_column, metric_ranges)
+
+    __add_individual_plot(metric_name, axis, time_column, data_column, (l_range, r_range), add_time_unit,
+                          title_label=title_label, title_size=title_size, label_size=label_size)
+
+
+
+def __add_individual_plot(metric_name, axis, time_column, data_column, value_range: (float, float),
+                          add_time_unit: bool, title_label=None, title_size=None, label_size=None):
+
+    # Set x and y axis
+    axis.plot(time_column, data_column)
+
+    axis.set_ylim([value_range[0], value_range[1]])
+    axis.grid()
+
+    # Set titles of axis
+    PlotStyler.set_axis_titles(axis, metric_name, add_unit_to_y_axis=False,
+                               add_time_unit=add_time_unit,
+                               titel_label=title_label,
+                               title_size=title_size, label_size=label_size)
+
+def plot_multiple_data_files_in_single_file(
+        experiment_files: [ExperimentFile],
+        constant_metric_names: [str],
+        metric_names: [str],
+        metric_ranges: {str, (float, float)},
+        result_filetype: str,
+        save_directory=None,
+        experiment_name=None
+):
+    experiment_file_data_file_mapping = {}
+    for experiment_file in experiment_files:
+        # get data_frame of experiment_file
+        data_frame = DataProcessor.get_data_frame(experiment_file)
+        # add data_frame to experiment_file data_file_mapping
+        experiment_file_data_file_mapping[experiment_file] = data_frame
+        # filter out metrics that are not present in the data_frame
+        metric_names = DataProcessor.filter_out_missing_metric_names(metric_names, data_frame)
+
+    TITLE_SIZE = 16
+    LABEL_SIZE = 16
+    TICK_SIZE = 15
+    tmp_factor = 3
+    FIG_SIZE = (4.2 * tmp_factor, 1.8 * tmp_factor)
+
+    PlotStyler.style_plots(tick_size=TICK_SIZE, title_size=TITLE_SIZE, label_size=LABEL_SIZE)
+
+    # Create pyplot and style it
+
+    total_subplots = len(constant_metric_names) + len(metric_names) * len(experiment_files)
+    fig, axs = plt.subplots(total_subplots, 1, figsize=FIG_SIZE, facecolor='w', edgecolor='k', sharex='all')
+    fig.subplots_adjust(hspace=.5, wspace=.001)
+    axis_index = 0
+
+
+    # Pick first datafile to
+    constant_metric_experiment_file, constant_data_frame = list(experiment_file_data_file_mapping.items())[0]
+    print(f"Using the data of {constant_metric_experiment_file.get_experiment_name()} to plot constant metrics {constant_metric_names}")
+    for i in range(len(constant_metric_names)):
+        # metric name
+        metric_name = constant_metric_names[i]
+
+        # axis to plot on
+        axis = axs[axis_index] if total_subplots > 1 else axs
+        axis_index += 1
+
+        # Whether to plot the time unit on the x-axis
+        plot_x_axis_unit = axis_index == total_subplots
+
+        # Plot data
+        _add_individual_metric_plot_to_axis(axis, metric_name, constant_data_frame, metric_ranges, plot_x_axis_unit)
+
+    for i in range(len(metric_names)):
+        metric_name = metric_names[i]
+        for experiment_file, data_frame in experiment_file_data_file_mapping.items():
+
+            # Get metricName, Column and Axis (use axs instead of axs[i] if only one metric)
+            axis = axs[axis_index] if total_subplots > 1 else axs
+            axis_index += 1
+
+            # Whether to plot the time unit on the x-axis
+            plot_x_axis_unit = axis_index == total_subplots
+
+            # Add plot
+            _add_individual_metric_plot_to_axis(axis, metric_name, data_frame, metric_ranges, plot_x_axis_unit,
+                                                title_label=experiment_file.get_autoscaler())
+
+
+    if save_directory and experiment_name and result_filetype:
+        PlotWriter.save_plot(plt, save_directory, experiment_name, extension=result_filetype)
+    else:
+        PlotWriter.show_plot(plt)
+

@@ -63,9 +63,11 @@ class ExperimentFileGenerator:
             get_all_experiment_files_from_combined_data_folder(combined_data_folder)
         filtered_experiment_files = []
         for experiment_file in all_experiment_files:
+            experiment_selected_autoscaler = experiment_file.get_autoscaler().split("(")[0]
+            experiment_selected_query = experiment_file.get_query().split("(")[0]
             if (
-                    experiment_file.get_query() in selected_queries
-                    and experiment_file.get_autoscaler() in selected_autoscalers
+                    experiment_selected_query in selected_queries
+                    and experiment_selected_autoscaler in selected_autoscalers
                     and experiment_file.get_mode() in selected_modes
                     and (not selected_tags or experiment_file.get_tag() in selected_tags)
             ):

@@ -15,7 +15,7 @@ def save_plot(plt, save_directory, save_name: str, extension="png"):
     save_directory = f"{save_directory}/{extension}" if extension != "png" else save_directory
     __ensure_directory_exists(save_directory)
     file_path = __get_file_location(save_directory, save_name, extension)
-    plt.savefig(file_path)
+    plt.savefig(file_path, bbox_inches='tight')
     print(f"Successfully saved plot at {file_path}")
 
 

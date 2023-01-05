@@ -1,0 +1,28 @@
+# Requires: INPUT_RATE_MEAN, INPUT_RATE_MAX_DIVERGENCE
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: workbench
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: workbench
+  template:
+    metadata:
+      labels:
+        app: workbench
+    spec:
+      containers:
+      - name: workbench-container
+        image: gsiachamis/workbench:3.0
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: 24000m
+            memory: 24000Mi
+          limits:
+            cpu: 24000m
+            memory: 24000Mi
+        env:
+        args: ["mvn", "exec:java", "-Dexec.mainClass=ch.ethz.systems.strymon.ds2.flink.nexmark.sources.BidPersonGeneratorKafka", "-Dexec.args=--generator-parallelism 48 --enable-bids-topic true --load-pattern cosine --use-default-configuration false --cosine-period 60 --max-noise 100000 --input-rate-mean ${INPUT_RATE_MEAN} --input-rate-maximum-divergence ${INPUT_RATE_MAX_DIVERGENCE} --upspike-chance 0.05 --upspike-maximum-period 1 --upspike-minimum-input-rate 500000 --upspike-maximum-input-rate 2000000 --downspike-chance 0.05 --downspike-maximum-period 1 --downspike-minimum-input-rate 500000 --downspike-maximum-input-rate 2000000"]

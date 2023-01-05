@@ -1,10 +1,9 @@
-import sys
 import argparse
 
 from command_functions import includeAutoscalers, includeMetrics, includeQueries, getAutoscalers, getMetrics, \
     getQueries, getDataFolder, getGraphFolder
 from DataClasses import ExperimentFile, Experiment
-from src.helperfunctions import fastCombineSimilarExperiments, deleteTooSmallLists
+from helperfunctions import fastCombineSimilarExperiments, deleteTooSmallLists
 from Plotting import overlapAndPlotMultipleDataFiles
 
 

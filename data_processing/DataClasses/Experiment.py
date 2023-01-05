@@ -81,10 +81,12 @@ class Experiment:
         """
         Function checking whether the provided data combination would be a valid experiment.
         """
+        autoscaler_main_name = autoscaler.split("(")[0]
+        query_main_name = query.split("(")[0]
         # Any tag is supported
         return (
-                Queries.is_query(query) and
-                Autoscalers.is_autoscaler(autoscaler) and
+                Queries.is_query(query_main_name) and
+                Autoscalers.is_autoscaler(autoscaler_main_name) and
                 Modes.is_mode(mode)
         )
 
@@ -157,7 +159,6 @@ class Experiment:
                 f"Warning: after parsing experiment_name '{experiment_name}', the following datapoints remain: {data_points}")
 
         experiment: Experiment = Experiment(query, autoscaler, mode, tag)
-
         if Experiment.is_valid_experiment(experiment):
             return experiment
         else:

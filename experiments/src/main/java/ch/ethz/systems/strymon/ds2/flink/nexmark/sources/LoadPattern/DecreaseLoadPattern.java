@@ -83,7 +83,7 @@ public class DecreaseLoadPattern extends LoadPattern {
             int minRange = -1 * this.startValue / 21;
             int maxRange = this.startValue / 28;
             value += random.nextDouble() * (maxRange - minRange) + minRange;
-            value = Math.abs(value);
+            value = Math.max(0, value);
             values.add(value);
             indices.add(i);
         }

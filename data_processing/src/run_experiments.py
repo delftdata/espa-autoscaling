@@ -1,4 +1,4 @@
-from src.helperfunctions import fastCombineSimilarExperiments, deleteTooSmallLists
+from helperfunctions import fastCombineSimilarExperiments, deleteTooSmallLists
 from DataClasses import Experiment, ExperimentFile, Queries, Autoscalers, Metrics
 from Plotting import plotDataFile, overlapAndPlotMultipleDataFiles, pareto_plot, getAverageMetrics, \
     getTotalRescalingActions

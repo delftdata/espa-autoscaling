@@ -87,7 +87,7 @@ public class IncreaseLoadPattern extends LoadPattern {
             int minRange = -1 * this.magnitude / 30;
             int maxRange = this.magnitude / 22;
             value += random.nextDouble() * (maxRange - minRange) + minRange;;
-            value = Math.abs(value);
+            value = Math.max(0, value);
             values.add(value);
             indices.add(i);
         }
