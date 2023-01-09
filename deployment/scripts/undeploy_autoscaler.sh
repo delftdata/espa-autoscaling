@@ -3,7 +3,7 @@
 AUTOSCALER=$1 #{dhalion, ds2, hpa-cpu hpa-varga, }
 MODE=$2 #{reactive, non-reactive}
 
-if [ "$AUTOSCALER" == "dhalion" ] || [ "$AUTOSCALER" == "ds2" ] || [ "$AUTOSCALER" == "hpa-cpu" ]
+if [ "$AUTOSCALER" == "dhalion" ] || [ "$AUTOSCALER" == "ds2" ] || [ "$AUTOSCALER" == "hpa-cpu" ] || [ "$AUTOSCALER" == "hpa-varga" ]
 then
   echo "Undeploying autoscaler $AUTOSCALER with mode $MODE."
 else

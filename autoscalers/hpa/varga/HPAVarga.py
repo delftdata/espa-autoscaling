@@ -12,6 +12,7 @@ class HPAVarga(HPA, ABC):
     applicationManager: HPAVargaApplicationManager
     scaleManager: ScaleManager
     operators: [str]
+    topology: [(str, str)]
 
     def __init__(self):
         self.configurations = HPAVargaConfigurations()
@@ -21,8 +22,9 @@ class HPAVarga(HPA, ABC):
     def initialize(self):
         self.applicationManager.initialize()
         self.operators = self.applicationManager.jobmanagerManager.getOperators()
+        self.topology = self.applicationManager.gather_topology(False)
 
-    def runAutoscalerIteration(self):
+    def run_autoscaler_iteration(self):
         """
         Perform a single HPA iteration.
         A HPA iteration consists of the following steps:
@@ -38,45 +40,43 @@ class HPAVarga(HPA, ABC):
         time.sleep(self.configurations.ITERATION_PERIOD_SECONDS)
 
         # Gather metrics:
-        currentParallelisms = self.applicationManager.fetchCurrentOperatorParallelismInformation(
-            knownOperators=self.operators)
-        operatorUtilizationMetrics = self.applicationManager.gatherUtilizationMetrics()
-        operatorRelativeLagChangeMetrics = self.applicationManager.gatherRelativeLagChangeMetrics()
+        current_parallelisms = self.applicationManager.fetch_current_operator_parallelism_information(known_operators=self.operators)
+        operator_utilization_metrics = self.applicationManager.gather_utilization_metrics()
+        operator_relative_lag_change_metrics = self.applicationManager.gather_relative_lag_change_metrics(
+            self.operators, self.topology,
+            self.configurations.HPA_VARGA_MINIMUM_KAFKA_LAG_RATE_WHEN_BACKPRESSURED_THRESHOLD,
+            self.configurations.HPA_VARGA_DERIVATIVE_PERIOD_SECONDS
+        )
 
         # Calculate desired parallelism per operator
-        desiredParallelisms = {}  # save desired parallelisms for debug purposes
+        tmp_desired_parallelisms = {}  # save desired parallelisms for debug purposes
         for operator in self.operators:
-            if operator not in operatorUtilizationMetrics:
-                print(f"Error: operator '{operator}' not found in utilizatonMetrics '{operatorUtilizationMetrics}'")
+            if not self.applicationManager.operator_in_dictionary(operator, operator_utilization_metrics, "utilization metrics"):
                 continue
-            if operator not in operatorRelativeLagChangeMetrics:
-                print(f"Error: operator '{operator}' not found in relativeLagChangeMetrics "
-                      f"'{operatorRelativeLagChangeMetrics}'")
+            if not self.applicationManager.operator_in_dictionary(operator, operator_relative_lag_change_metrics, "relative lag change "
+                                                                                                                  "metrics"):
                 continue
 
-            currentParallelism = currentParallelisms[operator]
+            current_parallelism = current_parallelisms[operator]
 
-            utilization = operatorUtilizationMetrics[operator]
-            utilization_scale_factor = self.calculateScaleRatio(utilization,
-                                                                self.configurations.VARGA_UTILIZATION_TARGET_VALUE)
+            utilization = operator_utilization_metrics[operator]
+            utilization_scale_factor = self.calculate_scale_ratio(utilization, self.configurations.HPA_VARGA_UTILIZATION_TARGET_VALUE)
 
-            relativeLagChange = operatorRelativeLagChangeMetrics[operator]
-            relativeLagChange_scale_factor = self.calculateScaleRatio(
-                relativeLagChange, self.configurations.VARGA_RELATIVE_LAG_CHANGE_TARGET_VALUE)
+            relative_lag_change = operator_relative_lag_change_metrics[operator]
+            relative_lag_change_scale_factor = self.calculate_scale_ratio(relative_lag_change,
+                                                                          self.configurations.HPA_VARGA_RELATIVE_LAG_CHANGE_TARGET_VALUE, )
 
             # Determine desired parallelism and add to scale-down-window
-            operator_scale_factor = max(utilization_scale_factor, relativeLagChange_scale_factor)
-            desiredParallelism = self.calculateDesiredParallelism(operator_scale_factor, currentParallelism)
-            self.addDesiredParallelismForOperator(operator, desiredParallelism)
+            operator_scale_factor = max(utilization_scale_factor, relative_lag_change_scale_factor)
+            desired_parallelism = self.calculate_desired_parallelism(operator_scale_factor, current_parallelism)
+            self.add_desired_parallelism_for_operator(operator, desired_parallelism)
 
             # save desired parallelism in list for debug purpose
-            desiredParallelisms[operator] = desiredParallelism
-
-        # Manage scaling actions
+            tmp_desired_parallelisms[operator] = desired_parallelism
 
         # Get maximum desired parallelisms from scale-down window
-        allMaximumDesiredParallelisms: {str, int} = self.getAllMaximumParallelismsFromWindow(self.operators)
-        print(f"Desired parallelisms: {desiredParallelisms}")
-        print(f"Maximum desired parallelisms: {allMaximumDesiredParallelisms}")
-        print(f"Current parallelisms: {currentParallelisms}")
-        self.scaleManager.performScaleOperations(currentParallelisms, allMaximumDesiredParallelisms)
+        maximum_desired_parallelisms: {str, int} = self.get_all_maximum_parallelisms_from_window(self.operators)
+        print(f"Desired parallelisms: {tmp_desired_parallelisms}")
+        print(f"Maximum desired parallelisms: {maximum_desired_parallelisms}")
+        print(f"Current parallelisms: {current_parallelisms}")
+        self.scaleManager.perform_scale_operations(current_parallelisms, maximum_desired_parallelisms)

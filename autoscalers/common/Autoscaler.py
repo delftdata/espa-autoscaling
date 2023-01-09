@@ -1,7 +1,6 @@
 import traceback
 from abc import abstractmethod
 from .Configuration import Configurations
-from .applications import ApplicationManager
 
 
 class Autoscaler:
@@ -9,7 +8,7 @@ class Autoscaler:
     configurations: Configurations
 
     @abstractmethod
-    def runAutoscalerIteration(self):
+    def run_autoscaler_iteration(self):
         pass
 
     @abstractmethod
@@ -23,7 +22,7 @@ class Autoscaler:
         :return: None
         """
         print("Running autoscaler with the following configurations:")
-        self.configurations.printConfigurations()
+        self.configurations.print_configurations()
 
         print("Setting initial metrics for autoscaler")
         self.initialize()
@@ -31,7 +30,7 @@ class Autoscaler:
         print("Initial metrics are set successfully. Starting autoscaler")
         while True:
             try:
-                self.runAutoscalerIteration()
+                self.run_autoscaler_iteration()
             except KeyboardInterrupt:
                 traceback.print_exc()
                 return

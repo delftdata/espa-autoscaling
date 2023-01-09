@@ -1,13 +1,13 @@
 #!/bin/bash
 
 AUTOSCALER=$1 #{dhalion, ds2, hpa-cpu hpa-varga, }
-AUTOSCALER_CONFIGURATION=$2 #{DHALION=scale-down-factor, DS2=OVERPROVISIONING_FACTOR, HPA_CPU=TARGED_VALUE, HPA_VARGA=?}
+AUTOSCALER_CONFIGURATION=$2 #{DHALION=scale-down-factor, DS2=OVERPROVISIONING_FACTOR, HPA_CPU=TARGET_VALUE, HPA_VARGA=UTILIZATION_TARGET_VALUE}
 QUERY=$3
 MODE=$4 #{reactive, non-reactive}
 AVAILABLE_TASKMANAGERS=$5
 NAMESPACE=$6
 
-if [ "$AUTOSCALER" == "dhalion" ] || [ "$AUTOSCALER" == "ds2" ] || [ "$AUTOSCALER" == "hpa-cpu" ]
+if [ "$AUTOSCALER" == "dhalion" ] || [ "$AUTOSCALER" == "ds2" ] || [ "$AUTOSCALER" == "hpa-cpu" ] || [ "$AUTOSCALER" == "hpa-varga" ]
 then
   echo "Deploying autoscaler $AUTOSCALER with configuration $AUTOSCALER_CONFIGURATION on query $QUERY with mode $MODE setting available_taskmanagers=$AVAILABLE_TASKMANAGERS in namespace $NAMESPACE"
 else

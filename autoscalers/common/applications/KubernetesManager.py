@@ -27,7 +27,7 @@ class KubernetesManager:
             self.k8s_client = client.ApiClient()
 
     @staticmethod
-    def __mockKubernetesInteraction(operation: str, command: str):
+    def __mock_kubernetes_interaction(operation: str, command: str) -> None:
         print(f"Executing the following operation locally: {operation}")
         print(f"Please execute the following command. Then press any key to continue...")
         print(f"\t{command}")
@@ -35,7 +35,7 @@ class KubernetesManager:
         print("")
 
     # Remove current jobmanager
-    def deleteJobManager(self):
+    def delete_jobmanager(self) -> None:
         if not self.configurations.RUN_LOCALLY:
             try:
                 _ = self.batchV1.delete_namespaced_job(name="flink-jobmanager", pretty=True,
@@ -45,12 +45,12 @@ class KubernetesManager:
                 print("Error: deleting jobmanager failed.")
                 traceback.print_exc()
         else:
-            self.__mockKubernetesInteraction(
+            self.__mock_kubernetes_interaction(
                 operation="Deleting jobmanager job",
                 command=f"kubectl delete job flink-jobmanager"
             )
 
-    def waitUntilAllJobmanagerJobsAreRemoved(self):
+    def wait_until_all_jobmanager_jobs_are_removed(self) -> None:
         """
         Wait until no pod containing the name 'jobmanager' is online anymore.
         If a list_namespaced_pod request fails, the method is returned.
@@ -71,7 +71,11 @@ class KubernetesManager:
                 traceback.print_exc()
         print("Jobmanager job is removed.")
 
-    def deleteJobManagerPod(self):
+    def delete_jobmanager_pod(self) -> None:
+        """
+        Delete the pods of all job-managers deployed in the current namespace.
+        :return: None
+        """
         if not self.configurations.RUN_LOCALLY:
             try:
                 # Delete jobmanager pod
@@ -95,13 +99,13 @@ class KubernetesManager:
                 print("Error: failed deleting jobmanager pod")
                 traceback.print_exc()
         else:
-            self.__mockKubernetesInteraction(
+            self.__mock_kubernetes_interaction(
                 operation="Delete jobmanager pod",
                 command=f"kubectl delete pods "
                         "$(kubectl get pods -o yaml | grep flink-jobmanager- | grep name | awk '{print $2}')"
             )
 
-    def waitUntilAllJobmanagerPodsAreRemoved(self):
+    def wait_until_all_jobmanager_pods_are_removed(self) -> None:
         """
         Wait until no pod containing the name 'jobmanager' is online anymore.
         If a list_namespaced_pod request fails, the method is returned.
@@ -122,7 +126,11 @@ class KubernetesManager:
                 traceback.print_exc()
         print("Jobmanager pod is removed.")
 
-    def deleteJobManagerService(self):
+    def delete_jobmanager_service(self) -> None:
+        """
+        Delete the jobmanager service in our current namespace.
+        :return: None
+        """
         if not self.configurations.RUN_LOCALLY:
             try:
                 # Delete jobmanager service
@@ -146,13 +154,13 @@ class KubernetesManager:
                 print("Error: failed deleting jobmanager service")
                 traceback.print_exc()
         else:
-            self.__mockKubernetesInteraction(
+            self.__mock_kubernetes_interaction(
                 operation="Delete jobmanager service",
                 command=f"kubectl delete service "
                         "$(kubectl get pods -o yaml | grep flink-jobmanager- | grep name | awk '{print $2}')"
             )
 
-    def waitUntilAllJobmanagerServicesAreRemoved(self):
+    def wait_until_all_jobmanager_services_are_removed(self) -> None:
         """
         Wait until no service containing the name 'jobmanager' is online anymore.
         If a list_namespaced_pod request fails, the method is returned.
@@ -174,7 +182,7 @@ class KubernetesManager:
         print("Jobmanager service is removed.")
 
     # Set amount of Flink Taskmanagers
-    def adaptFlinkTaskmanagersParallelism(self, new_number_of_taskmanagers):
+    def adapt_flink_taskmanagers_parallelism(self, new_number_of_taskmanagers):
         f"""
         Change the parallelism of the online taskmanagers to new_number_of_taskmanagers.
         This is done by sending a request to self.appsV1.patched_namespaced_deployment_scale.
@@ -193,12 +201,12 @@ class KubernetesManager:
             except:
                 traceback.print_exc()
         else:
-            self.__mockKubernetesInteraction(
+            self.__mock_kubernetes_interaction(
                 operation=f"Adapting parallelism of taskmanagers to {new_number_of_taskmanagers}",
                 command=f"kubectl scale deploy flink-taskmanager --replicas={new_number_of_taskmanagers}"
             )
 
-    def waitUntilAllTaskmanagersAreRunning(self):
+    def wait_until_all_taskmanagers_are_running(self) -> None:
         """
         Wait until no pod containing the name 'flink-taskmanager' are running.
         If a list_namespaced_pod request fails, the method is returned.
@@ -223,7 +231,7 @@ class KubernetesManager:
         print("All taskmanager pods are running.")
 
 
-    def getCurrentNumberOfTaskmanagersMetrics(self) -> int:
+    def get_current_number_of_taskmanagers_metrics(self) -> int:
         """
         When using Flink reactive, the parallelism of every replica is equal to the amount of taskmanagers in the
         kubernetes cluster. This method fetches the current amount of replicas of the taskmanagers or returns -1 when
@@ -244,17 +252,22 @@ class KubernetesManager:
                 traceback.print_exc()
                 return -1
         else:
-            randomAmountOfTaskmanagers = random.randint(1, self.configurations.AVAILABLE_TASKMANAGERS)
-            print(f"Running application locally. Returning random amount of: {randomAmountOfTaskmanagers} taskmanagers,"
+            random_amount_of_taskmanagers = random.randint(1, self.configurations.AVAILABLE_TASKMANAGERS)
+            print(f"Running application locally. Returning random amount of: {random_amount_of_taskmanagers} taskmanagers,"
                   f"selected between [1, {self.configurations.AVAILABLE_TASKMANAGERS}].")
-            return randomAmountOfTaskmanagers
+            return random_amount_of_taskmanagers
 
-    def deployNewJobManager(self, yaml_file: str):
+    def deploy_new_jobmanager(self, yaml_file: str) -> None:
+        """
+        Deploy a new jobmanager using the provided yaml_file path as location.
+        :param yaml_file: Path to find the yaml_file
+        :return: None
+        """
         if not self.configurations.RUN_LOCALLY:
             print(f"Deploying new jobmanager from file {yaml_file}")
             utils.create_from_yaml(self.k8s_client, yaml_file, namespace=self.configurations.KUBERNETES_NAMESPACE)
         else:
-            self.__mockKubernetesInteraction(
+            self.__mock_kubernetes_interaction(
                 operation=f"Deploying a new jobmanager from file {yaml_file}",
                 command=f"kubectl apply -f {yaml_file}"
             )

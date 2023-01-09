@@ -3,7 +3,7 @@ from common import ApplicationManager
 
 class HPACPUApplicationManager(ApplicationManager):
 
-    def gatherReady_UnReadyTaskmanagerMapping(self):
+    def gatherReady_UnReadyTaskmanagerMapping(self) -> (dict[str, [str]], dict[str, [str]]):
         """
         Get a tuple of two mappings:
             operator -> list of ready operators (status = RUNNING)
@@ -46,7 +46,7 @@ class HPACPUApplicationManager(ApplicationManager):
         :return: List of CPU_values belonging to the taskmanagers
         """
         if not taskmanager_CPUUsages:
-            taskmanager_CPUUsages = self.prometheusManager.getTaskmanagerJVMCPUUSAGE()
+            taskmanager_CPUUsages = self.prometheusManager.get_taskmanager_jvm_cpu_usage()
         cpu_usages = []
         for taskmanager in taskmanagers:
             if taskmanager in taskmanager_CPUUsages:
