@@ -4,7 +4,7 @@ QUERY=$1                      # {1, 2, 3, 5, 8, 11}
 MODE=$2                       # {reactive, non-reactive}
 INITIAL_PARALLELISM=$3        # Parallelism of topology (per operator for non-reactive, #taskmanagers for reactive)
 AVAILABLE_TASKMANAGERS=$4     # Maximum available taskmanagers
-LOAD_PATTERN=$5               # {cosinus, cosinus-spikes, random}
+LOAD_PATTERN=$5               # {cosinus, cosinus-spikes, random, increase, decrease}
 INPUT_RATE_MEAN=$6            # Mean of Cosinus pattern
 INPUT_RATE_MAX_DIVERGENCE=$7  # Maximum divergence from Cosinus pattern
 

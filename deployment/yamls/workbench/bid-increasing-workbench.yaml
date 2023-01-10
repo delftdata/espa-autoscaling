@@ -1,0 +1,28 @@
+# Requires: INPUT_RATE_MEAN (initial-input-rate), INPUT_RATE_MAX_DIVERGENCE (total-rate-increase, over 140 minutes)
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: workbench
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: workbench
+  template:
+    metadata:
+      labels:
+        app: workbench
+    spec:
+      containers:
+      - name: workbench-container
+        image: gsiachamis/workbench:3.0
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: 24000m
+            memory: 24000Mi
+          limits:
+            cpu: 24000m
+            memory: 24000Mi
+        env:
+        args: ["mvn", "exec:java", "-Dexec.mainClass=ch.ethz.systems.strymon.ds2.flink.nexmark.sources.BidPersonGeneratorKafka", "-Dexec.args=--generator-parallelism 48 --enable-bids-topic true --load-pattern increase --use-default-configuration false --initial-input-rate ${INPUT_RATE_MEAN} --total-rate-increase ${INPUT_RATE_MAX_DIVERGENCE}"]

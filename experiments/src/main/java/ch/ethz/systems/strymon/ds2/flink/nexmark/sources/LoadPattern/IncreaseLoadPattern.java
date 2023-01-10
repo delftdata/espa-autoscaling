@@ -3,7 +3,6 @@ package ch.ethz.systems.strymon.ds2.flink.nexmark.sources.LoadPattern;
 import org.apache.flink.api.java.tuple.Tuple2;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -29,8 +28,8 @@ import java.util.Random;
  *   return indices, values
  */
 public class IncreaseLoadPattern extends LoadPattern {
-    int magnitude;
-    int startValue;
+    int rateIncreaseOver140Min;
+    int startRate;
 
     /**
      * Constructor for loadPattern. Configurations are based on the provided query.
@@ -38,8 +37,13 @@ public class IncreaseLoadPattern extends LoadPattern {
      */
     public IncreaseLoadPattern(int query, int loadPatternPeriod) {
         super(query, loadPatternPeriod);
-
         this.setDefaultValues();
+    }
+
+    public IncreaseLoadPattern(int query, int loadPatternPeriod, int startRate, int rateIncreaseOver140Min) {
+        super(query, loadPatternPeriod);
+        this.startRate = startRate;
+        this.rateIncreaseOver140Min = rateIncreaseOver140Min;
     }
 
     /**
@@ -47,16 +51,16 @@ public class IncreaseLoadPattern extends LoadPattern {
      */
     @Override
     public void setDefaultValues() {
-        this.startValue = 2000;
+        this.startRate = 2000;
         switch (this.getQuery()) {
             case 1:
-                this.magnitude = 240000;
+                this.rateIncreaseOver140Min = 240000;
                 break;
             case 3:
-                this.magnitude = 75000;
+                this.rateIncreaseOver140Min = 75000;
                 break;
             case 11:
-                this.magnitude = 150000;
+                this.rateIncreaseOver140Min = 150000;
                 break;
             default:
                 System.out.println("Error: query " + this.getQuery() + " not recognized.");
@@ -67,7 +71,8 @@ public class IncreaseLoadPattern extends LoadPattern {
     public String getLoadPatternTitle() {
         return "Increase pattern ("+ this.getSeed() + ")\n" +
                 "Query " + this.getQuery() +
-                " - Start Value " + this.startValue;
+                "- startRate " + this.startRate +
+                " - rateIncreaseOver140Min " + this.rateIncreaseOver140Min;
     }
 
 
@@ -82,10 +87,10 @@ public class IncreaseLoadPattern extends LoadPattern {
         List<Integer> values = new ArrayList<>();
         List<Integer> indices = new ArrayList<>();
 
-        int value = this.startValue;
+        int value = this.startRate;
         for (int i = 0; i < this.getLoadPatternPeriod(); i++) {
-            int minRange = -1 * this.magnitude / 30;
-            int maxRange = this.magnitude / 22;
+            int minRange = -1 * this.rateIncreaseOver140Min / 30;
+            int maxRange = this.rateIncreaseOver140Min / 22;
             value += random.nextDouble() * (maxRange - minRange) + minRange;;
             value = Math.max(0, value);
             values.add(value);
