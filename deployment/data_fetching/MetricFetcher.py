@@ -50,7 +50,6 @@ class MetricFetcher:
         else:
             print("Determining default timestamps timestamps and writing them to file")
             start_timestamp, end_timestamp = self.prometheus_manager.get_prometheus_experiment_start_and_end_datetime()
-        self._fetch_experiment_start_end_timestamps(start_timestamp, end_timestamp)
 
         self.file_writer.write_start_end_time_to_file(start_timestamp, end_timestamp)
         return start_timestamp, end_timestamp

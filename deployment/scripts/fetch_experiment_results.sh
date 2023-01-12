@@ -9,7 +9,6 @@ QUERY=$1
 MODE=$2
 AUTOSCALER=$3
 EXPERIMENT_LABEL=$4
-
 # Label is an additional non-required identifier of the current experiment run. This can be used to distinguish 2
 # similar experiments with the same experiment_label from each other. EXPERIMENT_TAG={", "none", "undef", "undefined"}
 # will disable the tag
@@ -47,7 +46,7 @@ sleep 5s
 # Save autoscaler logs
 AUTOSCALER_POD=$(kubectl get pods | grep "$AUTOSCALER" | awk '{print $1}')
 AUTOSCALER_LOG_FILE="$LOG_DIRECTORY/$AUTOSCALER_POD.log"
-kubectl logs "$(kubectl get pods | grep hpa-cpu | awk '{print $1}')" > "$AUTOSCALER_LOG_FILE"
+kubectl logs "$AUTOSCALER_POD" > "$AUTOSCALER_LOG_FILE"
 echo "Successfully saved logs of $AUTOSCALER_POD at $AUTOSCALER_LOG_FILE"
 
 # Fetch snapshot of prometheus deploy
