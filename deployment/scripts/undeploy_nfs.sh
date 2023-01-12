@@ -12,7 +12,8 @@ echo "Undeploying nfs server"
 
 # Delete only nfs's pvc's and pv's
 export NAMESPACE=$1
-export NFS_SERVICE_IP=$(kubectl get svc nfs-server -o yaml | grep clusterIP | awk '{print $2}')
+NFS_SERVICE_IP="$(kubectl get svc nfs-server -o yaml | grep clusterIP | awk '{print $2}')"
+export NFS_SERVICE_IP="$NFS_SERVICE_IP"
 
 kubectl delete --wait=true -f ../yamls/nfs/nfs.yaml
 kubectl delete --wait=true -f ../yamls/nfs/nfs-service.yaml

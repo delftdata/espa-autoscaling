@@ -55,6 +55,8 @@ class Experiment:
             name = f"{name}_{self.variable}"
         if self.label:
             name = f"[{self.label}]{name}"
+        tag = "[c5m]"
+        name = f"{tag}{name}"
         return name
 
     @staticmethod

@@ -10,14 +10,17 @@ class SingleFolderPlotParameters(PlotParameters):
     __result_folder_name: str
     __result_label = ""
     __plot_thresholds = False
-
+    __create_scatter_plot = False
     __option_plot_thresholds = True
+    __option_create_scatter_plot = True
 
-    def __init__(self, default_result_folder_name: str, option_plot_thresholds=True, option_metric_ranges=True):
+    def __init__(self, default_result_folder_name: str, option_plot_thresholds=True, option_metric_ranges=True,
+                 option_create_scatter_plot=False):
         super().__init__(option_metric_ranges=option_metric_ranges)
         # If default_result_folder_name == "", both result_folder and result_label will not be added to parser
         self.__result_folder_name = default_result_folder_name
         self.__option_plot_thresholds = option_plot_thresholds
+        self.__option_create_scatter_plot = option_create_scatter_plot
 
     def setMainFolder(self, main_folder: str):
         if main_folder:
@@ -68,6 +71,14 @@ class SingleFolderPlotParameters(PlotParameters):
     def getPlotThresholds(self):
         return self.__plot_thresholds
 
+    # Create a scatterplot
+    def getCreateScatterPlot(self):
+        return self.__create_scatter_plot
+
+    def setCreateScatterPlot(self, create_scatter_plot: bool):
+        if create_scatter_plot:
+            self.__create_scatter_plot = create_scatter_plot
+
     def includeArgumentsInParser(self, argumentParser: argparse.ArgumentParser):
         super().includeArgumentsInParser(argumentParser)
 
@@ -87,15 +98,20 @@ class SingleFolderPlotParameters(PlotParameters):
         def includePlotThresholds(parser: argparse.ArgumentParser):
             parser.add_argument('--plot_thresholds', action='store_true')
 
+        def includeCreateScatterPlot(parser: argparse.ArgumentParser):
+            parser.add_argument('--create_scatter_plot', action='store_true')
+
         includeMainFolderInParser(argumentParser)
         includeSourceLabelInParser(argumentParser)
-
         if self.__result_folder_name:
             includeResultFolderInParser(argumentParser)
             includeResultLabelInParser(argumentParser)
 
         if self.__option_plot_thresholds:
             includePlotThresholds(argumentParser)
+
+        if self.__option_create_scatter_plot:
+            includeCreateScatterPlot(argumentParser)
 
     def fetchArgumentsFromNamespace(self, namespace: argparse.Namespace):
         super().fetchArgumentsFromNamespace(namespace)
@@ -121,6 +137,9 @@ class SingleFolderPlotParameters(PlotParameters):
         def fetchPlotThresholds(args: argparse.Namespace):
             self.setPlotThreshold(args.plot_thresholds)
 
+        def fetchCreateScatterPlot(args: argparse.Namespace):
+            self.setCreateScatterPlot(args.create_scatter_plot)
+
         fetchMainFolderFromNamespace(namespace)
         fetchSourceLabelFromNamespace(namespace)
 
@@ -130,4 +149,7 @@ class SingleFolderPlotParameters(PlotParameters):
 
         if self.__option_plot_thresholds:
             fetchPlotThresholds(namespace)
+
+        if self.__option_create_scatter_plot:
+            fetchCreateScatterPlot(namespace)
 

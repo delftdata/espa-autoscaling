@@ -102,7 +102,3 @@ class HPA(Autoscaler, ABC):
     @abstractmethod
     def runAutoscalerIteration(self):
         pass
-
-    @abstractmethod
-    def setInitialMetrics(self):
-        pass

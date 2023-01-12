@@ -18,6 +18,7 @@ class KubernetesManager:
     def __init__(self, configurations: Configurations):
         self.configurations = configurations
 
+    def initialize(self):
         if not self.configurations.RUN_LOCALLY:
             config.load_incluster_config()
             self.appsV1 = client.AppsV1Api()
@@ -213,6 +214,7 @@ class KubernetesManager:
                         phase = i.status.phase
                         if phase != "Running":
                             not_running_taskmanagers.append(name)
+                        print(f"Status of {name}: {phase}")
                 if not_running_taskmanagers:
                     print(f"Waiting for the following taskmanagers to start running: {not_running_taskmanagers}")
             except:

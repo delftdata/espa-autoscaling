@@ -7,10 +7,8 @@ from matplotlib.transforms import Bbox
 from DataClasses import ExperimentFile, Autoscalers, Metrics, Experiment
 import os.path
 
-
 def stylePlots():
     plt.style.use('seaborn-dark-palette')
-
 
 def savePlot(plt, saveDirectory, saveName, bbox_inches=None, dpi=None):
     if not os.path.exists(saveDirectory):
@@ -46,7 +44,6 @@ def getMetricColumn(metric, data):
             return trueProcessingRate_column / inputRate_column
         else:
             print(f"Error: could not get metric column for {metric}.")
-
 
 
 def addThresholdLine(ax, experiment: Experiment, metric: str, time_column, dataFrame):
@@ -149,12 +146,17 @@ def plotDataFile(
     stylePlots()
     fig, axs = plt.subplots(len(metrics), 1, figsize=(20, 10), facecolor='w', edgecolor='k', sharex='all')
     fig.subplots_adjust(hspace=.5, wspace=.001)
+    fig.suptitle(f"Plot of {saveName}")
 
     for i in range(len(metrics)):
 
         # Get metricName, Column and Axis (use axs instead of axs[i] if only one metric)
         metricName = metrics[i]
         metric_column = getMetricColumn(metricName, data)
+
+        # Interpolate and fill NaN with 0
+        metric_column = metric_column.interpolate()
+        metric_column = metric_column.fillna(0)
 
         axis = axs[i] if len(metrics) > 1 else axs
 
@@ -351,6 +353,72 @@ def pareto_plot(experimentFiles: [ExperimentFile], xMetric=Metrics.TASKMANAGER, 
 
     if saveDirectory and saveName:
         savePlot(plt, saveDirectory, saveName, bbox_inches=Bbox([[0, 0], [8.0, 5.0]]), dpi=600)
+        plt.close()
+    else:
+        plt.show()
+
+
+def scatterPlotDataFrame(
+        file: ExperimentFile,
+        saveDirectory=None,
+        saveName=None,
+        metrics=None,
+        metric_ranges: Tuple[str, float, float]=None,
+        plotThresholds=False
+):
+    """
+    Create a plot of a datafile with the provided metrics
+    :param metric_ranges:
+    :param saveDirectory: directory to save the plot in. If left None, the plot is only shown.
+    :param file: Datafile to create a plot from
+    :param metrics: Metrics to visualise in the plot. if left None, all available metrics will be used.
+    :return: None
+    """
+    if metric_ranges is None:
+        metric_ranges = []
+
+    if not file:
+        print(f"Error: no datafile found.")
+
+    if metrics is None:
+        metrics = Metrics.getAllMetricClasses()
+
+    data = pd.read_csv(file.datafile)
+    # data = removeNaNFromDataframe(data)
+
+    stylePlots()
+    fig, axs = plt.subplots(len(metrics), 1, figsize=(20, 10), facecolor='w', edgecolor='k', sharex='all')
+    fig.suptitle(f"Scatterplot of {saveName}")
+    fig.subplots_adjust(hspace=.5, wspace=.001)
+    for i in range(len(metrics)):
+
+        # Get metricName, Column and Axis (use axs instead of axs[i] if only one metric)
+        metricName = metrics[i]
+        metric_column = getMetricColumn(metricName, data)
+        metric_column = metric_column.dropna()
+
+        axis = axs[i] if len(metrics) > 1 else axs
+
+        max_range = 1.2 * max(metric_column)
+        min_range = 1.2 * min(metric_column)
+        yLim_min, yLim_max = getYrange(metricName, min_range, max_range, metric_ranges)
+
+        # Set axis
+        axis.scatter(metric_column.index, metric_column, marker=".", linewidth=1)
+
+        axis.title.set_text(metricName)
+        axis.set_ylim([yLim_min, yLim_max])
+        axis.grid()
+
+        if plotThresholds:
+            addThresholdLine(axis, file.getExperiment(), metricName, data.index, data)
+
+        # Set xlabel on final subplot
+        if i == len(metrics) - 1:
+            axis.set_xlabel("Index (0 - 140 minutes)")
+
+    if saveDirectory and saveName:
+        savePlot(plt, saveDirectory, saveName)
         plt.close()
     else:
         plt.show()

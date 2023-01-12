@@ -1,6 +1,7 @@
 import traceback
 from abc import abstractmethod
 from .Configuration import Configurations
+from .applications import ApplicationManager
 
 
 class Autoscaler:
@@ -12,7 +13,7 @@ class Autoscaler:
         pass
 
     @abstractmethod
-    def setInitialMetrics(self):
+    def initialize(self):
         pass
 
     def run(self):
@@ -25,7 +26,7 @@ class Autoscaler:
         self.configurations.printConfigurations()
 
         print("Setting initial metrics for autoscaler")
-        self.setInitialMetrics()
+        self.initialize()
 
         print("Initial metrics are set successfully. Starting autoscaler")
         while True:

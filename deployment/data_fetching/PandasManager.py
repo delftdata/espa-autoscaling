@@ -28,16 +28,16 @@ class PandasManager:
         filePath = self.configs.get_individual_metric_data_path(metric_name)
         self.write_dataframe_to_file(filePath, metric_df)
 
-    def write_task_specific_metric_data_to_file(self, metric_name, metric_data):
+    def write_label_specific_metric_data_to_file(self, metric_name, metric_data, label):
         """
         Write the results of a task_specific_metric_data_frame to file.
         The dataframe is first split per task_name and written to a single file named {metric_name}_{task_name}.
         """
-        task_names = metric_data["task_name"].unique()
-        for task_name in task_names:
-            metric_task_name = f"{metric_name}-{task_name}"
-            metric_task_data = metric_data[metric_data['task_name'] == task_name]
-            metric_task_data = metric_task_data.drop(labels="task_name", axis="columns")
+        label_names = metric_data[label].unique()
+        for label_name in label_names:
+            metric_task_name = f"{metric_name}-{label_name}"
+            metric_task_data = metric_data[metric_data[label] == label_name]
+            metric_task_data = metric_task_data.drop(labels=label, axis="columns")
             self.write_individual_metric_data_to_file(metric_task_name, metric_task_data)
 
     @staticmethod

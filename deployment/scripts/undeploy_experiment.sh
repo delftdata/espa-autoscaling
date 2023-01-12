@@ -6,7 +6,7 @@ AUTOSCALER=$3
 NAMESPACE=$4
 
 echo "Undeploying experiment Query=$QUERY MODE=$MODE AUTOSCALER=$AUTOSCALER"
-source ./undeploy_autoscaler.sh $AUTOSCALER $MODE
-source ./undeploy_queries.sh $QUERY $MODE
-source ./undeploy_nfs.sh $NAMESPACE
+source ./undeploy_autoscaler.sh "$AUTOSCALER" "$MODE"
+source ./undeploy_queries.sh "$QUERY" "$MODE"
+source ./undeploy_nfs.sh "$NAMESPACE"
 echo "Finished undeploying experiment"

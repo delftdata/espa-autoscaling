@@ -44,7 +44,7 @@ spec:
         - name: METRIC_AGGREGATION_PERIOD_SECONDS # 60 is default
           value: "15"
         - name: COOLDOWN_PERIOD_SECONDS # 120 is default
-          value: "120"
+          value: "300"
         - name: ITERATION_PERIOD_SECONDS # 15 is default
           value: "15"
         - name: KUBERNETES_NAMESPACE # default is default
