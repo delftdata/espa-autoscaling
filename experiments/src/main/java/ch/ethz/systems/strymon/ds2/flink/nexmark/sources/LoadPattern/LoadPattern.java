@@ -127,20 +127,20 @@ public abstract class LoadPattern {
 
     public static void main( String[ ] args ) throws Exception {
 //        RandomLoadPattern random_pattern = new RandomLoadPattern(11, 140, 1250000, -500000, 500000, 2500000);
-        RandomLoadPattern random_pattern = new RandomLoadPattern(11, 140, 1250000, -30000, 50000, 2500000);
-        IncreaseLoadPattern increase_pattern = new IncreaseLoadPattern(11, 140);
-        DecreaseLoadPattern decrease_pattern = new DecreaseLoadPattern(11, 140);
-
-        random_pattern.plotLoadPattern();
-        increase_pattern.plotLoadPattern();
-        decrease_pattern.plotLoadPattern();
-//        int start_seed = 1066;
-//        for (int i = 0; i < 10; i++) {
-//            int seed = start_seed + i;
-//            RandomLoadPattern pattern = new RandomLoadPattern(11, 140, 1250000, -500000, 500000, 2500000);
-//            pattern.setSeed(seed);
-//            pattern.plotLoadPattern();
-//        }
+//        RandomLoadPattern random_pattern = new RandomLoadPattern(11, 140, 1250000, -30000, 50000, 2500000);
+//        IncreaseLoadPattern increase_pattern = new IncreaseLoadPattern(11, 140);
+//        DecreaseLoadPattern decrease_pattern = new DecreaseLoadPattern(11, 140);
+//
+//        random_pattern.plotLoadPattern();
+//        increase_pattern.plotLoadPattern();
+//        decrease_pattern.plotLoadPattern();
+        int start_seed = 1066;
+        for (int i = 0; i < 10; i++) {
+            int seed = start_seed + i;
+            RandomLoadPattern pattern = new RandomLoadPattern(11, 140, 1250000, -500000, 500000, 2500000);
+            pattern.setSeed(seed);
+            pattern.plotLoadPattern();
+        }
     }
 
 }
