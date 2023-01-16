@@ -86,10 +86,6 @@ public class BidPersonAuctionSourceFunction extends Thread {
                 0
         );
 
-        System.out.println(this.generatorConfig.getHotAuctionRatio());
-        System.out.println(this.generatorConfig.getHotBiddersRatio());
-        System.out.println(this.generatorConfig.getHotSellersRatio());
-
         // Topics to generate
         this.enablePersonTopic = enablePersonTopic;
         this.enableAuctionTopic = enableAuctionTopic;
