@@ -19,10 +19,7 @@
 package ch.ethz.systems.strymon.ds2.flink.nexmark.sources;
 
 import ch.ethz.systems.strymon.ds2.flink.nexmark.sources.LoadPattern.*;
-import org.apache.commons.lang3.NotImplementedException;
 import org.apache.flink.api.java.utils.ParameterTool;
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.Producer;
 import java.text.ParseException;
 import java.util.*;
 
