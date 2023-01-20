@@ -16,47 +16,48 @@
  * limitations under the License.
  */
 
-package ch.ethz.systems.strymon.ds2.flink.nexmark.queries.updated;
+package ch.ethz.systems.strymon.ds2.flink.nexmark.sources.DS2.updated;
 
 import ch.ethz.systems.strymon.ds2.common.BidDeserializationSchema;
 import ch.ethz.systems.strymon.ds2.flink.nexmark.sinks.DummyLatencyCountingSink;
 import org.apache.beam.sdk.nexmark.model.Bid;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
-import org.apache.flink.api.common.functions.FlatMapFunction;
-import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.api.common.functions.MapFunction;
+import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.api.java.typeutils.GenericTypeInfo;
 import org.apache.flink.api.java.utils.ParameterTool;
-import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.util.Collector;
+import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.kafka.clients.consumer.OffsetResetStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Query2KafkaSource {
+public class Query1KafkaSource {
 
-    private static final Logger logger  = LoggerFactory.getLogger(Query2KafkaSource.class);
+    private static final Logger logger = LoggerFactory.getLogger(Query1KafkaSource.class);
 
     public static void main(String[] args) throws Exception {
 
         // Checking input parameters
         final ParameterTool params = ParameterTool.fromArgs(args);
 
+        final float exchangeRate = params.getFloat("exchange-rate", 0.82F);
+
         final String sourceSSG;
         final String sinkSSG;
-        final String filterSSG;
+        final String mapSSG;
 
         if(params.getBoolean("slot-sharing", false)){
             sourceSSG = "Source";
             sinkSSG = "Sink";
-            filterSSG = "Filter";
+            mapSSG = "Map";
         }
         else{
             sourceSSG = "default";
             sinkSSG = "default";
-            filterSSG = "default";
+            mapSSG = "default";
         }
 
         // set up the execution environment
@@ -68,48 +69,47 @@ public class Query2KafkaSource {
         // env.getConfig().setLatencyTrackingInterval(5000);
 
         KafkaSource<Bid> source =
-                KafkaSource.<Bid>builder()
-                        .setBootstrapServers("kafka-service:9092")
-                        .setTopics("bids_topic")
-                        .setGroupId("consumer_group")
-                        .setProperty("fetch.min.bytes", "1000")
-                        .setStartingOffsets(OffsetsInitializer.committedOffsets(OffsetResetStrategy.EARLIEST))
-                        .setValueOnlyDeserializer(new BidDeserializationSchema())
-                        .build();
-        
-        DataStream<Bid> bids = env.fromSource(source, WatermarkStrategy.noWatermarks(), "BidsSource")
-                                    .slotSharingGroup(sourceSSG)
-                                    .setParallelism(params.getInt("p-bids-source", 1))
-                                    .name("BidsSource")
-                                    .uid("BidsSource");
+        KafkaSource.<Bid>builder()
+                .setBootstrapServers("kafka-service:9092")
+                .setTopics("bids_topic")
+                .setGroupId("consumer_group")
+                .setProperty("fetch.min.bytes", "1000")
+                .setStartingOffsets(OffsetsInitializer.committedOffsets(OffsetResetStrategy.EARLIEST))
+                .setValueOnlyDeserializer(new BidDeserializationSchema())
+                .build();
 
-        // SELECT Rstream(auction, price)
-        // FROM Bid [NOW]
-        // WHERE auction = 1007 OR auction = 1020 OR auction = 2001 OR auction = 2019 OR auction = 2087;
+        DataStream<Bid> bids =
+                env.fromSource(source, WatermarkStrategy.noWatermarks(), "BidsSource")
+                        .slotSharingGroup(sourceSSG)
+                        .setParallelism(params.getInt("p-bids-source", 1))
+                        .name("BidsSource")
+                        .uid("BidsSource");
 
-        DataStream<Tuple2<Long, Long>> converted = bids
-                .flatMap(new FlatMapFunction<Bid, Tuple2<Long, Long>>() {
-                    @Override
-                    public void flatMap(Bid bid, Collector<Tuple2<Long, Long>> out) throws Exception {
-                        if(bid.auction % 1007 == 0 || bid.auction % 1020 == 0 || bid.auction % 2001 == 0 || bid.auction % 2019 == 0 || bid.auction % 2087 == 0) {
-                            out.collect(new Tuple2<>(bid.auction, bid.price));
-                        }
-                    }
-                })
-                .slotSharingGroup(filterSSG)
-                .setParallelism(params.getInt("p-flatMap", 1))
-                .name("Flatmap")
-                .uid("Flatmap");
+        DataStream<Tuple4<Long, Long, Long, Long>> mapped  = bids.map(new MapFunction<Bid, Tuple4<Long, Long, Long, Long>>() {
+            @Override
+            public Tuple4<Long, Long, Long, Long> map(Bid bid) throws Exception {
+                return new Tuple4<>(bid.auction, dollarToEuro(bid.price, exchangeRate), bid.bidder, bid.dateTime);
+            }
+        })
+                .slotSharingGroup(mapSSG)
+                .setParallelism(params.getInt("p-map", 1))
+                .name("Mapper")
+                .uid("Mapper");
+
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
-        converted.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
+        mapped.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
                 .slotSharingGroup(sinkSSG)
                 .setParallelism(params.getInt("p-sink", 1))
                 .name("LatencySink")
                 .uid("LatencySink");
-
+    
         // execute program
-        env.execute("Nexmark Query2 with a Kafka Source");
+        env.execute("Nexmark Query1 with a Kafka Source");
+    }
+
+    private static long dollarToEuro(long dollarPrice, float rate) {
+        return (long) (rate * dollarPrice);
     }
 
 }

@@ -1,4 +1,10 @@
-# Requires: AVAILABLE_TASKMANAGERS, QUERY, CONFIGURATION
+# AVAILABLE_TASKMANAGERS
+# QUERY
+# NAMESPACE
+# AUTOSCALER_CONFIGURATION_0 = OVERPROVISIONING_FACTOR
+# AUTOSCALER_CONFIGURATION_1 = COOLDOWN_PERIOD_SECONDS
+# AUTOSCALER_CONFIGURATION_2 = undef
+
 kind: Deployment
 apiVersion: apps/v1
 metadata:
@@ -42,11 +48,11 @@ spec:
         - name: MAXIMUM_PARALLELISM_INCREASE # 50 is default
           value: "50"
         - name: OVERPROVISIONING_FACTOR # 1.0 is default
-          value: "${CONFIGURATION}"
+          value: "${AUTOSCALER_CONFIGURATION_0}"
         - name: METRIC_AGGREGATION_PERIOD_SECONDS # 60 is default
           value: "15"
         - name: COOLDOWN_PERIOD_SECONDS # 120 is default
-          value: "300"
+          value: "${AUTOSCALER_CONFIGURATION_1}"
         - name: ITERATION_PERIOD_SECONDS # 15 is default
           value: "15"
         - name: KUBERNETES_NAMESPACE # default is default

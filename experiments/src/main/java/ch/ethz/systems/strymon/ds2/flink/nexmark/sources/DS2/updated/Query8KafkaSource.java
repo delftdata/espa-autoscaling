@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package ch.ethz.systems.strymon.ds2.flink.nexmark.queries.updated;
+package ch.ethz.systems.strymon.ds2.flink.nexmark.sources.DS2.updated;
 
 import ch.ethz.systems.strymon.ds2.common.AuctionDeserializationSchema;
 import ch.ethz.systems.strymon.ds2.common.PersonDeserializationSchema;

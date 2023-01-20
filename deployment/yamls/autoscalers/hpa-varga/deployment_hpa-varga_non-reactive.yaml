@@ -1,4 +1,10 @@
-# Requires: AVAILABLE_TASKMANAGERS, QUERY, NAMESPACE, CONFIGURATION
+# CONFIGURATION
+# AVAILABLE_TASKMANAGERS
+# QUERY
+# NAMESPACE
+# AUTOSCALER_CONFIGURATION_0 = HPA_VARGA_UTILIZATION_TARGET_VALUE
+# AUTOSCALER_CONFIGURATION_1 = COOLDOWN_PERIOD_SECONDS
+# AUTOSCALER_CONFIGURATION_2 = undef
 kind: Deployment
 apiVersion: apps/v1
 metadata:
@@ -46,7 +52,7 @@ spec:
         - name: METRIC_AGGREGATION_PERIOD_SECONDS # 60 is default
           value: "15"
         - name: COOLDOWN_PERIOD_SECONDS # 120 is default
-          value: "300"
+          value: "${AUTOSCALER_CONFIGURATION_1}"
         - name: ITERATION_PERIOD_SECONDS # 15 is default
           value: "15"
         - name: KUBERNETES_NAMESPACE # default is default
@@ -70,7 +76,7 @@ spec:
 
           # Varga configurations
         - name: HPA_VARGA_UTILIZATION_TARGET_VALUE # 0.7 is default
-          value: "${CONFIGURATION}"
+          value: "${AUTOSCALER_CONFIGURATION_0}"
         - name: HPA_VARGA_RELATIVE_LAG_CHANGE_TARGET_VALUE # 1.0 is default
           value: "1.0"
         - name: HPA_VARGA_MINIMUM_KAFKA_LAG_RATE_WHEN_BACKPRESSURED_THRESHOLD # 1000 is default

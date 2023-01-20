@@ -1,4 +1,4 @@
-# Requires: INPUT_RATE_MEAN
+# Requires: INPUT_RATE_MEAN, EXPERIMENT_DURATION
 kind: Deployment
 apiVersion: apps/v1
 metadata:
@@ -25,4 +25,4 @@ spec:
             cpu: 24000m
             memory: 24000Mi
         env:
-        args: ["mvn", "exec:java", "-Dexec.mainClass=ch.ethz.systems.strymon.ds2.flink.nexmark.sources.BidPersonGeneratorKafka", "-Dexec.args=--generator-parallelism 48 --enable-bids-topic true --load-pattern decrease --use-default-configuration false --initial-input-rate ${INPUT_RATE_MEAN}"]
+        args: ["mvn", "exec:java", "-Dexec.mainClass=ch.ethz.systems.strymon.ds2.flink.nexmark.sources.BidPersonGeneratorKafka", "-Dexec.args=--generator-parallelism 48 --enable-bids-topic true --load-pattern decrease  --experiment-length ${EXPERIMENT_DURATION} --use-default-configuration false --initial-input-rate ${INPUT_RATE_MEAN}"]

@@ -20,7 +20,7 @@ package ch.ethz.systems.strymon.ds2.flink.nexmark.sources;
 
 import ch.ethz.systems.strymon.ds2.flink.nexmark.sources.LoadPattern.*;
 import org.apache.flink.api.java.utils.ParameterTool;
-import java.text.ParseException;
+
 import java.util.*;
 
 
@@ -28,9 +28,9 @@ import java.util.*;
  * Required parameters
  *   Load pattern selection
  *     Required parameters:
- *          load-pattern: STRING {"cosine", "random", "decrease", "increase"}
+ *          load-pattern: STRING
  *              Load pattern to use during experiment. Possible configurations:  {"cosine", "random", "decrease",
- *              "increase", "testrun", "testrun-scaleup", "testrun-scaledown"}
+ *              "increase", "testrun", "testrun-scaleup", "testrun-scaledown", "convergence"}
  *
  *     Optional parameters
  *          query (1) : INT {1, 3, 11}
@@ -38,7 +38,8 @@ import java.util.*;
  *          use-default-configuration (true): BOOLEAN
  *              Use default configurations of load patterns (default = true)
  *          experiment-length (140): INT
- *              Total length of the experiment (default = 140 minutes)
+ *              Total length of the experiment (default = 140 minutes).
+ *              The convergence experiment overwrites this value with initial-round-length and regular-round-length.
  *          use-seed (1066): INT
  *              Seed to use for load pattern generation (default = 1066)
  *     Configuration specific parameters
@@ -52,30 +53,7 @@ import java.util.*;
  *              max-noise: INT
  *                  Amount of noise introduced
  *              Additional optional parameters
- *                  upspike-chance: DOUBLE
- *                          Chance to have an upsike-chance event. Default is defined by CosineLoadPattern.
- *                              (Default = 0.0)
- *                  upspike-maximum-period: INT
- *                          Maximum period in which an upspike event can happen. Default is defined by CosineLoadpattern.
- *                              (Default = 3)
- *                  upspike-maximum-input-rate: INT
- *                          Maximum increase in input rate during upspike event. Default is deifned by CosineLoadPattern.
- *                              (Default = 2 * input-rate-maximum-divergence
- *                  upspike-minimum-input-rate: INT
- *                          Minimum increase in input rate during upspike event. Default is defined by CosineLoad Pattern.
- *                              (Default = upspike-maximum-input-rate / 2)
- *                  downspike-chance: DOUBLE
- *                          Chance to have an downspike-chance event. Default is defined by CosineLoadPattern.
- *                              (Default = 0.0)
- *                  downspike-maximum-period: INT
- *                          Maximum period that a downspike event takes. Default is defined by CosineLoadpattern.
- *                              (Default = 3)
- *                  downspike-minimum-input-rate: INT
- *                          Minimum decrease  in input rate during a downspike event. Default is defined by CosineLoad Pattern.
- *                              (Default = 2 * input-rate-maximum-divergence)
- *                  downspike-maximum-input-rate: INT
- *                          Maximum decrease in input rate during a downspike event. Default is defined by CosineLoadPattern.
- *                              (Default = downspike-minimum-input-rate / 2
+ *
  *          load-pattern = "random" && use-default-configuration = false
  *              initial-input-rate: INT
  *                  Input rate to start with
@@ -89,9 +67,11 @@ import java.util.*;
  *                  Input rate to start with
  *              total-rate-increase: INT
  *                  Total increase in rate over a period of 140 minutes.
+ *
  *          load-pattern = "decrease" && use-default-configuration = false
  *              initial-input-rate: INT
  *                  Input rate to start with
+ *
  *          load-pattern = "testrun" && use-default-configuration = false
  *              inputrate0: INT
  *                  Initial input rate
@@ -99,6 +79,19 @@ import java.util.*;
  *                  Input rate after first time-period ends
  *              inputrate2: INT
  *                  Input rate after second time-period ends
+ *
+ *          load-pattern = "convergence" && use-default-configuration = false
+
+ *              initial-round-length: INT
+ *                   Length of the initial round.
+ *              regular-round-length: INT
+ *                  Length of the regular round
+ *              round-rates: LIST[INT], as comma seperated line: 1, 2, 3, 4
+ *                  List of rates that should be generated after the provided periods of time.
+ *              max-noise: INT
+ *                  Maximum amount of noise to be added to the input rate.
+ *          ATTENTION: total round time determined with  initial-round-length and regular-round-length might be
+ *          different then loadPatternPeriod. In that case, the experiment is cut off or 0 input rate is provided.
  *
  *   Kafka setup
  *     Required paramters:
@@ -144,235 +137,26 @@ public class BidPersonGeneratorKafka {
 
     private boolean debuggingEnabled = false;
 
-    public void log(String message) {
-        if (this.debuggingEnabled) {
-            System.out.println(message);
-        }
-    }
-
-    public LoadPattern getCosineLoadPattern(int query, int experimentLength, boolean useDefaultConfigurations,
-                                            ParameterTool params) {
-        /**
-         * Custom paramters:
-         *   cosine-period: INT
-         *      Time in minutes in which the input rate performs one cosine pattern
-         *   input-rate-mean: INT
-         *      Mean input-rate
-         *   input-rate-maximum-divergence: INT
-         *      Amount of events the pattern diverges from the mean value
-         *   max-noise: INT
-         *      Amount of noise introduced
-         */
-        CosineLoadPattern loadPattern;
-        if (useDefaultConfigurations) {
-            loadPattern =  new CosineLoadPattern(query, experimentLength);
-            int maxNoise = params.getInt("max-noise", -1);
-            if (maxNoise != -1){
-                loadPattern.setMaxNoise(maxNoise);
-            }
-        } else {
-            int cosinePeriod = params.getInt("cosine-period");
-            int inputRateMaximumDivergence = params.getInt("input-rate-maximum-divergence");
-            int inputRateMean = params.getInt("input-rate-mean");
-            int maxNoise = params.getInt("max-noise");
-            loadPattern = new CosineLoadPattern(query, experimentLength, cosinePeriod, inputRateMaximumDivergence, inputRateMean, maxNoise);
-        }
-
-        // optional spike paramters
-        double spikeUpChance = params.getDouble("upspike-chance", -1d);
-        if (spikeUpChance != -1){
-            loadPattern.setSpikeUpChance(spikeUpChance);
-        }
-        int spikeUpMaximumPeriod = params.getInt("upspike-maximum-period", -1);
-        if (spikeUpMaximumPeriod != -1) {
-            loadPattern.setSpikeUpMaximumPeriod(spikeUpMaximumPeriod);
-        }
-        int spikeUpMaximumInputRate = params.getInt("upspike-maximum-input-rate", -1);
-        int spikeUpMinimumInputRate = params.getInt("upspike-minimum-input-rate", -1);
-        if (spikeUpMaximumInputRate != -1) {
-            if (spikeUpMinimumInputRate != -1) {
-                loadPattern.setSpikeUpInputRateRange(spikeUpMinimumInputRate, spikeUpMaximumInputRate);
-            } else {
-                loadPattern.setSpikeUpInputRateRange(spikeUpMaximumInputRate);
-            }
-        }
-
-        double spikeDownChance = params.getDouble("downspike-chance", -1d);
-        if (spikeDownChance != -1){
-            loadPattern.setSpikeDownChance(spikeDownChance);
-        }
-        int spikeDownMaximumPeriod = params.getInt("downspike-maximum-period", -1);
-        if (spikeDownMaximumPeriod != -1) {
-            loadPattern.setSpikeDownMaximumPeriod(spikeDownMaximumPeriod);
-        }
-        int spikeDownMaximumInputRate = params.getInt("downspike-maximum-input-rate", -1);
-        int spikeDownMinimumInputRate = params.getInt("downspike-minimum-input-rate", -1);
-        if (spikeDownMaximumInputRate != -1) {
-            if (spikeDownMinimumInputRate != -1) {
-                loadPattern.setSpikeDownInputRateRange(spikeDownMinimumInputRate, spikeDownMaximumInputRate);
-            } else {
-                loadPattern.setSpikeDownInputRateRange(spikeDownMaximumInputRate);
-            }
-        }
-
-        return loadPattern;
-    }
-    public LoadPattern getRandomLoadPattern(int query, int experimentLength, boolean useDefaultConfigurations,
-                                            ParameterTool params) {
-        /**
-         * Custom paramters:
-         *   initial-input-rate: INT
-         *      Input rate to start with
-         *   min-divergence: INT
-         *      Minimum increase (decrease if negative) per minute
-         *   max-divergence: INT
-         *      Maximum increase (decrease if negative) per minute
-         */
-        if (useDefaultConfigurations) {
-            return new RandomLoadPattern(query, experimentLength);
-        } else {
-            int initialInputRate = params.getInt("initial-input-rate");
-            int minDivergence = params.getInt("min-divergence");
-            int maxDivergence = params.getInt("max-divergence");
-            int maxInputRate = params.getInt("max-input-rate", Integer.MAX_VALUE);
-            return new RandomLoadPattern(query, experimentLength, initialInputRate, minDivergence, maxDivergence, maxInputRate);
-        }
-    }
-
-    public LoadPattern getIncreaseLoadPattern(int query, int experimentLength, boolean useDefaultConfigurations,
-                                              ParameterTool params) {
-        /**
-         * Custom paramters:
-         *   initial-input-rate: INT
-         *      Input rate to start with
-         *   total-rate-increase: INT
-         *      Total increase in rate over a period of 140 minutes.
-         */
-        if (useDefaultConfigurations) {
-            return new IncreaseLoadPattern(query, experimentLength);
-        } else {
-            int initialInputRate = params.getInt("initial-input-rate");
-            int RateIncreaseOver140Minutes = params.getInt("total-rate-increase");
-            return new IncreaseLoadPattern(query,experimentLength, initialInputRate, RateIncreaseOver140Minutes);
-        }
-    }
-
-    public LoadPattern getDecreaseLoadPattern(int query, int experimentLength, boolean useDefaultConfigurations,
-                                              ParameterTool params)  {
-        /**
-         * Custom paramters:
-         *   initial-input-rate: INT
-         *      Input rate to start with. From this input rate, it decreases over a period of 140 minutes to 0.
-         */
-        if (useDefaultConfigurations) {
-            return new DecreaseLoadPattern(query, experimentLength);
-        } else {
-            int initialInputRate = params.getInt("initial-input-rate");
-            return new DecreaseLoadPattern(query, experimentLength, initialInputRate);
-        }
-    }
-
-    public LoadPattern getTestRun_ScaleUp() {
-        return new TestrunLoadPattern(true);
-    }
-
-    public LoadPattern getTestRun_ScaleDown() {
-        return new TestrunLoadPattern(false);
-    }
-
-    public LoadPattern getTestRun(int query, int experimentLength, boolean useDefaultConfigurations,
-                                  ParameterTool params)  {
-        /**
-         * Custom paramters:
-         * - inputrate0: int
-         * - inputrate1: int
-         * - inputrate2: int
-         */
-        if (useDefaultConfigurations) {
-            // TestRun has already a default experimentLength defined in its class.
-            // Changing its expeirmentLength can only be done via non-default configuration
-            return new TestrunLoadPattern(query, experimentLength);
-        } else {
-            int inputrate0 = params.getInt("inputrate0");
-            int inputrate1 = params.getInt("inputrate1");
-            int inputrate2 = params.getInt("inputrate2");
-            return new TestrunLoadPattern(query, experimentLength, inputrate0, inputrate1, inputrate2);
-        }
-    }
-
-    /**
-     * Get a loadpattern based on paramters provided by params
-     * @param params parameters passed through args.
-     * @return LoadPattern class based on parameters
-     * @throws Exception Throw exception when invalid parameters are provided.
-     */
-    public LoadPattern getLoadPattern(ParameterTool params) throws Exception{
-
-        // REQUIRED
-        String loadPatternName = params.getRequired("load-pattern");
-        this.log("Set loadpatternName to " + loadPatternName);
-        int query = params.getInt("query", 1);
-        this.log("Set query to " + query);
-
-
-        // OPTIONAL
-        boolean useDefaultConfiguration = params.getBoolean("use-default-configuration", true);
-        int experimentLength = params.getInt("experiment-length", 140);
-        int seed = params.getInt("use-seed", 1066);
-        LoadPattern loadPattern = null;
-        switch (loadPatternName) {
-            case "cosine": {
-                loadPattern = this.getCosineLoadPattern(query, experimentLength, useDefaultConfiguration, params);
-                break;
-            }
-            case "random": {
-                loadPattern = this.getRandomLoadPattern(query, experimentLength, useDefaultConfiguration, params);
-                break;
-            }
-            case "increase": {
-                loadPattern = this.getIncreaseLoadPattern(query, experimentLength, useDefaultConfiguration, params);
-                break;
-            }
-            case "decrease": {
-                loadPattern = this.getDecreaseLoadPattern(query, experimentLength, useDefaultConfiguration, params);
-                break;
-            }
-            case "testrun-scaleup": {
-                loadPattern = this.getTestRun_ScaleUp();
-                break;
-            }
-            case "testrun-scaledown": {
-                loadPattern = this.getTestRun_ScaleDown();
-                break;
-            }
-            case "testrun": {
-                loadPattern = this.getTestRun(query, experimentLength, useDefaultConfiguration, params);
-                break;
-            }
-            default: {
-                throw new ParseException("Loadpattern " + loadPatternName + " is not recognized.", 0);
-            }
-        }
-        loadPattern.setSeed(seed);
-        return loadPattern;
-    }
-
     public void run(String[] args) throws Exception {
         final ParameterTool params = ParameterTool.fromArgs(args);
-        this.debuggingEnabled = params.getBoolean("debugging", false);
-        this.log("Set debuggingEnabled to " + this.debuggingEnabled + ".");
 
-        /**
-         * Load pattern generation
-         */
-        LoadPattern loadPatternConfiguration = this.getLoadPattern(params);
+        this.debuggingEnabled = params.getBoolean("debugging", false);
+        if (this.debuggingEnabled) {
+            System.out.println("Debuggin-mode is enabled.");
+        }
+
+        // Get load pattern
+        LoadPattern loadPatternConfiguration = LoadPatternGenerator.getLoadPatternFromParameterTool(params);
         List<Integer> loadPattern = loadPatternConfiguration.getLoadPattern().f1;
         System.out.println("Running workbench with the following loadpattern:\n\"\"\"\n" +
                 loadPatternConfiguration.getLoadPatternTitle() + "\n\"\"\"");
         if (this.debuggingEnabled) { loadPatternConfiguration.plotLoadPattern(); }
 
+
+        // Get kafka service
         String kafkaServer = params.get("kafka-server", "kafka-service:9092");
 
+        // Get topics to enable
         boolean bidsTopicEnabled = params.getBoolean("enable-bids-topic", false);
         boolean personTopicEnabled = params.getBoolean("enable-person-topic", false);
         boolean auctionTopicEnabled = params.getBoolean("enable-auction-topic", false);

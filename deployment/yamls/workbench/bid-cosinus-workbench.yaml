@@ -1,4 +1,4 @@
-# Requires: INPUT_RATE_MEAN, INPUT_RATE_MAX_DIVERGENCE, INPUT_RATE_MAX_NOISE
+# Requires: INPUT_RATE_MEAN, INPUT_RATE_MAX_DIVERGENCE, INPUT_RATE_MAX_NOISE, EXPERIMENT_DURATION
 kind: Deployment
 apiVersion: apps/v1
 metadata:
@@ -25,4 +25,4 @@ spec:
             cpu: 18000m
             memory: 18000Mi
         env:
-        args: ["mvn", "exec:java", "-Dexec.mainClass=ch.ethz.systems.strymon.ds2.flink.nexmark.sources.BidPersonGeneratorKafka", "-Dexec.args=--generator-parallelism 36 --enable-bids-topic true --load-pattern cosine --use-default-configuration false --cosine-period 60 --max-noise 100000 --input-rate-mean ${INPUT_RATE_MEAN} --input-rate-maximum-divergence ${INPUT_RATE_MAX_DIVERGENCE}"]
+        args: ["mvn", "exec:java", "-Dexec.mainClass=ch.ethz.systems.strymon.ds2.flink.nexmark.sources.BidPersonGeneratorKafka", "-Dexec.args=--generator-parallelism 36 --enable-bids-topic true --load-pattern cosine  --experiment-length ${EXPERIMENT_DURATION} --use-default-configuration false --cosine-period 60 --max-noise 100000 --input-rate-mean ${INPUT_RATE_MEAN} --input-rate-maximum-divergence ${INPUT_RATE_MAX_DIVERGENCE}"]

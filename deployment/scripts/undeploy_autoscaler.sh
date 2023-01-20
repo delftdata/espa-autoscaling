@@ -1,13 +1,13 @@
 #!/bin/bash
 
-AUTOSCALER=$1 #{dhalion, ds2, hpa-cpu hpa-varga, }
-MODE=$2 #{reactive, non-reactive}
+AUTOSCALER=${1} #{dhalion, ds2, hpa-cpu hpa-varga, }
+MODE=${2} #{reactive, non-reactive}
 
-if [ "$AUTOSCALER" == "dhalion" ] || [ "$AUTOSCALER" == "ds2" ] || [ "$AUTOSCALER" == "hpa-cpu" ] || [ "$AUTOSCALER" == "hpa-varga" ]
+if [ "${AUTOSCALER}" == "dhalion" ] || [ "${AUTOSCALER}" == "ds2" ] || [ "${AUTOSCALER}" == "hpa-cpu" ] || [ "${AUTOSCALER}" == "hpa-varga" ]
 then
-  echo "Undeploying autoscaler $AUTOSCALER with mode $MODE."
+  echo "Undeploying autoscaler ${AUTOSCALER} with mode ${MODE}."
 else
-  echo "Autoscaler $AUTOSCALER was not recognized. Canceling autoscaler undeployment."
+  echo "Autoscaler ${AUTOSCALER} was not recognized. Canceling autoscaler undeployment."
   exit 0
 fi
 

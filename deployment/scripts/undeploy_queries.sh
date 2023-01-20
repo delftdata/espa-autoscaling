@@ -1,11 +1,11 @@
 #!/bin/bash
 
-QUERY=$1 #{1, 3, 11}
-MODE=$2 #{reactive, non-reactive}
-echo "Undeploying query $QUERY with mode $MODE"
+QUERY=${1} #{1, 3, 11}
+MODE=${2} #{reactive, non-reactive}
+echo "Undeploying query ${QUERY} with mode ${MODE}"
 
 # common
-if [ "$MODE" == "reactive" ]
+if [ "${MODE}" == "reactive" ]
 then
   kubectl delete --wait=true -f ../yamls/flink_basic/flink-configuration-configmap.yaml
 else
@@ -23,7 +23,7 @@ helm uninstall prometheus
 kubectl delete service my-external-prometheus
 
 # Undeploy jobmanager
-if [ "$MODE" == "reactive" ]
+if [ "${MODE}" == "reactive" ]
 then
   kubectl delete --wait=true -f ../yamls/queries/reactive/experiments-jobmanager-reactive.yaml
 else
@@ -31,7 +31,7 @@ else
 fi
 
 # Undeploy workbench
-if [ "$QUERY" == "3" ] || [ "$QUERY" == "8" ]
+if [ "${QUERY}" == "3" ] || [ "${QUERY}" == "8" ]
 then
   # For query 3 and 8: Generate auction and person stream
    kubectl delete --wait=true -f ../yamls/queries/workbench/auction-person-workbench.yaml
