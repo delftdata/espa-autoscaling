@@ -2,7 +2,9 @@
 
 QUERY=${1} #{1, 3, 11}
 MODE=${2} #{reactive, non-reactive}
-echo "Undeploying query ${QUERY} with mode ${MODE}"
+NAMESPACE=${3}
+
+echo "Undeploying query ${QUERY} with mode ${MODE} in namespace ${NAMESPACE}"
 
 # common
 if [ "${MODE}" == "reactive" ]
@@ -34,15 +36,28 @@ fi
 if [ "${QUERY}" == "3" ] || [ "${QUERY}" == "8" ]
 then
   # For query 3 and 8: Generate auction and person stream
-   kubectl delete --wait=true -f ../yamls/queries/workbench/auction-person-workbench.yaml
+   kubectl delete --wait=true -f ../yamls/workbench/auction-person-cosinus-workbench.yaml
 else
   # For query 1, 2, 5, 11: Generate bids stream
-  kubectl delete --wait=true -f ../yamls/queries/workbench/bid-workbench.yaml
+  kubectl delete --wait=true -f ../yamls/workbench/bid-cosinus-workbench.yaml
 fi
 
 # Wait for all pods to be removed
+echo "Waiting initial 30 seconds for taskmanagers to be removed"
+sleep 30
+MAX_WAIT_TIME=300
 while kubectl get pods | grep -i 'Terminating' > /dev/null;
 do
-    sleep 5
-    echo "Waiting for terminating pods to be removed..."
+    SLEEP_TIME=5
+    echo "Waiting for terminating pods to be removed (${MAX_WAIT_TIME}s left)..."
+    sleep "$SLEEP_TIME"
+    MAX_WAIT_TIME=$(("${MAX_WAIT_TIME}"-"${SLEEP_TIME}"))
+    if [ "${MAX_WAIT_TIME}" -le 0 ]
+    then
+        echo "MAX_WAIT_TIME REACHED (${MAX_WAIT_TIME}). Force terminating remaining pods."
+        kubectl delete --all pods --force --namespace="${NAMESPACE}"
+        echo "WAITING FOR PROPER REMOVAL"
+        sleep 60
+        echo "CHECKING AGAIN WHETHER PODS ARE GONE"
+    fi
 done

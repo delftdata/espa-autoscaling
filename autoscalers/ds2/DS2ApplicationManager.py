@@ -3,6 +3,8 @@ from common import ApplicationManager
 
 class DS2ApplicationManager(ApplicationManager):
 
+
+
     def gather_topic_kafka_input_rates(self) -> dict[str, int]:
         """
         Get the input_rate of the kafka rates. This is the input_rate of the data sent from the generator to kafka
@@ -28,7 +30,7 @@ class DS2ApplicationManager(ApplicationManager):
         return topic_lag
 
     def gather_subtask_true_processing_rates(self, subtask_input_rates: dict[str, int] = None, subtask_busy_times: dict[str, float] = None) \
-            -> dict[str, float]:
+            -> dict[str, int]:
         """
         Get the true processing rate of every operator (subtask). This is calculated by dividing the input rate with the operators busy
         time.
@@ -54,7 +56,7 @@ class DS2ApplicationManager(ApplicationManager):
                 subtask_true_processing_rates[subtask] = subtask_true_processing_rate
         return subtask_true_processing_rates
 
-    def gather_subtask_true_output_rates(self, subtask_output_rates: dict[str, int] = None, subtask_busy_times: dict[str, int] = None) \
+    def gather_subtask_true_output_rates(self, subtask_output_rates: dict[str, int] = None, subtask_busy_times: dict[str, float] = None) \
             -> dict[str, int]:
         """
         Get the true output rate of every operator (subtask). This is calculated by dividing the input rate with the operator's busy time.
@@ -84,13 +86,22 @@ class DS2ApplicationManager(ApplicationManager):
         Get the input rate of every operator (subtask).
         :return: Dictionary with as key the operator's (subtask's) name and as value its input rate.
         """
-        subtaskInputRates = self.prometheusManager.get_subtask_input_rate_metrics()
-        return subtaskInputRates
+        subtask_input_rates = self.prometheusManager.get_subtask_input_rate_metrics()
+        return subtask_input_rates
 
     def gather_subtask_output_rates(self) -> dict[str, int]:
         """
         Get the output rate of every operator (subtask)
         :return: Dictionary with as key the operator's (subtask's) name and as value its output rate.
         """
-        subtaskOutputRates = self.prometheusManager.getSubtaskOutputRateMetrics()
-        return subtaskOutputRates
+        subtask_output_rates = self.prometheusManager.getSubtaskOutputRateMetrics()
+        return subtask_output_rates
+
+
+    def gather_subtask_busy_times(self) -> dict[str, float]:
+        """
+        Get the busy_time of every subtask run in the cluster.
+        :return: Dictionary with as string the subtask ID and as value the busy time.
+        """
+        subtask_busy_times = self.prometheusManager.get_subtask_busy_time_metrics()
+        return subtask_busy_times

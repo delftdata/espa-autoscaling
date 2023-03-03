@@ -92,7 +92,7 @@ class Dhalion(Autoscaler, ABC):
         The scaleup factor cannot be larger than 10 and cannot be smaller than 1
         :param operator: operator to determine scale_up_factor for
         :param source_operator_pending_records_rate_metrics: Pending record rates of every source operator (records / second)
-        :param source_operator_consumed_records_rate_metrics: Consuemd record rates of every source operator (records / second)
+        :param source_operator_consumed_records_rate_metrics: Consumed record rates of every source operator (records / second)
         :return: scale_up_factor of operator.
         """
         print(f"Calculating scale factor of source operator: {operator}")
@@ -148,8 +148,6 @@ class Dhalion(Autoscaler, ABC):
         else if no backpressure exists:
             if for all instances of operator, the average number of pending packets is almost 0:
                 scale down with {underprovisioning system}
-        if after scaling down, backpressure is observed:
-            undo action and blacklist action
         :return: None
         """
         print("\nStarting new Dhalion iteration.")

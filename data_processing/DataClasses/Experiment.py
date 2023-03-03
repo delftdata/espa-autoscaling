@@ -136,20 +136,25 @@ class Experiment:
         Returns None if the name is invalid
         """
         # if name contains ']"
-        contains_tag = False
         if "]" in experiment_name:
             # contains tag
-            contains_tag = True
-            experiment_name = experiment_name.replace("[", "")
-            experiment_name = experiment_name.replace("]", "_")
+            tag_split = experiment_name.replace("[", "").split("]")
+            if len(tag_split) == 2:
+                tag = tag_split[0]
+                experiment_name = tag_split[1]
+            else:
+                print(f"Error: wrong amount of tag_split information present information present in experiment_name "
+                      f"'{experiment_name}': '{tag_split}'. Returning None.")
+                return None
+        else:
+            tag = ""
 
         data_points = experiment_name.split("_")
-        if len(data_points) < 2 + contains_tag:
+        if len(data_points) < 2:
             print(
                 f"Error: not enough information can be subtracted from experiment_name '{experiment_name}. Returning None")
             return None
 
-        tag = data_points.pop(0) if contains_tag else ""
         query = data_points.pop(0).replace("q", "")
         autoscaler = data_points.pop(0)
         mode = data_points.pop(0) if len(data_points) >= 2 else ""

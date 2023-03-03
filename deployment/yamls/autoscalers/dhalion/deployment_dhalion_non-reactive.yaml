@@ -46,13 +46,13 @@ spec:
         - name: AVAILABLE_TASKMANAGERS # 16 is default
           value: "${AVAILABLE_TASKMANAGERS}"
         - name: MAXIMUM_PARALLELISM_INCREASE # 50 is default
-          value: "50"
+          value: "15"
         - name: OVERPROVISIONING_FACTOR # 1.0 is default
           value: "1.0"
         - name: METRIC_AGGREGATION_PERIOD_SECONDS # 60 is default
           value: "15"
         - name: COOLDOWN_PERIOD_SECONDS # 120 is default
-          value: "${AUTOSCALER_CONFIGURATION_1}"
+          value: "300"
         - name: ITERATION_PERIOD_SECONDS # 15 is default
           value: "15"
         - name: KUBERNETES_NAMESPACE # default is default

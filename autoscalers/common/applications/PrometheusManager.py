@@ -12,6 +12,12 @@ class PrometheusManager:
 
     configurations: Configurations
 
+
+    operator_based_queries = {
+        "idle_time_ms_per_second": "avg(avg_over_time(flink_taskmanager_job_task_idleTimeMsPerSecond[{}s])/1000) by (task_name)",
+        "backpressure_time": "avg(avg_over_time(flink_taskmanager_job_task_backPressuredTimeMsPerSecond [{}s]) / 1000) by (task_name)",
+    }
+
     def __init__(self, configurations: Configurations):
         """
         The constructor of the PrometheusMetricsGather. It requires a Configurations class containing necessary
@@ -53,7 +59,7 @@ class PrometheusManager:
         :return: {operator:str -> idleTime per second: float}
         """
         idle_time_ms_per_second_query = f"avg(avg_over_time(flink_taskmanager_job_task_idleTimeMsPerSecond" \
-                                    f"[{self.configurations.METRIC_AGGREGATION_PERIOD_SECONDS}s])/1000) by (task_name)"
+                                        f"[{self.configurations.METRIC_AGGREGATION_PERIOD_SECONDS}s])/1000) by (task_name)"
         idle_time_ms_per_second_data = self.__get_results_from_prometheus(idle_time_ms_per_second_query)
         idle_time_ms_per_second = self.__extract_per_operator_metrics(idle_time_ms_per_second_data)
         return idle_time_ms_per_second
@@ -64,7 +70,7 @@ class PrometheusManager:
         Get the average of bufferin-usage of every operator from prometheus
         """
         input_buffer_usage_sum_query = f"avg(avg_over_time(flink_taskmanager_job_task_buffers_inPoolUsage" \
-                                    f"[{self.configurations.METRIC_AGGREGATION_PERIOD_SECONDS}s])) by (task_name)"
+                                       f"[{self.configurations.METRIC_AGGREGATION_PERIOD_SECONDS}s])) by (task_name)"
         input_buffer_usage_sum_data = self.__get_results_from_prometheus(input_buffer_usage_sum_query)
         input_buffer_usage_sum = self.__extract_per_operator_metrics(input_buffer_usage_sum_data)
         return input_buffer_usage_sum
@@ -252,7 +258,7 @@ class PrometheusManager:
             metrics_per_subtask[subtask_name] = float(subtask["value"][1])
         return metrics_per_subtask
 
-    def get_subtask_input_rate_metrics(self) -> dict[str, float]:
+    def get_subtask_input_rate_metrics(self) -> dict[str, int]:
         """
         Get input rates of all subtasks
         :return: Dictionary with subtask as string and input rates as value.
@@ -264,7 +270,7 @@ class PrometheusManager:
         subtask_input_rate = self.__extract_per_subtask_metrics(subtask_input_rate_data)
         return subtask_input_rate
 
-    def getSubtaskOutputRateMetrics(self) -> dict[str, float]:
+    def getSubtaskOutputRateMetrics(self) -> dict[str, int]:
         """
         Get output rates of all subtasks
         :return: Dictionary with subtask as string and output rates as value.
