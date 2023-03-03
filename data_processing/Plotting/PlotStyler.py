@@ -92,6 +92,10 @@ class PlotStyler:
 
         return l_range, r_range
 
+    @staticmethod
+    def get_x_range_of_data_frame():
+        return 0, 140
+
 
     def set_axis_titles(self, axis):
         """

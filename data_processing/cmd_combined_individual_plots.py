@@ -46,6 +46,7 @@ def include_additional_arguments_in_parser(parser):
                              f"Possible values: any subset of {experiment_characteristics}")
     parser.add_argument('--constant_metrics', nargs='*', type=str)
 
+
 def fetch_additional_arguments_From_namespace(args):
     comparison_characteristics = []
     if args.ignore_experiment_characteristics:

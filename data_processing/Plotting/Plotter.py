@@ -72,7 +72,8 @@ def _add_individual_metric_plot_to_axis(axis, metric_name: str, data_frame, metr
     data_column = DataProcessor.interpolate_data_column(data_column)
 
     # Set y-axis ranges
-    l_range, r_range = PlotStyler.get_y_axis_range_of_metric(metric_name, data_column, metric_ranges)
+    l_yrange, r_yrange = PlotStyler.get_y_axis_range_of_metric(metric_name, data_column, metric_ranges)
+    l_xrange, r_xrange = PlotStyler.get_x_range_of_data_frame()
 
     # If no line_color provided, check if metric has a corresponding line_color (returns None if not)
     line_color = plot_styler.get_line_color()
@@ -81,7 +82,8 @@ def _add_individual_metric_plot_to_axis(axis, metric_name: str, data_frame, metr
     else:
         axis.plot(time_column, data_column)
 
-    axis.set_ylim([l_range, r_range])
+    axis.set_ylim([l_yrange, r_yrange])
+    axis.set_xlim([l_xrange, r_xrange])
     axis.grid()
 
     # Set titles of axis
@@ -103,9 +105,11 @@ def plot_experiment_file(
     amount_of_subplots = len(metric_names)
 
     FIG_SIZE = (18, 0.9 * (1 + amount_of_subplots))
-    plot_styler: PlotStyler = PlotStyler(PlotStyler.MetricUnitLocations.TITLE, figure_size=FIG_SIZE)
+    plot_styler: PlotStyler = PlotStyler(PlotStyler.MetricUnitLocations.TITLE, figure_size=FIG_SIZE,
+                                         tick_size=14, label_size=17, title_size=15)
 
-    fig, axs = plot_styler.get_fig_and_axis(amount_of_subplots, sup_title=f"Plot of {experiment_name}")
+    fig, axs = plot_styler.get_fig_and_axis(amount_of_subplots) #, sup_title=f"Plot of {experiment_name}")
+    fig.tight_layout()
 
     for i in range(amount_of_subplots):
         metric_name = metric_names[i]
