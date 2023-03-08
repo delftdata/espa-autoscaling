@@ -53,7 +53,7 @@ class Experiment:
         return Experiment.get_experiment_name_from_data(self.get_query(), self.get_autoscaler(), self.get_mode(),
                                                         self.get_tag())
 
-    def is_similar_experiment(self, other, ignore_query=False, ignore_autoscaler=False, ignore_mode=False,
+    def is_similar_experiment(self, other, ignore_query=False, ignore_autoscaler=False, ignore_autoscaler_config=False, ignore_mode=False,
                               ignore_tag=False):
         """
         Check whether other is a similar experiment as this one.
@@ -62,9 +62,14 @@ class Experiment:
         if type(other) == Experiment:
             is_similar = True
             is_similar = is_similar and (ignore_query or self.get_query() == other.get_query())
-            is_similar = is_similar and (ignore_autoscaler or self.get_autoscaler() == other.get_autoscaler())
+            is_similar = is_similar and (ignore_autoscaler or Autoscalers.get_autoscaler_class(self.get_autoscaler()) ==
+                                         Autoscalers.get_autoscaler_class(other.get_autoscaler()))
+            is_similar = is_similar and (ignore_autoscaler_config or (Autoscalers.get_auto_scaler_label(self.get_autoscaler()) ==
+                                                                      Autoscalers.get_auto_scaler_label(other.get_autoscaler())))
             is_similar = is_similar and (ignore_mode or self.get_mode() == other.get_mode())
             is_similar = is_similar and (ignore_tag or self.get_tag() == other.get_tag())
+
+
             return is_similar
         return False
 

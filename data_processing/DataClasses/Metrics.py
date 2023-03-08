@@ -8,12 +8,12 @@ class Metrics:
 
     # metric_name, (metric_title, unit, range(min, max), line_color)
     metric_data = {
-        "input_rate":           ("Input rate", "rec/s", (0, None), "#696969"),
+        "input_rate":           ("Input rate", "rec/s", (0, 100000), "#696969"),
         "taskmanager":          ("Number of Taskmanagers", "", (0, None), None),
-        "latency":              ("Latency", "seconds", (0, None), None),
+        "latency":              ("Latency", "seconds", (0, 300), None),
         "lag":                  ("Lag", "records", (0, None), None),
         "throughput":           ("Input-throughput", "rec/s", (0, None), None),
-        "input_throughput":     ("Input-throughput", "rec/s", (0, None), None),
+        "input_throughput":     ("Throughput", "rec/s", (0, 100000), None),
         "output_throughput":    ("Output-throughput", "rec/s", (0, None), None),
         "CPU_load":             ("CPU load", "percent", (0, 1), None),
         "backpressure":         ("Backpressure", "ms/s", (0, 1000), None),

@@ -1,7 +1,7 @@
 from DataClasses import ExperimentFile
 
 def get_buckets_of_similar_experiments(experiment_files: [ExperimentFile], ignore_query: bool, ignore_autoscaler: bool,
-                                       ignore_mode: bool, ignore_tag: bool) -> [[ExperimentFile]]:
+                                       ignore_mode: bool, ignore_tag: bool, ignore_autoscaler_config: bool) -> [[ExperimentFile]]:
     """
     Given a list of experiment_files and boolean indicating which experiment characteristics to ignore in similarity
     comparison, return a list containing lists of experiment_files that are deemed to be 'similar' to each other.
@@ -18,7 +18,7 @@ def get_buckets_of_similar_experiments(experiment_files: [ExperimentFile], ignor
         experiment = experiment_file.get_experiment()
         for experiment_file_bucket in experiment_file_buckets:
             experiment_in_bucket = experiment_file_bucket[0].get_experiment()
-            if experiment_in_bucket.is_similar_experiment(experiment, ignore_query, ignore_autoscaler, ignore_mode,
+            if experiment_in_bucket.is_similar_experiment(experiment, ignore_query, ignore_autoscaler, ignore_autoscaler_config, ignore_mode,
                                                           ignore_tag):
                 experiment_file_bucket.append(experiment_file)
                 found_bucket = True

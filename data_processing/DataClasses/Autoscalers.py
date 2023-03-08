@@ -5,13 +5,13 @@ class Autoscalers:
     # autoscaler_name: (title, line_color)
     autoscaler_data = {
         "dhalion": ("Dhalion", "#DB7093"),
-        "dhalion(0.8)": ("Dhalion", "#DB7093"),
+        # "dhalion(0.8)": ("Dhalion", "#DB7093"),
         "ds2": ("DS2", "#6495ED"),
-        "ds2(1.2)": ("DS2", "#6495ED"),
+        # "ds2(1.2)": ("DS2", "#6495ED"),
         "hpa-cpu": ("HPA-CPU", "#D2691E"),
-        "hpa-cpu(0.7)": ("HPA-CPU", "#D2691E"),
+        # "hpa-cpu(0.7)": ("HPA-CPU", "#D2691E"),
         "hpa-varga": ("HPA-Varga", "#49BEAA"),
-        "hpa-varga(0.7)": ("HPA-Varga", "#49BEAA"),
+        # "hpa-varga(0.7)": ("HPA-Varga", "#49BEAA"),
     }
 
     @staticmethod
@@ -40,7 +40,7 @@ class Autoscalers:
                 return Autoscalers.autoscaler_data[autoscaler][0]
             else:
                 # Else take default auto-scaler class title and add the label of the auto-scaler.
-                auto_scaler_label = Autoscalers.get_auto_scaler_label(autoscaler)
+                auto_scaler_label = Autoscalers.get_auto_scaler_label(autoscaler).replace("(", " - ").replace(")", "")
                 autoscaler_title = Autoscalers.autoscaler_data[autoscaler_class][0]
                 return f"{autoscaler_title}{auto_scaler_label}"
         else:

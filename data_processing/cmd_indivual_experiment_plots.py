@@ -27,6 +27,7 @@ def parseArguments():
     parser = argparse.ArgumentParser(description='Plot individual experiments')
     parameters.include_arguments_in_parser(parser)
 
+
     # Fetch results from arguments
     namespace = parser.parse_args()
     parameters.fetch_arguments_from_namespace(namespace)

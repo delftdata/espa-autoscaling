@@ -66,7 +66,8 @@ def plot_and_overlap_data_files(
         PlotWriter.show_plot(plt)
 
 
-def _add_individual_metric_plot_to_axis(axis, metric_name: str, data_frame, metric_ranges: {str, (float, float)}, plot_styler: PlotStyler):
+def _add_individual_metric_plot_to_axis(axis, metric_name: str, data_frame, metric_ranges: {str, (float, float)}, plot_styler: PlotStyler,
+                                        overwrite_axis_limits=True):
     time_column = DataProcessor.get_time_column_from_data_frame(data_frame)
     data_column = DataProcessor.getMetricColumn(metric_name, data_frame)
     data_column = DataProcessor.interpolate_data_column(data_column)
@@ -82,8 +83,16 @@ def _add_individual_metric_plot_to_axis(axis, metric_name: str, data_frame, metr
     else:
         axis.plot(time_column, data_column)
 
+    # If we do not overwrite axis limits, we take the minimum for the left limit and the maximum for the right limit
+    if not overwrite_axis_limits:
+        cur_l_ylim, cur_r_ylim = axis.get_ylim()
+        l_yrange, r_yrange = min(cur_l_ylim, l_yrange), max(cur_r_ylim, r_yrange)
+        cur_l_xlim, cur_r_xlim = axis.get_xlim()
+        l_xrange, r_xrange = min(cur_l_xlim, l_xrange), max(cur_r_xlim, r_xrange)
+
     axis.set_ylim([l_yrange, r_yrange])
     axis.set_xlim([l_xrange, r_xrange])
+
     axis.grid()
 
     # Set titles of axis
@@ -108,7 +117,7 @@ def plot_experiment_file(
     plot_styler: PlotStyler = PlotStyler(PlotStyler.MetricUnitLocations.TITLE, figure_size=FIG_SIZE,
                                          tick_size=14, label_size=17, title_size=15)
 
-    fig, axs = plot_styler.get_fig_and_axis(amount_of_subplots) #, sup_title=f"Plot of {experiment_name}")
+    fig, axs = plot_styler.get_fig_and_axis(amount_of_subplots, sup_title=f"Plot of {experiment_name}")
     fig.tight_layout()
 
     for i in range(amount_of_subplots):
@@ -144,7 +153,8 @@ def plot_multiple_data_files_in_single_file(
         metric_ranges: {str, (float, float)},
         result_filetype: str,
         save_directory=None,
-        experiment_name=None
+        experiment_name=None,
+        plot_similar_metrics_together=False,
 ):
     experiment_file_data_file_mapping = {}
     for experiment_file in experiment_files:
@@ -155,14 +165,13 @@ def plot_multiple_data_files_in_single_file(
         # filter out metrics that are not present in the data_frame
         metric_names = DataProcessor.filter_out_missing_metric_names(metric_names, data_frame)
 
+    total_subplots = len(constant_metric_names) + len(metric_names) * (1 if plot_similar_metrics_together else len(experiment_files))
 
-    tmp_factor = 3
-    FIG_SIZE = (4.2 * tmp_factor, 1.8 * tmp_factor)
+    FIG_SIZE = (12, 0.83 * (1 + total_subplots))
     plot_styler: PlotStyler = PlotStyler(PlotStyler.MetricUnitLocations.TITLE,
-                                         tick_size=14, label_size=17, title_size=15, figure_size=FIG_SIZE)
+                                         tick_size=11, label_size=11, title_size=11, figure_size=FIG_SIZE)
 
     # Create pyplot and style it
-    total_subplots = len(constant_metric_names) + len(metric_names) * len(experiment_files)
     fig, axs = plot_styler.get_fig_and_axis(total_subplots)
     axis_index = 0
 
@@ -193,12 +202,14 @@ def plot_multiple_data_files_in_single_file(
 
     for i in range(len(metric_names)):
         metric_name = metric_names[i]
-        for experiment_file, data_frame in experiment_file_data_file_mapping.items():
+        for j, (experiment_file, data_frame) in enumerate(experiment_file_data_file_mapping.items()):
 
             # Get metricName, Column and Axis (use axs instead of axs[i] if only one metric)
             axis = axs[axis_index] if total_subplots > 1 else axs
-            axis_index += 1
 
+            # If not plotting metrics together: go to next axis after every metric. Else do not do so.
+            if not plot_similar_metrics_together:
+                axis_index += 1
 
             # Set plot style
             plot_styler.set_next_plot_configurations(
@@ -212,8 +223,13 @@ def plot_multiple_data_files_in_single_file(
             )
 
             # Plot plot
-            _add_individual_metric_plot_to_axis(axis, metric_name, data_frame, metric_ranges, plot_styler)
+            _add_individual_metric_plot_to_axis(axis, metric_name, data_frame, metric_ranges, plot_styler,
+                                                overwrite_axis_limits=(j == 0 or not plot_similar_metrics_together))
 
+        # If plotting similar metrics together: go to next axis after plotting all metrics in it.
+        # Else we go to the next axis per metric
+        if plot_similar_metrics_together:
+            axis_index += 1
 
     if save_directory and experiment_name and result_filetype:
         PlotWriter.save_plot(plt, save_directory, experiment_name, extension=result_filetype)
