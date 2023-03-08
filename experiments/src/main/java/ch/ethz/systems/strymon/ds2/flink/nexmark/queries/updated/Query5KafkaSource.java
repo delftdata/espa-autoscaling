@@ -98,7 +98,7 @@ public class Query5KafkaSource {
                     public Long getKey(Bid bid) throws Exception {
                         return bid.auction;
                     }
-                }).timeWindow(Time.minutes(60), Time.minutes(1))
+                }).timeWindow(Time.minutes(10), Time.minutes(1))
                 .aggregate(new CountBids())
                 .name("WindowCount")
                 .uid("WindowCount")
