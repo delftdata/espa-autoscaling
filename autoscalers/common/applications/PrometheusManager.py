@@ -12,12 +12,6 @@ class PrometheusManager:
 
     configurations: Configurations
 
-
-    operator_based_queries = {
-        "idle_time_ms_per_second": "avg(avg_over_time(flink_taskmanager_job_task_idleTimeMsPerSecond[{}s])/1000) by (task_name)",
-        "backpressure_time": "avg(avg_over_time(flink_taskmanager_job_task_backPressuredTimeMsPerSecond [{}s]) / 1000) by (task_name)",
-    }
-
     def __init__(self, configurations: Configurations):
         """
         The constructor of the PrometheusMetricsGather. It requires a Configurations class containing necessary

@@ -27,7 +27,7 @@ spec:
               mountPath: /savepoints
       containers:
         - name: jobmanager
-          image: gsiachamis/flink-nexmark-queries:1.0
+          image: gsiachamis/flink-nexmark-queries:2.0
           imagePullPolicy: Always
           env:
           args: ["standalone-job", "--job-classname", "ch.ethz.systems.strymon.ds2.flink.nexmark.queries.updated.Query11KafkaSource", "--slot-sharing", "true", "--p-bids-source", "${OPERATOR_PARALLELISM}", "--p-window", "${OPERATOR_PARALLELISM}", "--p-sink", "${OPERATOR_PARALLELISM}"]

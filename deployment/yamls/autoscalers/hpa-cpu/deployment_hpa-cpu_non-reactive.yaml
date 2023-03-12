@@ -25,7 +25,7 @@ spec:
     spec:
       containers:
       - name: python-container
-        image: gsiachamis/autoscalers:1.0
+        image: gsiachamis/autoscalers:2.0
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
@@ -65,7 +65,7 @@ spec:
         - name: NONREACTIVE_JOB
           value: "ch.ethz.systems.strymon.ds2.flink.nexmark.queries.updated.Query${QUERY}KafkaSource"
         - name: NONREACTIVE_CONTAINER
-          value: "gsiachamis/flink-nexmark-queries:1.0"
+          value: "gsiachamis/flink-nexmark-queries:2.0"
         - name: NONREACTIVE_SAVEPOINT_TIMEOUT_SECONDS # 60 is default
           value: "60"
         - name: NONREACTIVE_ADJUST_ON_INSUFFICIENT_RESOURCES # true is default
