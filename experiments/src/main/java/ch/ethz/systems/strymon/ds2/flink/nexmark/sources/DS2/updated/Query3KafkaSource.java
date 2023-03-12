@@ -190,7 +190,7 @@ public class Query3KafkaSource {
         public void open(Configuration parameters){
 
             StateTtlConfig ttlConfig = StateTtlConfig
-                    .newBuilder(Time.seconds(600))
+                    .newBuilder(Time.seconds(300))
                     .setUpdateType(StateTtlConfig.UpdateType.OnCreateAndWrite)
                     .setStateVisibility(StateTtlConfig.StateVisibility.NeverReturnExpired)
                     .build();
