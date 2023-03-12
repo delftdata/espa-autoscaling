@@ -28,6 +28,8 @@ import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.state.MapState;
 import org.apache.flink.api.common.state.MapStateDescriptor;
+import org.apache.flink.api.common.state.StateTtlConfig;
+import org.apache.flink.api.common.time.Time;
 import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
 import org.apache.flink.api.common.typeinfo.TypeHint;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
@@ -186,13 +188,21 @@ public class Query3KafkaSource {
 
         @Override
         public void open(Configuration parameters){
+
+            StateTtlConfig ttlConfig = StateTtlConfig
+                    .newBuilder(Time.seconds(600))
+                    .setUpdateType(StateTtlConfig.UpdateType.OnCreateAndWrite)
+                    .setStateVisibility(StateTtlConfig.StateVisibility.NeverReturnExpired)
+                    .build();
+
+
             MapStateDescriptor<Long, Tuple3<String, String, String>> personDescriptor =
             new MapStateDescriptor<Long, Tuple3<String, String, String>>(
                     "person-map",
                     BasicTypeInfo.LONG_TYPE_INFO,
                     new TupleTypeInfo<>(BasicTypeInfo.STRING_TYPE_INFO, BasicTypeInfo.STRING_TYPE_INFO, BasicTypeInfo.STRING_TYPE_INFO)
                    );
-
+            personDescriptor.enableTimeToLive(ttlConfig);
             personMap = getRuntimeContext().getMapState(personDescriptor);
 
             MapStateDescriptor<Long, HashSet<Long>> auctionDescriptor =
@@ -201,7 +211,7 @@ public class Query3KafkaSource {
                     BasicTypeInfo.LONG_TYPE_INFO,
                     TypeInformation.of(new TypeHint<HashSet<Long>>(){})
                    );
-
+            auctionDescriptor.enableTimeToLive(ttlConfig);
             auctionMap = getRuntimeContext().getMapState(auctionDescriptor);
         }
 
