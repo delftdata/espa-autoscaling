@@ -39,7 +39,7 @@ spec:
                --experiment-length ${EXPERIMENT_DURATION} \
                --use-default-configuration False \
                --initial-round-length 10 \
-               --regular-round-length 40 \
-               --max-noise 100000 \
+               --regular-round-length 60 \
+               --max-noise 0 \
                --round-rates 0,${WORKLOAD_CONFIGURATION_0},${WORKLOAD_CONFIGURATION_1} \
                "]
