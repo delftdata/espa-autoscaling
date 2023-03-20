@@ -51,3 +51,7 @@ spec:
           value: "15"
         - name: KUBERNETES_NAMESPACE # default is default
           value: "${NAMESPACE}"
+
+        # DS2 configurations
+        - name: DS2_MAXIMUM_BUSY_TIME # 1.0 is default
+          value: "1.0"

@@ -69,3 +69,7 @@ spec:
           value: "60"
         - name: NONREACTIVE_ADJUST_ON_INSUFFICIENT_RESOURCES # true is default
           value: "true"
+
+        # DS2 configurations
+        - name: DS2_MAXIMUM_BUSY_TIME # 1.0 is default
+          value: "1.0"

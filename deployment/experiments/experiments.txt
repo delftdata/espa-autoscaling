@@ -1,8 +1,2 @@
-3;non-reactive;10;80;ds2;1.2;_;_;cosinus;140;18000;15000;1500;_;jkanis-space;thesis-runs-cos;r9;
-5;non-reactive;10;80;ds2;1.2;_;_;cosinus;140;90000;75000;7500;_;jkanis-space;thesis-runs-cos;r9;
-3;non-reactive;10;80;hpa-cpu;0.7;_;_;cosinus;140;18000;15000;1500;_;jkanis-space;thesis-runs-cos;r9;
-5;non-reactive;10;80;hpa-cpu;0.7;_;_;cosinus;140;90000;75000;7500;_;jkanis-space;thesis-runs-cos;r9;
-3;non-reactive;10;80;dhalion;0.8;_;_;cosinus;140;18000;15000;1500;_;jkanis-space;thesis-runs-cos;r9;
-5;non-reactive;10;80;dhalion;0.8;_;_;cosinus;140;90000;75000;7500;_;jkanis-space;thesis-runs-cos;r9;
-3;non-reactive;10;80;hpa-varga;0.7;_;_;cosinus;140;18000;15000;1500;_;jkanis-space;thesis-runs-cos;r9;
-5;non-reactive;10;80;hpa-varga;0.7;_;_;cosinus;140;90000;75000;7500;_;jkanis-space;thesis-runs-cos;r9;
+3;non-reactive;10;80;ds2;1.2;_;_;cosinus;140;18000;15000;1500;_;jkanis-space;thesis-runs-cos;r10;
+11;non-reactive;15;80;dhalion;0.8;_;_;decrease;140;2500000;_;_;_;jkanis-space;thesis-runs-dec;r10;

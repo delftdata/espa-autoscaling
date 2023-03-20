@@ -29,13 +29,15 @@ class DS2ApplicationManager(ApplicationManager):
                 print(f"Error: could not determine topic corresponding to '{operator}' not found")
         return topic_lag
 
-    def gather_subtask_true_processing_rates(self, subtask_input_rates: dict[str, int] = None, subtask_busy_times: dict[str, float] = None) \
-            -> dict[str, int]:
+    def gather_subtask_true_processing_rates(self, subtask_input_rates: dict[str, int] = None, subtask_busy_times: dict[str, float] = None,
+                                             maximum_busy_time: float = 1.0) -> dict[str, int]:
         """
         Get the true processing rate of every operator (subtask). This is calculated by dividing the input rate with the operators busy
         time.
         :param subtask_input_rates: Input rate of every operator (subtask).
         :param subtask_busy_times: Busy time of every operator (subtask).
+        :param maximum_busy_time: Maximum value of the busy time. Used to get an accurate estimation of the maximum busy time of the
+        operator. Value should be between 0 and 1 for correct result. subtask_busy_time = subtask_busy_time / maximum_busy_time
         :return: ictionary with as str the operator's (subtask's) name and as value the true processing rate.
         """
         if not subtask_input_rates:
@@ -49,19 +51,26 @@ class DS2ApplicationManager(ApplicationManager):
                                                                         f"{subtask_input_rates}"):
                 subtask_input_rate = subtask_input_rates[subtask]
                 subtask_busy_time = subtask_busy_times[subtask]
-                if subtask_busy_time != 0:
-                    subtask_true_processing_rate = (subtask_input_rate / subtask_busy_time)
+
+                # Correct for possibly wrong assumption of maximum busy time being 1.0
+                corrected_subtask_busy_time = subtask_busy_time / maximum_busy_time
+
+                if corrected_subtask_busy_time != 0:
+                    subtask_true_processing_rate = (subtask_input_rate / corrected_subtask_busy_time)
                 else:
                     subtask_true_processing_rate = 0
                 subtask_true_processing_rates[subtask] = subtask_true_processing_rate
         return subtask_true_processing_rates
 
-    def gather_subtask_true_output_rates(self, subtask_output_rates: dict[str, int] = None, subtask_busy_times: dict[str, float] = None) \
+    def gather_subtask_true_output_rates(self, subtask_output_rates: dict[str, int] = None, subtask_busy_times: dict[str, float] = None,
+                                         maximum_busy_time: float = 1.0) \
             -> dict[str, int]:
         """
         Get the true output rate of every operator (subtask). This is calculated by dividing the input rate with the operator's busy time.
         :param subtask_output_rates: The output rate of every operator (subtask).
         :param subtask_busy_times: The busy time of every operator (subtask).
+        :param maximum_busy_time: Maximum value of the busy time. Used to get an accurate estimation of the maximum busy time of the
+        operator. Value should be between 0 and 1 for correct result. subtask_busy_time = subtask_busy_time / maximum_busy_time
         :return: Dictionary with as str the operator's (subtask's) name and as value the true output rate.
         """
         if not subtask_output_rates:
@@ -75,8 +84,12 @@ class DS2ApplicationManager(ApplicationManager):
                                                                         f"{subtask_output_rates}"):
                 subtask_output_rate = subtask_output_rates[subtask]
                 subtask_busy_time = subtask_busy_times[subtask]
-                if subtask_busy_time != 0:
-                    subtask_true_output_rates[subtask] = subtask_output_rate / subtask_busy_time
+
+                # Correct for possibly wrong assumption of maximum busy time being 1.0
+                corrected_subtask_busy_time = subtask_busy_time / maximum_busy_time
+
+                if corrected_subtask_busy_time != 0:
+                    subtask_true_output_rates[subtask] = subtask_output_rate / corrected_subtask_busy_time
                 else:
                     subtask_true_output_rates[subtask] = 0
         return subtask_true_output_rates
