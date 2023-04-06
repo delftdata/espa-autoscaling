@@ -86,11 +86,22 @@ class PlotStyler:
         if metric_name in metric_ranges:
             l_range, r_range = metric_ranges[metric_name]
 
-            # if None, set range to 1.2 * minimum/maximum value of column
-        l_range = l_range or 1.2 * min(metric_column)
-        r_range = r_range or 1.2 * max(metric_column)
+        # if None, set range to 1.2 * minimum/maximum value of column
+        max_value = max(metric_column)
+        min_value = min(metric_column)
+        l_range = 1.2 * min_value if l_range is None else l_range
+        if l_range > min_value and l_range > 0:
+            l_range = min_value
+
+        r_range = 1.2 * max_value if r_range is None else r_range
+        if r_range < max_value:
+            r_range = max_value
 
         return l_range, r_range
+
+    @staticmethod
+    def get_x_range_of_data_frame():
+        return 0, 140
 
 
     def set_axis_titles(self, axis):

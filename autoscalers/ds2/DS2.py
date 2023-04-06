@@ -242,16 +242,25 @@ class DS2(Autoscaler):
         operator_parallelisms: {str, int} = self.application_manager.fetch_current_operator_parallelism_information(self.operators)
         subtask_input_rates: {str, int} = self.application_manager.gather_subtask_input_rates()
         subtask_output_rates: {str, int} = self.application_manager.gather_subtask_output_rates()
+
+        subtask_busy_times = self.application_manager.gather_subtask_busy_times()
         subtask_true_processing_rates: {str, float} = self.application_manager.gather_subtask_true_processing_rates(
-            subtask_input_rates=subtask_input_rates)
+            subtask_busy_times=subtask_busy_times,
+            subtask_input_rates=subtask_input_rates,
+            maximum_busy_time=self.configurations.DS2_MAXIMUM_BUSY_TIME
+        )
         subtask_true_output_rates: {str, int} = self.application_manager.gather_subtask_true_output_rates(
-            subtask_output_rates=subtask_output_rates)
+            subtask_busy_times=subtask_busy_times,
+            subtask_output_rates=subtask_output_rates,
+            maximum_busy_time=self.configurations.DS2_MAXIMUM_BUSY_TIME
+        )
 
         self.application_manager.print_metrics({
             "topic_kafka_input_rates": topic_kafka_input_rates,
             "operator_parallelisms": operator_parallelisms,
             "subtask_input_rates": subtask_input_rates,
             "subtask_output_rates": subtask_output_rates,
+            "subtask_busy_times": subtask_busy_times,
             "subtask_true_processing_rates": subtask_true_processing_rates,
             "subtask_true_output_rates": subtask_true_output_rates,
         })

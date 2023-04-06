@@ -16,14 +16,13 @@
  * limitations under the License.
  */
 
-package ch.ethz.systems.strymon.ds2.flink.nexmark.queries.updated;
+package ch.ethz.systems.strymon.ds2.flink.nexmark.sources.DS2.updated;
 
 import ch.ethz.systems.strymon.ds2.common.BidDeserializationSchema;
 import ch.ethz.systems.strymon.ds2.flink.nexmark.sinks.DummyLatencyCountingSink;
 import org.apache.beam.sdk.nexmark.model.Bid;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
-import org.apache.flink.api.common.functions.AggregateFunction;
-import org.apache.flink.api.java.functions.KeySelector;
+import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.typeutils.GenericTypeInfo;
 import org.apache.flink.api.java.utils.ParameterTool;
@@ -31,18 +30,14 @@ import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.AssignerWithPeriodicWatermarks;
-import org.apache.flink.streaming.api.watermark.Watermark;
-import org.apache.flink.streaming.api.windowing.time.Time;
+import org.apache.flink.util.Collector;
 import org.apache.kafka.clients.consumer.OffsetResetStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
+public class Query2KafkaSource {
 
-public class Query5KafkaSource {
-
-    private static final Logger logger  = LoggerFactory.getLogger(Query5KafkaSource.class);
+    private static final Logger logger  = LoggerFactory.getLogger(Query2KafkaSource.class);
 
     public static void main(String[] args) throws Exception {
 
@@ -51,23 +46,23 @@ public class Query5KafkaSource {
 
         final String sourceSSG;
         final String sinkSSG;
-        final String windowSSG;
+        final String filterSSG;
 
         if(params.getBoolean("slot-sharing", false)){
             sourceSSG = "Source";
             sinkSSG = "Sink";
-            windowSSG = "WindowedAggregation";
+            filterSSG = "Filter";
         }
         else{
             sourceSSG = "default";
             sinkSSG = "default";
-            windowSSG = "default";
+            filterSSG = "default";
         }
 
         // set up the execution environment
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-        env.getConfig().setAutoWatermarkInterval(1000);
+        env.disableOperatorChaining();
 
         // enable latency tracking
         // env.getConfig().setLatencyTrackingInterval(5000);
@@ -81,80 +76,40 @@ public class Query5KafkaSource {
                         .setStartingOffsets(OffsetsInitializer.committedOffsets(OffsetResetStrategy.EARLIEST))
                         .setValueOnlyDeserializer(new BidDeserializationSchema())
                         .build();
-
+        
         DataStream<Bid> bids = env.fromSource(source, WatermarkStrategy.noWatermarks(), "BidsSource")
-                .slotSharingGroup(sourceSSG)
-                .setParallelism(params.getInt("p-bids-source", 1))
-                .assignTimestampsAndWatermarks(new TimestampAssigner())
-                .slotSharingGroup(sourceSSG)
-                .uid("BidsSource")
-                .name("BidsTimestampAssigner");
+                                    .slotSharingGroup(sourceSSG)
+                                    .setParallelism(params.getInt("p-bids-source", 1))
+                                    .name("BidsSource")
+                                    .uid("BidsSource");
 
-        // SELECT B1.auction, count(*) AS num
-        // FROM Bid [RANGE 60 MINUTE SLIDE 1 MINUTE] B1
-        // GROUP BY B1.auction
-        DataStream<Tuple2<Long, Long>> windowed = bids.keyBy(new KeySelector<Bid, Long>() {
+        // SELECT Rstream(auction, price)
+        // FROM Bid [NOW]
+        // WHERE auction = 1007 OR auction = 1020 OR auction = 2001 OR auction = 2019 OR auction = 2087;
+
+        DataStream<Tuple2<Long, Long>> converted = bids
+                .flatMap(new FlatMapFunction<Bid, Tuple2<Long, Long>>() {
                     @Override
-                    public Long getKey(Bid bid) throws Exception {
-                        return bid.auction;
+                    public void flatMap(Bid bid, Collector<Tuple2<Long, Long>> out) throws Exception {
+                        if(bid.auction % 1007 == 0 || bid.auction % 1020 == 0 || bid.auction % 2001 == 0 || bid.auction % 2019 == 0 || bid.auction % 2087 == 0) {
+                            out.collect(new Tuple2<>(bid.auction, bid.price));
+                        }
                     }
-                }).timeWindow(Time.minutes(60), Time.minutes(1))
-                .aggregate(new CountBids())
-                .name("WindowCount")
-                .uid("WindowCount")
-                .setParallelism(params.getInt("p-window", 1))
-                .slotSharingGroup(windowSSG);
+                })
+                .slotSharingGroup(filterSSG)
+                .setParallelism(params.getInt("p-flatMap", 1))
+                .name("Flatmap")
+                .uid("Flatmap");
 
         GenericTypeInfo<Object> objectTypeInfo = new GenericTypeInfo<>(Object.class);
-        windowed.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
-                .setParallelism(params.getInt("p-sink", 1))
+        converted.transform("DummyLatencySink", objectTypeInfo, new DummyLatencyCountingSink<>(logger))
                 .slotSharingGroup(sinkSSG)
+                .setParallelism(params.getInt("p-sink", 1))
                 .name("LatencySink")
                 .uid("LatencySink");
 
         // execute program
-        env.execute("Nexmark Query5 with a Kafka Source");
+        env.execute("Nexmark Query2 with a Kafka Source");
     }
 
-    private static final class TimestampAssigner implements AssignerWithPeriodicWatermarks<Bid> {
-        private long maxTimestamp = Long.MIN_VALUE;
-
-        @Nullable
-        @Override
-        public Watermark getCurrentWatermark() {
-            return new Watermark(maxTimestamp);
-        }
-
-        @Override
-        public long extractTimestamp(Bid element, long previousElementTimestamp) {
-            maxTimestamp = Math.max(maxTimestamp, element.dateTime);
-            return element.dateTime;
-        }
-    }
-
-    private static final class CountBids implements AggregateFunction<Bid, Long, Tuple2<Long, Long>> {
-
-        private long auction = 0L;
-
-        @Override
-        public Long createAccumulator() {
-            return 0L;
-        }
-
-        @Override
-        public Long add(Bid value, Long accumulator) {
-            auction = value.auction;
-            return accumulator + 1;
-        }
-
-        @Override
-        public Tuple2<Long, Long> getResult(Long accumulator) {
-            return new Tuple2<>(auction, accumulator);
-        }
-
-        @Override
-        public Long merge(Long a, Long b) {
-            return a + b;
-        }
-    }
 }

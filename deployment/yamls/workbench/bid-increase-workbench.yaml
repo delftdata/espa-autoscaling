@@ -1,4 +1,7 @@
-# Requires: INPUT_RATE_MEAN (initial-input-rate), INPUT_RATE_MAX_DIVERGENCE (total-rate-increase, over 140 minutes)
+# Requires:
+# EXPERIMENT_DURATION
+# WORKLOAD_CONFIGURATION_0: INPUT_RATE_MEAN (initial-input-rate),
+# WORKLOAD_CONFIGURATION_1: INPUT_RATE_MAX_DIVERGENCE
 kind: Deployment
 apiVersion: apps/v1
 metadata:
@@ -25,4 +28,4 @@ spec:
             cpu: 24000m
             memory: 24000Mi
         env:
-        args: ["mvn", "exec:java", "-Dexec.mainClass=ch.ethz.systems.strymon.ds2.flink.nexmark.sources.BidPersonGeneratorKafka", "-Dexec.args=--generator-parallelism 48 --enable-bids-topic true --load-pattern increase --use-default-configuration false --initial-input-rate ${INPUT_RATE_MEAN} --total-rate-increase ${INPUT_RATE_MAX_DIVERGENCE}"]
+        args: ["mvn", "exec:java", "-Dexec.mainClass=ch.ethz.systems.strymon.ds2.flink.nexmark.sources.BidPersonGeneratorKafka", "-Dexec.args=--generator-parallelism 48 --enable-bids-topic true --load-pattern increase  --experiment-length ${EXPERIMENT_DURATION} --use-default-configuration false --initial-input-rate ${WORKLOAD_CONFIGURATION_0} --total-rate-increase ${WORKLOAD_CONFIGURATION_1}"]

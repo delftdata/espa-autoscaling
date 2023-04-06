@@ -34,9 +34,6 @@ def get_shared_metrics_from_dataframes(metric_names: [str], dataframes):
         metric_names = filter_out_missing_metric_names(metric_names, dataframe)
     return metric_names
 
-
-
-
 def filter_out_missing_metric_names(metric_names, data, print_missing_metrics=False):
     existing_metric_names = []
     for metric_name in metric_names:
@@ -54,33 +51,56 @@ def interpolate_data_column(data_column):
     return data_column
 
 
-# Calculate metrics
-def __get_average_metric_from_dataframe(data_frame, metric_name):
-    metric_column = getMetricColumn(metric_name, data_frame)
-    metric_column = metric_column[~np.isnan(metric_column)]
-    return sum(metric_column) / len(metric_column)
-
-
-def get_average_metrics_from_dataframe(data_frame, metric_names: [str]):
+def get_maximum_metrics_from_dataframe(data_frame, metric_names: [str]) -> [float]:
+    """
+    Get the maximum of the provided metrics of the data in the provided data_frame
+    :param data_frame: Data_frame containing metric data to calculate maximum from.
+    :param metric_names: Column names representing the metrics the maximum should be calculated from.
+    :return: A list of maximum metrics of the provided data_frame
+    """
     metric_names = filter_out_missing_metric_names(metric_names, data_frame)
     results = []
-    for metric in metric_names:
-        results.append(__get_average_metric_from_dataframe(data_frame, metric))
+    for metric_name in metric_names:
+        metric_column = getMetricColumn(metric_name, data_frame)
+        metric_column = metric_column[~np.isnan(metric_column)]
+        max_result = max(metric_column)
+        results.append(max_result)
     return results
 
 
-# Calculate metrics
-def __get_maximum_metric_from_dataframe(data_frame, metric_name):
-    metric_column = getMetricColumn(metric_name, data_frame)
-    metric_column = metric_column[~np.isnan(metric_column)]
-    return max(metric_column)
-
-
-def get_maximum_metrics_from_dataframe(data_frame, metric_names: [str]):
+def get_average_metrics_from_dataframe(data_frame, metric_names: [str]) -> [float]:
+    """
+    Get the average of the provided metrics of the data in the provided data_frame
+    :param data_frame: Data_frame containing metric data to calculate average from.
+    :param metric_names: Column names representing the metrics the average should be calculated from.
+    :return: A list of average metrics of the provided data_frame
+    """
     metric_names = filter_out_missing_metric_names(metric_names, data_frame)
     results = []
-    for metric in metric_names:
-        results.append(__get_maximum_metric_from_dataframe(data_frame, metric))
+    for metric_name in metric_names:
+        metric_column = getMetricColumn(metric_name, data_frame)
+        metric_column = metric_column[~np.isnan(metric_column)]
+        avg_result = sum(metric_column) / len(metric_column)
+        results.append(avg_result)
+    return results
+
+
+def get_percentile_metrics_from_dataframe(data_frame, metric_names: [str], percentile: int) -> [float]:
+    """
+    Get the percentile of the provided metrics of the data in the provided data_frame
+    :param data_frame: Data_frame containing metric data to calculate percentile from.
+    :param metric_names: Column names representing the metrics the percentile should be calculated from.
+    :param percentile:
+    :return: A list of percentiles of the provided data_frame
+    """
+    metric_names = filter_out_missing_metric_names(metric_names, data_frame)
+    results = []
+    for metric_name in metric_names:
+        metric_column = getMetricColumn(metric_name, data_frame)
+        metric_column = interpolate_data_column(metric_column)
+        percentile_result = np.percentile(metric_column, percentile)
+
+        results.append(percentile_result)
     return results
 
 

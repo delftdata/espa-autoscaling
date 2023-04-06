@@ -40,7 +40,7 @@ class SingleFolderPlotParameters(PlotParameters):
         """
         return self.__plot_folder_name
 
-    def __set_plot_folder_name(self, plot_folder_name: str):
+    def set_plot_folder_name(self, plot_folder_name: str):
         """
         Set plot_folder_name to plot_folder_name
         """
@@ -131,7 +131,7 @@ class SingleFolderPlotParameters(PlotParameters):
             # if plot_folder_name provided is provided
             if plot_folder_name:
                 # set plot_folder_name
-                self.__set_plot_folder_name(plot_folder_name)
+                self.set_plot_folder_name(plot_folder_name)
 
         def fetch_plot_postfix_label_from_namespace(args: argparse.Namespace):
             plot_postfix_label = args.plot_postfix_label

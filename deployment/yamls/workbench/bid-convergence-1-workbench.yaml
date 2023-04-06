@@ -1,0 +1,45 @@
+# REQUIRES: INPUT_RATE_MEAN, INPUT_RATE_MAX_DIVERGENCE, EXPERIMENT_DURATION
+# EXPERIMENT_DURATION
+# WORKLOAD_CONFIGURATION_0: round-rate-1
+# WORKLOAD_CONFIGURATION_1: round-rate-2
+# WORKLOAD_CONFIGURATION_2: undef
+# WORKLOAD_CONFIGURATION_3: undef
+
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: workbench
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: workbench
+  template:
+    metadata:
+      labels:
+        app: workbench
+    spec:
+      containers:
+      - name: workbench-container
+        image: gsiachamis/workbench:3.0
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: 18000m
+            memory: 18000Mi
+          limits:
+            cpu: 18000m
+            memory: 18000Mi
+        env:
+        args: ["mvn", "exec:java", "-Dexec.mainClass=ch.ethz.systems.strymon.ds2.flink.nexmark.sources.BidPersonGeneratorKafka",
+               "-Dexec.args= \
+               --generator-parallelism 36 \
+               --enable-bids-topic true \
+               --load-pattern convergence \
+               --experiment-length ${EXPERIMENT_DURATION} \
+               --use-default-configuration False \
+               --initial-round-length 10 \
+               --regular-round-length 60 \
+               --max-noise 0 \
+               --round-rates 0,${WORKLOAD_CONFIGURATION_0},${WORKLOAD_CONFIGURATION_1} \
+               "]

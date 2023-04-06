@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Experiment configurations to run the experiments in
-file0=../experiments/experiments.txt
+EXPERIMENT_FILE=../experiments/experiments.txt
 
 # input
 line=""
@@ -11,10 +11,15 @@ MODE=""
 INITIAL_PARALLELISM=""
 AVAILABLE_TASKMANAGERS=""
 AUTOSCALER=""
-AUTOSCALER_CONFIGURATION=""
+AUTOSCALER_CONFIGURATION_0=""
+AUTOSCALER_CONFIGURATION_1=""
+AUTOSCALER_CONFIGURATION_2=""
 LOAD_PATTERN=""
-INPUT_RATE_MEAN=""
-INPUT_RATE_MAX_DIVERGENCE=""
+EXPERIMENT_DURATION=""
+WORKLOAD_CONFIGURATION_0=""
+WORKLOAD_CONFIGURATION_1=""
+WORKLOAD_CONFIGURATION_2=""
+WORKLOAD_CONFIGURATION_3=""
 NAMESPACE=""
 EXPERIMENT_LABEL=""
 # Additional identifier of an experiment that adds [{EXPIMENT_TAG}] to the identifier. This can be used to distinguish
@@ -28,10 +33,15 @@ function parseLine() {
   INITIAL_PARALLELISM=""
   AVAILABLE_TASKMANAGERS=""
   AUTOSCALER=""
-  AUTOSCALER_CONFIGURATION=""
+  AUTOSCALER_CONFIGURATION_0=""
+  AUTOSCALER_CONFIGURATION_1=""
+  AUTOSCALER_CONFIGURATION_2=""
   LOAD_PATTERN=""
-  INPUT_RATE_MEAN=""
-  INPUT_RATE_MAX_DIVERGENCE=""
+  EXPERIMENT_DURATION=""
+  WORKLOAD_CONFIGURATION_0=""
+  WORKLOAD_CONFIGURATION_1=""
+  WORKLOAD_CONFIGURATION_2=""
+  WORKLOAD_CONFIGURATION_3=""
   NAMESPACE=""
   EXPERIMENT_LABEL=""
   EXPERIMENT_TAG=""
@@ -39,40 +49,55 @@ function parseLine() {
   for w in $(echo "$line" | tr ";" "\n"); do
     if [ "$i" -eq 0 ]
     then
-      QUERY="$w"
+      QUERY="${w}"
     elif [ "$i" -eq 1 ]
     then
-      MODE="$w"
+      MODE="${w}"
     elif [ "$i" -eq 2 ]
     then
-      INITIAL_PARALLELISM="$w"
+      INITIAL_PARALLELISM="${w}"
     elif [ "$i" -eq 3 ]
     then
-      AVAILABLE_TASKMANAGERS="$w"
+      AVAILABLE_TASKMANAGERS="${w}"
     elif [ "$i" -eq 4 ]
     then
       AUTOSCALER="$w"
     elif [ "$i" -eq 5 ]
     then
-      AUTOSCALER_CONFIGURATION="$w"
-    elif [ "$i" -eq 6 ]
+      AUTOSCALER_CONFIGURATION_0="${w}"
+    elif [ "${i}" -eq 6 ]
     then
-      LOAD_PATTERN="$w"
-    elif [ "$i" -eq 7 ]
+      AUTOSCALER_CONFIGURATION_1="${w}"
+    elif [ "${i}" -eq 7 ]
     then
-      INPUT_RATE_MEAN="$w"
-    elif [ "$i" -eq 8 ]
+      AUTOSCALER_CONFIGURATION_2="${w}"
+    elif [ "${i}" -eq 8 ]
     then
-      INPUT_RATE_MAX_DIVERGENCE="$w"
-    elif [ "$i" -eq 9 ]
+      LOAD_PATTERN="${w}"
+    elif [ "${i}" -eq 9 ]
     then
-      NAMESPACE="$w"
-    elif [ "$i" -eq 10 ]
+      EXPERIMENT_DURATION="${w}"
+    elif [ "${i}" -eq 10 ]
     then
-      EXPERIMENT_LABEL="$w"
-    elif [ "$i" -eq 11 ]
+      WORKLOAD_CONFIGURATION_0="${w}"
+    elif [ "${i}" -eq 11 ]
     then
-      EXPERIMENT_TAG="$w"
+      WORKLOAD_CONFIGURATION_1="${w}"
+        elif [ "${i}" -eq 12 ]
+    then
+      WORKLOAD_CONFIGURATION_2="${w}"
+        elif [ "${i}" -eq 13 ]
+    then
+      WORKLOAD_CONFIGURATION_3="${w}"
+    elif [ "${i}" -eq 14 ]
+    then
+      NAMESPACE="${w}"
+    elif [ "${i}" -eq 15 ]
+    then
+      EXPERIMENT_LABEL="${w}"
+    elif [ "${i}" -eq 16 ]
+    then
+      EXPERIMENT_TAG="${w}"
     fi
     i=$((i+1))
   done
@@ -80,31 +105,69 @@ function parseLine() {
 
 function deployExperiment() {
     parseLine
-    echo "Deploying experiment with QUERY=$QUERY MODE=$MODE INITIAL_PARALLELISM=$INITIAL_PARALLELISM AVAILABLE_TASKMANAGERS=$AVAILABLE_TASKMANAGERS AUTOSCALER=$AUTOSCALER AUTOSCALER_CONFIGURATION=$AUTOSCALER_CONFIGURATION LOAD_PATTERN=$LOAD_PATTERN INPUT_RATE_MEAN=$INPUT_RATE_MEAN INPUT_RATE_MAX_DIVERGENCE=$INPUT_RATE_MAX_DIVERGENCE NAMESPACE=$NAMESPACE"
-    source ./deploy_experiment.sh "$QUERY" "$MODE" "$INITIAL_PARALLELISM" "$AVAILABLE_TASKMANAGERS" "$AUTOSCALER" "$AUTOSCALER_CONFIGURATION" "$LOAD_PATTERN" "$INPUT_RATE_MEAN" "$INPUT_RATE_MAX_DIVERGENCE" "$NAMESPACE"
+    echo "Deploying experiment with
+      QUERY=${QUERY}  MODE=${MODE}
+      INITIAL_PARALLELISM=${INITIAL_PARALLELISM} AVAILABLE_TASKMANAGERS=${AVAILABLE_TASKMANAGERS}
+      AUTOSCALER=${AUTOSCALER}[${AUTOSCALER_CONFIGURATION_0},${AUTOSCALER_CONFIGURATION_1},${AUTOSCALER_CONFIGURATION_2}]
+      LOAD_PATTERN=${LOAD_PATTERN}[${EXPERIMENT_DURATION},${WORKLOAD_CONFIGURATION_0},${WORKLOAD_CONFIGURATION_1},${WORKLOAD_CONFIGURATION_2},${WORKLOAD_CONFIGURATION_3}
+      NAMESPACE=${NAMESPACE}
+      "
+
+    source ./deploy_experiment.sh  \
+      "${QUERY}" \
+      "${MODE}" \
+      "${INITIAL_PARALLELISM}" \
+      "${AVAILABLE_TASKMANAGERS}" \
+      "${AUTOSCALER}" \
+      "${AUTOSCALER_CONFIGURATION_0}" \
+      "${AUTOSCALER_CONFIGURATION_1}" \
+      "${AUTOSCALER_CONFIGURATION_2}" \
+      "${LOAD_PATTERN}" \
+      "${EXPERIMENT_DURATION}" \
+      "${WORKLOAD_CONFIGURATION_0}" \
+      "${WORKLOAD_CONFIGURATION_1}" \
+      "${WORKLOAD_CONFIGURATION_2}" \
+      "${WORKLOAD_CONFIGURATION_3}" \
+      "${NAMESPACE}"
 }
 
 function fetchExperiments() {
     parseLine
-    echo "Fetching data from QUERY=$QUERY MODE=$MODE  LOAD_PATTERN=$LOAD_PATTERN AUTOSCALER=$AUTOSCALER AUTOSCALER_CONFIGURATION=$AUTOSCALER_CONFIGURATION EXPERIMENT_LABEL=$EXPERIMENT_LABEL EXPERIMENT_TAG=$EXPERIMENT_TAG"
-    source ./fetch_experiment_results.sh "$QUERY" "$MODE" "$LOAD_PATTERN" "$AUTOSCALER" "$AUTOSCALER_CONFIGURATION" "$EXPERIMENT_LABEL" "$EXPERIMENT_TAG"
+
+    AUTOSCALER_CONFIGURATION_NAME="${AUTOSCALER_CONFIGURATION_0},${AUTOSCALER_CONFIGURATION_1},${AUTOSCALER_CONFIGURATION_2}"
+    # shellcheck disable=SC2026
+    AUTOSCALER_CONFIGURATION_NAME=$(echo "${AUTOSCALER_CONFIGURATION_NAME}" | sed 's/_//'g | sed 's/,$//' | sed 's/,$//')
+    if [ "${AUTOSCALER_CONFIGURATION_NAME}" == "" ]
+    then
+      AUTOSCALER_CONFIGURATION_NAME="-"
+    fi
+
+    echo "Fetching data from
+      QUERY=${QUERY}  MODE=${MODE}
+      LOAD_PATTERN=${LOAD_PATTERN}  EXPERIMENT_DURATION=${EXPERIMENT_DURATION}
+      AUTOSCALER=${AUTOSCALER}  AUTOSCALER_CONFIGURATION_NAME=${AUTOSCALER_CONFIGURATION_NAME}
+      EXPERIMENT_LABEL=${EXPERIMENT_LABEL}  EXPERIMENT_TAG=${EXPERIMENT_TAG}
+      "
+
+    source ./fetch_experiment_results.sh "${QUERY}" "${MODE}" "${LOAD_PATTERN}" "${EXPERIMENT_DURATION}" "${AUTOSCALER}" \
+      "${AUTOSCALER_CONFIGURATION_NAME}" "${EXPERIMENT_LABEL}" "${EXPERIMENT_TAG}"
 }
 
 function undeployExperiments() {
   parseLine
-  echo "Undeploying experiment with QUERY=$QUERY MODE=$MODE AUTOSCALER=$AUTOSCALER NAMESPACE=$NAMESPACE"
-  source ./undeploy_experiment.sh "$QUERY" "$MODE" "$AUTOSCALER" "$NAMESPACE"
+  echo "Undeploying experiment with QUERY=${QUERY} MODE=${MODE} AUTOSCALER=${AUTOSCALER} NAMESPACE=${NAMESPACE}"
+  source ./undeploy_experiment.sh "${QUERY}" "${MODE}" "${AUTOSCALER}" "${NAMESPACE}"
 }
 
-paste -d@ $file0 | while IFS="@" read -r e0
+paste -d@ ${EXPERIMENT_FILE} | while IFS="@" read -r e0
 do
-  line="$e0"
+  line="${e0}"
 
   echo "Deploying all containers"
   deployExperiment
   echo "Finished deploying all containers"
 
-  sleep 140m
+  sleep "${EXPERIMENT_DURATION}"m
 
   echo "Collect all data"
   fetchExperiments

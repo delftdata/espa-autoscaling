@@ -53,7 +53,7 @@ class Experiment:
         return Experiment.get_experiment_name_from_data(self.get_query(), self.get_autoscaler(), self.get_mode(),
                                                         self.get_tag())
 
-    def is_similar_experiment(self, other, ignore_query=False, ignore_autoscaler=False, ignore_mode=False,
+    def is_similar_experiment(self, other, ignore_query=False, ignore_autoscaler=False, ignore_autoscaler_config=False, ignore_mode=False,
                               ignore_tag=False):
         """
         Check whether other is a similar experiment as this one.
@@ -62,9 +62,14 @@ class Experiment:
         if type(other) == Experiment:
             is_similar = True
             is_similar = is_similar and (ignore_query or self.get_query() == other.get_query())
-            is_similar = is_similar and (ignore_autoscaler or self.get_autoscaler() == other.get_autoscaler())
+            is_similar = is_similar and (ignore_autoscaler or Autoscalers.get_autoscaler_class(self.get_autoscaler()) ==
+                                         Autoscalers.get_autoscaler_class(other.get_autoscaler()))
+            is_similar = is_similar and (ignore_autoscaler_config or (Autoscalers.get_auto_scaler_label(self.get_autoscaler()) ==
+                                                                      Autoscalers.get_auto_scaler_label(other.get_autoscaler())))
             is_similar = is_similar and (ignore_mode or self.get_mode() == other.get_mode())
             is_similar = is_similar and (ignore_tag or self.get_tag() == other.get_tag())
+
+
             return is_similar
         return False
 
@@ -136,20 +141,25 @@ class Experiment:
         Returns None if the name is invalid
         """
         # if name contains ']"
-        contains_tag = False
         if "]" in experiment_name:
             # contains tag
-            contains_tag = True
-            experiment_name = experiment_name.replace("[", "")
-            experiment_name = experiment_name.replace("]", "_")
+            tag_split = experiment_name.replace("[", "").split("]")
+            if len(tag_split) == 2:
+                tag = tag_split[0]
+                experiment_name = tag_split[1]
+            else:
+                print(f"Error: wrong amount of tag_split information present information present in experiment_name "
+                      f"'{experiment_name}': '{tag_split}'. Returning None.")
+                return None
+        else:
+            tag = ""
 
         data_points = experiment_name.split("_")
-        if len(data_points) < 2 + contains_tag:
+        if len(data_points) < 2:
             print(
                 f"Error: not enough information can be subtracted from experiment_name '{experiment_name}. Returning None")
             return None
 
-        tag = data_points.pop(0) if contains_tag else ""
         query = data_points.pop(0).replace("q", "")
         autoscaler = data_points.pop(0)
         mode = data_points.pop(0) if len(data_points) >= 2 else ""

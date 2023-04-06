@@ -29,4 +29,4 @@ spec:
             cpu: 18000m
             memory: 18000Mi
         env:
-        args: ["mvn", "exec:java", "-Dexec.mainClass=ch.ethz.systems.strymon.ds2.flink.nexmark.sources.BidPersonGeneratorKafka", "-Dexec.args=--generator-parallelism 36 --enable-bids-topic true --load-pattern cosine  --experiment-length ${EXPERIMENT_DURATION} --use-default-configuration false --cosine-period 60 --input-rate-mean ${WORKLOAD_CONFIGURATION_0} --input-rate-maximum-divergence ${WORKLOAD_CONFIGURATION_1} --max-noise ${WORKLOAD_CONFIGURATION_2}"]
+        args: ["mvn", "exec:java", "-Dexec.mainClass=ch.ethz.systems.strymon.ds2.flink.nexmark.sources.BidPersonGeneratorKafka", "-Dexec.args=--generator-parallelism 36 --enable-person-topic true --enable-auction-topic true --load-pattern cosine  --experiment-length ${EXPERIMENT_DURATION} --use-default-configuration false --cosine-period 60 --input-rate-mean ${WORKLOAD_CONFIGURATION_0} --input-rate-maximum-divergence ${WORKLOAD_CONFIGURATION_1} --max-noise ${WORKLOAD_CONFIGURATION_2}"]

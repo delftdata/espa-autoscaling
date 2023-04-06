@@ -1,4 +1,10 @@
-# Requires: AVAILABLE_TASKMANAGERS, QUERY, CONFIGURATION
+# AVAILABLE_TASKMANAGERS
+# QUERY
+# NAMESPACE
+# AUTOSCALER_CONFIGURATION_0 = OVERPROVISIONING_FACTOR
+# AUTOSCALER_CONFIGURATION_1 = COOLDOWN_PERIOD_SECONDS
+# AUTOSCALER_CONFIGURATION_2 = undef
+
 kind: Deployment
 apiVersion: apps/v1
 metadata:
@@ -18,7 +24,7 @@ spec:
     spec:
       containers:
       - name: python-container
-        image: gsiachamis/autoscalers:1.0
+        image: gsiachamis/autoscalers:2.0
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
@@ -40,9 +46,9 @@ spec:
         - name: AVAILABLE_TASKMANAGERS # 16 is default
           value: "${AVAILABLE_TASKMANAGERS}"
         - name: MAXIMUM_PARALLELISM_INCREASE # 50 is default
-          value: "50"
+          value: "15"
         - name: OVERPROVISIONING_FACTOR # 1.0 is default
-          value: "${CONFIGURATION}"
+          value: "${AUTOSCALER_CONFIGURATION_0}"
         - name: METRIC_AGGREGATION_PERIOD_SECONDS # 60 is default
           value: "15"
         - name: COOLDOWN_PERIOD_SECONDS # 120 is default
@@ -58,8 +64,12 @@ spec:
         - name: NONREACTIVE_JOB
           value: "ch.ethz.systems.strymon.ds2.flink.nexmark.queries.updated.Query${QUERY}KafkaSource"
         - name: NONREACTIVE_CONTAINER
-          value: "gsiachamis/flink-nexmark-queries:1.0"
+          value: "gsiachamis/flink-nexmark-queries:2.0"
         - name: NONREACTIVE_SAVEPOINT_TIMEOUT_SECONDS # 60 is default
           value: "60"
         - name: NONREACTIVE_ADJUST_ON_INSUFFICIENT_RESOURCES # true is default
           value: "true"
+
+        # DS2 configurations
+        - name: DS2_MAXIMUM_BUSY_TIME # 1.0 is default
+          value: "1.0"

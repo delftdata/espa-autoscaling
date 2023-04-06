@@ -14,7 +14,6 @@ public abstract class LoadPattern {
     private int seed;
     // Period to run the experiment for in terms of minutes (default value = 140 minutes)
     private int loadPatternPeriod;
-
     // Query to generate the load pattern for.
     private int query;
 
