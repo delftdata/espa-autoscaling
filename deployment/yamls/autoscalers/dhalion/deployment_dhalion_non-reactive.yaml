@@ -1,4 +1,4 @@
-# Requires: AVAILABLE_TASKMANAGERS, QUERY
+# Requires: AVAILABLE_TASKMANAGERS, QUERY, CONFIGURATION
 kind: Deployment
 apiVersion: apps/v1
 metadata:
@@ -39,6 +39,8 @@ spec:
           value: "flink-jobmanager-rest:8081"
         - name: AVAILABLE_TASKMANAGERS # 16 is default
           value: "${AVAILABLE_TASKMANAGERS}"
+        - name: MAXIMUM_PARALLELISM_INCREASE # 50 is default
+          value: "10"
         - name: OVERPROVISIONING_FACTOR # 1.0 is default
           value: "1.0"
         - name: METRIC_AGGREGATION_PERIOD_SECONDS # 60 is default
@@ -64,6 +66,10 @@ spec:
 
         # Dhalion configurations
         - name: DHALION_SCALE_DOWN_FACTOR # 0.8 is default
-          value: "0.8"
-        - name: DHALION_BUFFER_USAGE_CLOSE_TO_ZERO_THRESHOLD # 0.1 is default
-          value: "0.1"
+          value: "${CONFIGURATION}"
+        - name: DHALION_KAFKA_LAG_RATE_TO_BE_BACKPRESSURED_THRESHOLD # 1000 is default
+          value: "1000"
+        - name: DHALION_KAFKA_LAG_CLOSE_TO_ZERO_THRESHOLD # 10000 is default
+          value: "10000"
+        - name: DHALION_BUFFER_USAGE_CLOSE_TO_ZERO_THRESHOLD # 0.2 is default
+          value: "0.2"

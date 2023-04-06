@@ -3,81 +3,94 @@ from common import ApplicationManager
 
 class DS2ApplicationManager(ApplicationManager):
 
-    def gatherTopicKafkaInputRates(self) -> {str, int}:
-        topicKafkaInputRates = self.prometheusManager.getTopicKafkaInputRates()
+    def gather_topic_kafka_input_rates(self) -> dict[str, int]:
+        """
+        Get the input_rate of the kafka rates. This is the input_rate of the data sent from the generator to kafka
+        :return: Dictionary with as str the topic of the input_rate and as value the input_rate.
+        """
+        topicKafkaInputRates = self.prometheusManager.get_topic_kafka_input_rates()
         return topicKafkaInputRates
 
-    def gatherOperatorKafkaLag(self) -> {str, int}:
-        operatorKafkaLag = self.prometheusManager.getOperatorKafkaLag()
-        return operatorKafkaLag
-
-    def getTopicKafkaLag(self) -> {str, int}:
+    def gather_topic_kafka_lag(self) -> dict[str, float]:
         """
         Get the total lag per topic.
         Function is not yet used, but can be used for a potential improvement of DS2.
         :return: {topic_name: str -> total_topic_lag}
         """
-        operatorKafkaLag = self.gatherOperatorKafkaLag()
-        topicLag = {}
-        for operator, value in operatorKafkaLag.items():
-            topicName = self.configurations.experimentData.getTopicFromOperatorName(operator, printError=False)
+        operator_kafka_lag = self.prometheusManager.get_operator_kafka_lag()
+        topic_lag = {}
+        for operator, value in operator_kafka_lag.items():
+            topicName = self.configurations.experimentData.get_topic_from_operator_name(operator, print_error=False)
             if topicName:
-                topicLag[topicName] = float(value)
+                topic_lag[topicName] = float(value)
             else:
                 print(f"Error: could not determine topic corresponding to '{operator}' not found")
-        return topicLag
+        return topic_lag
 
-    def gatherSubtaskBusyTimes(self) -> {str, float}:
-        busyTime = self.prometheusManager.getSubtaskBusyTimeMetrics()
-        return busyTime
+    def gather_subtask_true_processing_rates(self, subtask_input_rates: dict[str, int] = None, subtask_busy_times: dict[str, float] = None) \
+            -> dict[str, float]:
+        """
+        Get the true processing rate of every operator (subtask). This is calculated by dividing the input rate with the operators busy
+        time.
+        :param subtask_input_rates: Input rate of every operator (subtask).
+        :param subtask_busy_times: Busy time of every operator (subtask).
+        :return: ictionary with as str the operator's (subtask's) name and as value the true processing rate.
+        """
+        if not subtask_input_rates:
+            subtask_input_rates = self.gather_subtask_input_rates()
+        if not subtask_busy_times:
+            subtask_busy_times = self.prometheusManager.get_subtask_busy_time_metrics()
 
-    def gatherSubtaskTrueProcessingRates(self, subtaskInputRates: {str, int}=None, subtaskBusyTimes: {str, float}=None)\
-            -> {str, float}:
-        if not subtaskInputRates:
-            subtaskInputRates = self.gatherSubtaskInputRates()
-        if not subtaskBusyTimes:
-            subtaskBusyTimes = self.gatherSubtaskBusyTimes()
-
-        subtaskTrueProcessingRates = {}
-        for subtask in subtaskInputRates.keys():
-            if subtask in subtaskBusyTimes:
-                subtaskInputRate = subtaskInputRates[subtask]
-                subtaskBusyTime = subtaskBusyTimes[subtask]
-                if subtaskBusyTime != 0:
-                    subtaskTrueProcessingRate = (subtaskInputRate / subtaskBusyTime)
+        subtask_true_processing_rates = {}
+        for subtask in subtask_input_rates.keys():
+            if self.operator_in_dictionary(subtask, subtask_busy_times, f"subtask_busy_times (subtask from subtask_input_rates "
+                                                                        f"{subtask_input_rates}"):
+                subtask_input_rate = subtask_input_rates[subtask]
+                subtask_busy_time = subtask_busy_times[subtask]
+                if subtask_busy_time != 0:
+                    subtask_true_processing_rate = (subtask_input_rate / subtask_busy_time)
                 else:
-                    subtaskTrueProcessingRate = 0
-                subtaskTrueProcessingRates[subtask] = subtaskTrueProcessingRate
-            else:
-                print(f"Error: subtask {subtask} of subtaskInputRates '{subtaskInputRates}' not found in "
-                      f"subtaskBusyTimes '{subtaskBusyTimes}' ")
-        return subtaskTrueProcessingRates
+                    subtask_true_processing_rate = 0
+                subtask_true_processing_rates[subtask] = subtask_true_processing_rate
+        return subtask_true_processing_rates
 
-    def gatherSubtaskTrueOutputRates(self, subtaskOutputRates: {str, int}=None, subtaskBusyTimes: {str, int}=None) \
-            -> {str, int}:
-        if not subtaskOutputRates:
-            subtaskOutputRates = self.gatherSubtaskOutputRates()
-        if not subtaskBusyTimes:
-            subtaskBusyTimes = self.prometheusManager.getSubtaskBusyTimeMetrics()
+    def gather_subtask_true_output_rates(self, subtask_output_rates: dict[str, int] = None, subtask_busy_times: dict[str, int] = None) \
+            -> dict[str, int]:
+        """
+        Get the true output rate of every operator (subtask). This is calculated by dividing the input rate with the operator's busy time.
+        :param subtask_output_rates: The output rate of every operator (subtask).
+        :param subtask_busy_times: The busy time of every operator (subtask).
+        :return: Dictionary with as str the operator's (subtask's) name and as value the true output rate.
+        """
+        if not subtask_output_rates:
+            subtask_output_rates = self.gather_subtask_output_rates()
+        if not subtask_busy_times:
+            subtask_busy_times = self.prometheusManager.get_subtask_busy_time_metrics()
 
-        subtaskTrueOutputRates = {}
-        for subtask in subtaskOutputRates.keys():
-            if subtask in subtaskBusyTimes:
-                subtaskOutputRate = subtaskOutputRates[subtask]
-                subtaskBusyTime = subtaskBusyTimes[subtask]
-                if subtaskBusyTime != 0:
-                    subtaskTrueOutputRates[subtask] = subtaskOutputRate / subtaskBusyTime
+        subtask_true_output_rates = {}
+        for subtask in subtask_output_rates.keys():
+            if self.operator_in_dictionary(subtask, subtask_busy_times, f"subtask_busy_times (subtask from subtask_output_rates "
+                                                                        f"{subtask_output_rates}"):
+                subtask_output_rate = subtask_output_rates[subtask]
+                subtask_busy_time = subtask_busy_times[subtask]
+                if subtask_busy_time != 0:
+                    subtask_true_output_rates[subtask] = subtask_output_rate / subtask_busy_time
                 else:
-                    subtaskTrueOutputRates[subtask] = 0
-            else:
-                print(f"Error: subtask '{subtask}' was found in subtaskOutputRates '{subtaskOutputRates}' found in "
-                      f"subtaskBusyTimes '{subtaskBusyTimes}'")
-        return subtaskTrueOutputRates
+                    subtask_true_output_rates[subtask] = 0
+        return subtask_true_output_rates
 
-    def gatherSubtaskInputRates(self) -> {str, int}:
-        subtaskInputRates = self.prometheusManager.getSubtaskInputRateMetrics()
+    def gather_subtask_input_rates(self) -> dict[str, int]:
+        """
+        Get the input rate of every operator (subtask).
+        :return: Dictionary with as key the operator's (subtask's) name and as value its input rate.
+        """
+        subtaskInputRates = self.prometheusManager.get_subtask_input_rate_metrics()
         return subtaskInputRates
 
-    def gatherSubtaskOutputRates(self) -> {str, int}:
+    def gather_subtask_output_rates(self) -> dict[str, int]:
+        """
+        Get the output rate of every operator (subtask)
+        :return: Dictionary with as key the operator's (subtask's) name and as value its output rate.
+        """
         subtaskOutputRates = self.prometheusManager.getSubtaskOutputRateMetrics()
         return subtaskOutputRates

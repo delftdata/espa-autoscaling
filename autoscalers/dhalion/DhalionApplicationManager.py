@@ -3,122 +3,84 @@ from common import ApplicationManager
 
 class DhalionApplicationManager(ApplicationManager):
 
-    def gatherOperatorBackpressureStatusMetrics(self) -> {str, bool}:
+    def gather_operator_backpressure_status_metrics(self) -> dict[str, bool]:
         """
         Get the backpressure status metrics of all operators from prometheus.
         This is used to detect backpressure in the system and to find the operator causing the backpressure.
         """
-        return self.prometheusManager.getOperatorBackpressureStatusMetrics()
+        return self.prometheusManager.get_operator_backpressure_status_metrics()
 
-    def gatherOperatorPendingRecordsRateMetrics(self) -> {str, float}:
+    def gather_source_operator_pending_record_metrics(self) -> dict[str, float]:
         """
         Get the rate of change in pending records from prometheus.
         This is used to determine the scale-factor of a source operator.
         """
-        return self.prometheusManager.getSourceOperatorPendingRecordsRate()
+        return self.prometheusManager.get_source_operator_pending_records_rate()
 
-    def gatherOperatorConsumedRecordsRateMetrics(self) -> {str, float}:
+    def gather_source_operator_consumed_records_rate_metrics(self) -> dict[str, float]:
         """
         Get the rate of change in consumed records from prometheus.
         This is used to determine the scale-factor of a source operator.
         """
-        return self.prometheusManager.getSourceOperatorConsumedRecordsRate()
+        return self.prometheusManager.get_source_operator_consumed_records_rate()
 
-    def gatherSourceOperatorBackpressureStatusMetrics(self, kafka_source_is_backpressured_threshold: int) -> {str, bool}:
+    def gather_source_operator_backpressure_status_metrics(self, kafka_source_is_backpressured_threshold: int) -> dict[str, bool]:
         """
         Get a list of source operators, whose upstream kafka source is experiencing backpressure.
         An upstream kafka source is experiencing backpressure if its pendingRecordsRate is positive
+        :param kafka_source_is_backpressured_threshold: Minimal amount of lag (records in kafka queue) to consider the
+        kafka source backpressured.
+        :return: List of source operators, whose upstream kafka source is experiencing backpressure.
         """
-        sourceOperatorPendingRecordsRateMetrics = self.gatherOperatorPendingRecordsRateMetrics()
+        return self.prometheusManager.get_source_operator_backpressure_status_metrics(kafka_source_is_backpressured_threshold)
 
-        sourceBackpressureStatusMetrics: {str, bool} = {}
-        for source, pendingRecordsRate in sourceOperatorPendingRecordsRateMetrics.items():
-            # source is backpressured if pendingRecordsRate is larger than threshold
-            sourceBackpressureStatusMetrics[source] = pendingRecordsRate > kafka_source_is_backpressured_threshold
-        return sourceBackpressureStatusMetrics
-
-    def gatherBackpressureTimeMetrics(self, monitoringPeriodSeconds=None):
+    def gather_backpressure_time_metrics(self, monitoring_period_seconds=None) -> dict[str, float]:
         """
         Get the backpressure-time metrics from prometheus. If a monitoring period is provided, we aggregate the
         backpressure-time over that period. If not provided, use the METRIC_AGGREGATION_PERIOD_SECONDS configuration.
         """
-        if monitoringPeriodSeconds is not None:
-            return self.prometheusManager.getOperatorBackpressureTimeMetrics(
-                monitoringPeriodSeconds=monitoringPeriodSeconds)
+        if monitoring_period_seconds is not None:
+            return self.prometheusManager.get_operator_backpressure_time_metrics(
+                monitoringPeriodSeconds=monitoring_period_seconds)
         else:
-            return self.prometheusManager.getOperatorBackpressureTimeMetrics()
+            return self.prometheusManager.get_operator_backpressure_time_metrics()
 
-    def gatherSourceOperatorPendingRecordMetrics(self):
-        """
-        Get the total amount of pending records for all source-operators from prometheus.
-        """
-        return self.prometheusManager.getSourceOperatorPendingRecords()
-
-    def gatherBuffersInUsageMetrics(self):
+    def gather_buffers_in_usage_metrics(self) -> dict[str, float]:
         """
         Get the buffersInUsage metrics from Prometheus.
         """
-        return self.prometheusManager.getOperatorAverageBufferInUsageMetrics()
+        return self.prometheusManager.get_operator_average_buffer_in_usage_metrics()
 
-    def isSystemBackpressured(self, operatorBackpressureStatusMetrics: {str, bool}=None,
-                              sourceOperatorBackpressureStatusMetrics: {str, bool}=None) -> bool:
+    def queue_size_is_close_to_zero(self, operator: str, input_queue_metrics: {str, float}, buffer_usage_close_to_zero_threshold: float) \
+            -> bool:
         """
-        Check whether one of the operators is experiencing backpressure
-        :return: Whether at leas tone of the operators is experiencing backpressure.
+        Check whether the queue-size of operator {operator} is close to zero.
+        This is done by taking the inputQueue size of the operator and check whether it is smaller than
+        buffer_usage_close_to_zero_threshold
+        :param operator: Operator to check the queueSize for
+        :param input_queue_metrics: Directory of inputQueueMetrics with OperatorName as key and its inputQueueSize as
+        value
+        :param buffer_usage_close_to_zero_threshold: threshold indicating hwo small the buffer usage should be for it to be considered
+        'empty'
+        :return: Whether the operator's input Queuesize is close to zero
         """
-        if not operatorBackpressureStatusMetrics:
-            operatorBackpressureStatusMetrics = self.gatherOperatorBackpressureStatusMetrics()
-        if not sourceOperatorBackpressureStatusMetrics:
-            sourceOperatorBackpressureStatusMetrics = self.gatherSourceOperatorBackpressureStatusMetrics()
-        isSystemBackpressured: bool = True in operatorBackpressureStatusMetrics.values() or \
-                                      True in sourceOperatorBackpressureStatusMetrics.values()
-        return isSystemBackpressured
+        if self.operator_in_dictionary(operator, input_queue_metrics, "input queue metrics"):
+            return input_queue_metrics[operator] <= buffer_usage_close_to_zero_threshold
+        else:
+            return False
 
-    def gatherBottleneckOperators(self, operatorBackpressureStatusMetrics: {str, bool}=None,
-                                  sourceOperatorBackpressureStatusMetrics: {str, bool}=None,
-                                  topology: [(str, str)]=None) -> [str]:
+    def pending_records_is_close_to_zero(self, source_operator, pending_records_metrics: {str, int}, kafka_lag_close_to_zero_threshold) \
+            -> bool:
         """
-        Get all operators that are causing backpressure in the system.
-        An operator is said to cause backpressure if it is not experiencing backpressure itself, but at least one of its
-        upstream operators is.
-        :param operatorBackpressureStatusMetrics: Metrics indicating whether operators are experiencing backpressure
-        :param sourceOperatorBackpressureStatusMetrics: Metrics indicating whether operators are causing backpressure in
-        the kafka sources
-        :param topology: The topology of the system, containing directed edges (lop -> rop)
-        :return: A list of operators causing backpressure.
+        Check whether the pending records of sourceOperator {source_operator} is close to zero.
+        This is done by taking the total amount of pendingRecords and check whether it is smaller than
+        kafka_lag_close_to_zero_threshold.
+        :param source_operator: operator to check whether its pendingRecords is close to zero
+        :param pending_records_metrics: Directory of sourceOperators and the amount of pending records for this operator
+        :param kafka_lag_close_to_zero_threshold: maximum amount of lag for the kafka queue to be considered empty
+        :return: Whether the kafka lag corresponding to the sourceOperator is close to zero.
         """
-        if not operatorBackpressureStatusMetrics:
-            operatorBackpressureStatusMetrics = self.gatherOperatorBackpressureStatusMetrics()
-        if not sourceOperatorBackpressureStatusMetrics:
-            sourceOperatorBackpressureStatusMetrics = self.gatherSourceOperatorBackpressureStatusMetrics()
-        if not topology:
-            topology = self.gatherTopology(False)
-
-        bottleNeckOperatorsSet: set = set()
-        for lOperator, rOperator in topology:
-            if lOperator not in operatorBackpressureStatusMetrics:
-                print(f"Error: right operator '{rOperator}' of topology '{topology}' not found in backpressure status "
-                      f"metrics '{operatorBackpressureStatusMetrics}'.")
-                continue
-            if rOperator not in operatorBackpressureStatusMetrics:
-                print(
-                    f"Error: right operator '{rOperator}' of topology '{topology}' not found in backpressure status "
-                    f"metrics '{operatorBackpressureStatusMetrics}'.")
-                continue
-
-            # if lOperator is experiencing backpressure
-            if operatorBackpressureStatusMetrics[lOperator]:
-                # if its downstream operator is not experiencing backpressure
-                if not operatorBackpressureStatusMetrics[rOperator]:
-                    # its downstream operator is the cause of the backpressure
-                    bottleNeckOperatorsSet.add(rOperator)
-            # if lOperator is not experiencing backpressure
-            else:
-                # if lOperator is a source
-                if lOperator in sourceOperatorBackpressureStatusMetrics:
-                    # if the kafka source corresponding to lOperator is being backpressured
-                    if sourceOperatorBackpressureStatusMetrics[lOperator]:
-                        # the source lOperator is causing backpressure
-                        bottleNeckOperatorsSet.add(lOperator)
-        print(list(bottleNeckOperatorsSet))
-        return list(bottleNeckOperatorsSet)
+        if self.operator_in_dictionary(source_operator, pending_records_metrics, "pending records metrics"):
+            return pending_records_metrics[source_operator] <= kafka_lag_close_to_zero_threshold
+        else:
+            return False

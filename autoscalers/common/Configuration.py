@@ -19,6 +19,8 @@ class Configurations:
 
     # Range of parallelism per operator
     AVAILABLE_TASKMANAGERS = int(os.environ.get("AVAILABLE_TASKMANAGERS", 16))
+    # Maximum increase in operator-specific parallelism in one scaling operation
+    MAXIMUM_PARALLELISM_INCREASE = int(os.environ.get("MAXIMUM_PARALLELISM_INCREASE", "50"))
 
     # Period lengths
     METRIC_AGGREGATION_PERIOD_SECONDS = int(os.environ.get("METRIC_AGGREGATION_PERIOD_SECONDS", 60))
@@ -37,12 +39,13 @@ class Configurations:
                                                                   "true").lower() in ["true", "1", "t"]
     RUN_LOCALLY = False
 
-    def printConfigurations(self):
+    def print_configurations(self):
         if self.RUN_LOCALLY:
             print("\tRunning application locally.")
         print(f"\tUSE_FLINK_REACTIVE: {self.USE_FLINK_REACTIVE}")
         print(f"\tPROMETHEUS_SERVER: {self.PROMETHEUS_SERVER}")
         print(f"\tFLINK_JOBMANAGER_SERVER: {self.FLINK_JOBMANAGER_SERVER}")
+        print(f"\tMAXIMUM_PARALLELISM_INCREASE: {self.MAXIMUM_PARALLELISM_INCREASE}")
         print(f"\tAVAILABLE_TASKMANAGERS: {self.AVAILABLE_TASKMANAGERS}")
         print(f"\tOVERPROVISIONING_FACTOR: {self.OVERPROVISIONING_FACTOR}")
         print(f"\tMETRIC_AGGREGATION_PERIOD_SECONDS: {self.METRIC_AGGREGATION_PERIOD_SECONDS}")

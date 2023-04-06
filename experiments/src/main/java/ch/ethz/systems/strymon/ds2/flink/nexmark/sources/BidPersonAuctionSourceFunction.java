@@ -14,6 +14,11 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import java.util.Properties;
 import java.util.Random;
 
+/**
+ * BidPersonAuctionSourceFunction contains all functionality expected for a generator for Bids, Auctions and person
+ * records. It is extended by BidPersonAuctionParallelFunction to allow for parlallel execution of multiple source
+ * functions.
+ */
 public class BidPersonAuctionSourceFunction extends Thread {
     String PERSON_TOPIC = "person_topic";
     String BID_TOPIC = "bids_topic";
@@ -35,6 +40,14 @@ public class BidPersonAuctionSourceFunction extends Thread {
 
     int stoppedIterationNumber;
 
+    /**
+     * Constructor of BidPersonAuctionSourceFunction
+     * @param kafkaServer String providing the location (url) of the kafka server.
+     * @param epochDurationMs Amount of ms an epoch takes.
+     * @param enablePersonTopic Whether to generate person records.
+     * @param enableAuctionTopic Whether to generate auction records.
+     * @param enableBidTopic Whether to generate bid records.
+     */
     public BidPersonAuctionSourceFunction(String kafkaServer,
                                           long epochDurationMs,
                                           boolean enablePersonTopic,
@@ -55,18 +68,23 @@ public class BidPersonAuctionSourceFunction extends Thread {
             this.producer = new KafkaProducer<>(props);
         }
 
-
         // Creating object mapper
         this.objectMapper = new ObjectMapper();
         // ConfigGenerator
+
+        NexmarkConfiguration nexmarkConfiguration = NexmarkConfiguration.DEFAULT;
+        // Set hot ratio to 1 to prevent possible skew. Chance of getting a hot item is 1 - 1 / ratio.
+        // Setting it to 1 disables picking hot values.
+        nexmarkConfiguration.hotAuctionRatio = 1;
+        nexmarkConfiguration.hotBiddersRatio = 1;
+        nexmarkConfiguration.hotSellersRatio = 1;
         this.generatorConfig = new GeneratorConfig(
-                NexmarkConfiguration.DEFAULT,
+                nexmarkConfiguration,
                 1,
                 1000L,
                 0,
                 0
         );
-
 
         // Topics to generate
         this.enablePersonTopic = enablePersonTopic;
@@ -146,7 +164,7 @@ public class BidPersonAuctionSourceFunction extends Thread {
         long epochDurationUs = epochDurationMs * 1000;
         long n = eventNumber - firstEventCurrentEpoch;
         if (n < 0) {
-            // Something went wrong: n is eventNumber is from a previous epoch. Using smallest timestamp from current
+            // Something went wrong: n is eventNumber is from a previous epoch. Using the smallest timestamp from current
             // epoch.
             n=0;
         }
@@ -188,7 +206,7 @@ public class BidPersonAuctionSourceFunction extends Thread {
      }
 
     /**
-     * Given the total amount of events that have to be genenerated, how much will the ID grow by at the end of
+     * Given the total amount of events that have to be generated, how much will the ID grow by at the end of
      * the epoch.
      * @param amountOfEvents Amount of events to generate this epoch
      * @return The increase of eventID after generating the provided amount of events
@@ -198,15 +216,6 @@ public class BidPersonAuctionSourceFunction extends Thread {
         int epochs = (int) Math.ceil((double) amountOfEvents / usedProportion);
         return epochs * GeneratorConfig.PROPORTION_DENOMINATOR;
      }
-
-    /**
-     * Generate all events of the epoch.
-     * @param totalEpochEvents Amount of events to be generated in this epoch.
-     * @throws JsonProcessingException Generator error.
-     */
-    public void generateAllEpochEvents(long totalEpochEvents, int currentIterationNumber) throws JsonProcessingException {
-        this.generatePortionOfEpochEvents(totalEpochEvents, 0, totalEpochEvents , currentIterationNumber);
-    }
 
     /**
      * Generate a portion of all the epoch events.
@@ -220,7 +229,6 @@ public class BidPersonAuctionSourceFunction extends Thread {
                                               int currentIterationNumber) throws JsonProcessingException {
          int totalIdIncrease = this.getTotalIdIncrease(totalEpochEvents);
          this.setNextEpochSettings(totalIdIncrease);
-
          int beforeIdIncrease = this.getTotalIdIncrease(firstEventIndex);
          this.incrementEventNumber(beforeIdIncrease);
 

@@ -13,13 +13,13 @@ class DhalionConfigurations(Configurations):
 
     # Maximum kafka-lag for it to be considered 'close to zero'
     DHALION_KAFKA_LAG_CLOSE_TO_ZERO_THRESHOLD = int(os.environ.get("DHALION_KAFKA_LAG_CLOSE_TO_ZERO_THRESHOLD", "10000"))
-    # Maximum buffersize for it to be considered 'close to zero'
+    # Maximum buffer-size for it to be considered 'close to zero'
     DHALION_BUFFER_USAGE_CLOSE_TO_ZERO_THRESHOLD = float(os.environ.get("DHALION_BUFFER_USAGE_CLOSE_TO_ZERO_THRESHOLD",
                                                                         "0.2"))
 
 
-    def printConfigurations(self):
-        super().printConfigurations()
+    def print_configurations(self):
+        super().print_configurations()
         print(f"\tDHALION_SCALE_DOWN_FACTOR: {self.DHALION_SCALE_DOWN_FACTOR}")
         print(f"\tDHALION_KAFKA_LAG_RATE_TO_BE_BACKPRESSURED_THRESHOLD: {self.DHALION_KAFKA_LAG_RATE_TO_BE_BACKPRESSURED_THRESHOLD}")
         print(f"\tDHALION_KAFKA_LAG_CLOSE_TO_ZERO_THRESHOLD: {self.DHALION_KAFKA_LAG_CLOSE_TO_ZERO_THRESHOLD}")

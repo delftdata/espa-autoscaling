@@ -10,7 +10,7 @@ class Queries:
     QUERY_11 = "11"
 
     @staticmethod
-    def getAllQueries() -> [str]:
+    def get_all_queries() -> [str]:
         return [
             Queries.QUERY_1,
             Queries.QUERY_2,
@@ -21,5 +21,5 @@ class Queries:
         ]
 
     @staticmethod
-    def isQuery(query) -> bool:
-        return Queries.getAllQueries().__contains__(query)
+    def is_query(query) -> bool:
+        return Queries.get_all_queries().__contains__(query)

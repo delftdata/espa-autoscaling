@@ -19,10 +19,7 @@
 package ch.ethz.systems.strymon.ds2.flink.nexmark.sources;
 
 import ch.ethz.systems.strymon.ds2.flink.nexmark.sources.LoadPattern.*;
-import org.apache.commons.lang3.NotImplementedException;
 import org.apache.flink.api.java.utils.ParameterTool;
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.Producer;
 import java.text.ParseException;
 import java.util.*;
 
@@ -79,19 +76,29 @@ import java.util.*;
  *                  downspike-maximum-input-rate: INT
  *                          Maximum decrease in input rate during a downspike event. Default is defined by CosineLoadPattern.
  *                              (Default = downspike-minimum-input-rate / 2
-
- *
- *          load-pattern = "random" && & use-default-configuration = false
+ *          load-pattern = "random" && use-default-configuration = false
  *              initial-input-rate: INT
  *                  Input rate to start with
  *              min-divergence: INT
  *                  Minimum increase (decrease if negative) per minute
  *              max-divergence: INT
  *                  Maximum increase (decrease if negative) per minute
+
+ *          load-pattern = "increase" && use-default-configuration = false
+ *              initial-input-rate: INT
+ *                  Input rate to start with
+ *              total-rate-increase: INT
+ *                  Total increase in rate over a period of 140 minutes.
+ *          load-pattern = "decrease" && use-default-configuration = false
+ *              initial-input-rate: INT
+ *                  Input rate to start with
  *          load-pattern = "testrun" && use-default-configuration = false
  *              inputrate0: INT
+ *                  Initial input rate
  *              inputrate1: INT
+ *                  Input rate after first time-period ends
  *              inputrate2: INT
+ *                  Input rate after second time-period ends
  *
  *   Kafka setup
  *     Required paramters:
@@ -227,31 +234,41 @@ public class BidPersonGeneratorKafka {
             int initialInputRate = params.getInt("initial-input-rate");
             int minDivergence = params.getInt("min-divergence");
             int maxDivergence = params.getInt("max-divergence");
-            return new RandomLoadPattern(query, experimentLength, initialInputRate, minDivergence, maxDivergence);
+            int maxInputRate = params.getInt("max-input-rate", Integer.MAX_VALUE);
+            return new RandomLoadPattern(query, experimentLength, initialInputRate, minDivergence, maxDivergence, maxInputRate);
         }
     }
 
-    public LoadPattern getIncreaseLoadPattern(int query, int experimentLength, boolean useDefaultConfigurations) {
+    public LoadPattern getIncreaseLoadPattern(int query, int experimentLength, boolean useDefaultConfigurations,
+                                              ParameterTool params) {
         /**
          * Custom paramters:
-         * - Not implemented
+         *   initial-input-rate: INT
+         *      Input rate to start with
+         *   total-rate-increase: INT
+         *      Total increase in rate over a period of 140 minutes.
          */
         if (useDefaultConfigurations) {
             return new IncreaseLoadPattern(query, experimentLength);
         } else {
-            throw new NotImplementedException("Custom configuration of the increase loadpattern is not implemented.");
+            int initialInputRate = params.getInt("initial-input-rate");
+            int RateIncreaseOver140Minutes = params.getInt("total-rate-increase");
+            return new IncreaseLoadPattern(query,experimentLength, initialInputRate, RateIncreaseOver140Minutes);
         }
     }
 
-    public LoadPattern getDecreaseLoadPattern(int query, int experimentLength, boolean useDefaultConfigurations)  {
+    public LoadPattern getDecreaseLoadPattern(int query, int experimentLength, boolean useDefaultConfigurations,
+                                              ParameterTool params)  {
         /**
          * Custom paramters:
-         * - Not implemented
+         *   initial-input-rate: INT
+         *      Input rate to start with. From this input rate, it decreases over a period of 140 minutes to 0.
          */
         if (useDefaultConfigurations) {
             return new DecreaseLoadPattern(query, experimentLength);
         } else {
-            throw new NotImplementedException("Custom configuration of the decrease loadpattern is not implemented.");
+            int initialInputRate = params.getInt("initial-input-rate");
+            return new DecreaseLoadPattern(query, experimentLength, initialInputRate);
         }
     }
 
@@ -313,11 +330,11 @@ public class BidPersonGeneratorKafka {
                 break;
             }
             case "increase": {
-                loadPattern = this.getIncreaseLoadPattern(query, experimentLength, useDefaultConfiguration);
+                loadPattern = this.getIncreaseLoadPattern(query, experimentLength, useDefaultConfiguration, params);
                 break;
             }
             case "decrease": {
-                loadPattern = this.getDecreaseLoadPattern(query, experimentLength, useDefaultConfiguration);
+                loadPattern = this.getDecreaseLoadPattern(query, experimentLength, useDefaultConfiguration, params);
                 break;
             }
             case "testrun-scaleup": {
@@ -350,6 +367,8 @@ public class BidPersonGeneratorKafka {
          */
         LoadPattern loadPatternConfiguration = this.getLoadPattern(params);
         List<Integer> loadPattern = loadPatternConfiguration.getLoadPattern().f1;
+        System.out.println("Running workbench with the following loadpattern:\n\"\"\"\n" +
+                loadPatternConfiguration.getLoadPatternTitle() + "\n\"\"\"");
         if (this.debuggingEnabled) { loadPatternConfiguration.plotLoadPattern(); }
 
         String kafkaServer = params.get("kafka-server", "kafka-service:9092");

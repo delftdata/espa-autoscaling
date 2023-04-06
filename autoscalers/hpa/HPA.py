@@ -17,77 +17,77 @@ class HPA(Autoscaler, ABC):
         - p0: time desired parallelism was added
         - p1: desired parallelism
     """
-    desiredParallelisms = {}
+    desired_parallelisms = {}
 
-    def addDesiredParallelismForOperator(self, operator: str, desiredParallelism: int):
+    def add_desired_parallelism_for_operator(self, operator: str, desired_parallelism: int) -> None:
         """
         Add desired parallelism to desiredParallelisms list
         :param operator: operator to add parallelism too
-        :param desiredParallelism: desired parallelism of operator
+        :param desired_parallelism: desired parallelism of operator
         :return: None
         """
-        if operator not in self.desiredParallelisms.keys():
-            self.desiredParallelisms[operator] = []
-        self.desiredParallelisms[operator].append((time.time(), desiredParallelism))
+        if operator not in self.desired_parallelisms.keys():
+            self.desired_parallelisms[operator] = []
+        self.desired_parallelisms[operator].append((time.time(), desired_parallelism))
 
-    def __updateScaleDownWindow(self):
+    def __update_scale_down_window(self) -> None:
         """
         Update desiredParallelisms based on the scale-down operator
-        :return:
+        :return: None
         """
-        for operator in self.desiredParallelisms.keys():
-            parallelisms = self.desiredParallelisms[operator]
+        for operator in self.desired_parallelisms.keys():
+            parallelisms = self.desired_parallelisms[operator]
             updated_parallelisms = list(filter(
                 lambda v: time.time() - v[0] <= self.configurations.HPA_SCALE_DOWN_WINDOW_SECONDS,
                 parallelisms
             ))
-            self.desiredParallelisms[operator] = updated_parallelisms
+            self.desired_parallelisms[operator] = updated_parallelisms
 
-    def getKnownOperators(self):
+    def get_known_operators(self) -> [str]:
         """
         Get a list of all operators we know of
         :return: List of all known operators
         """
-        return self.desiredParallelisms.keys()
+        return self.desired_parallelisms.keys()
 
-    def __getMaximumParallelismOfOperatorFromWindow(self, operator):
+    def __get_maximum_parallelism_of_operator_from_window(self, operator) -> int:
         """
         Get the maximum parallelism for operator {operator}
         :param operator: Operator to get maximum parallelism for
         :return: Parallelism or operator. -1 if invalid parameters.
         """
-        if operator in self.desiredParallelisms.keys():
-            parallelisms = list(map(lambda t: t[1], self.desiredParallelisms[operator]))
+        if operator in self.desired_parallelisms.keys():
+            parallelisms = list(map(lambda t: t[1], self.desired_parallelisms[operator]))
             if len(parallelisms) > 0:
                 return max(parallelisms)
             else:
-                print(f"Error: failed fetching max parallelism of operator {operator}: no desired parallelisms found")
+                print(f"Error: failed fetching maximum parallelism of operator {operator}: no desired parallelisms found")
                 return -1
         else:
             print(f"Error: failed fetching maximum parallelism of operator {operator}: operator unknown")
             return -1
 
 
-    def getAllMaximumParallelismsFromWindow(self, operators: [str]) -> {str, int}:
-        self.__updateScaleDownWindow()
-        allMaximumParallelisms: {str, int} = {}
+    def get_all_maximum_parallelisms_from_window(self, operators: [str]) -> dict[str, int]:
+        self.__update_scale_down_window()
+        all_maximum_parallelisms: {str, int} = {}
         for operator in operators:
-            allMaximumParallelisms[operator] = self.__getMaximumParallelismOfOperatorFromWindow(operator)
-        return allMaximumParallelisms
+            all_maximum_parallelisms[operator] = self.__get_maximum_parallelism_of_operator_from_window(operator)
+        return all_maximum_parallelisms
 
     @staticmethod
-    def calculateScaleRatio(current_metric_variable: float, target_metric_variable: float):
+    def calculate_scale_ratio(current_metric_variable: float, target_metric_variable: float) -> float:
         """
         Calcualte the scale ratio based on the current_metric_variable and the target_metric_variable
         :param current_metric_variable: Current metric variable
         :param target_metric_variable: Target metric variable
         :return: Scale factor calculated by current_metric_variable / target_metric_variable
         """
-        scaleRatio = current_metric_variable / target_metric_variable
-        return scaleRatio
+        scale_ratio = current_metric_variable / target_metric_variable
+        return scale_ratio
 
     @staticmethod
-    def calculateDesiredParallelism(scale_factor: float, current_parallelism):
+    def calculate_desired_parallelism(scale_factor: float, current_parallelism) -> int:
         """
         Based on the scale_factor and the current_parallelism. Determine the desired parallelism.
         The desired_parallelism should be in range between (MIN_PARALLELISM and MAX_PARALLELISM)
@@ -100,5 +100,5 @@ class HPA(Autoscaler, ABC):
         return new_desired_parallelism
 
     @abstractmethod
-    def runAutoscalerIteration(self):
+    def run_autoscaler_iteration(self):
         pass

@@ -10,166 +10,134 @@ from common import Autoscaler
 
 
 class Dhalion(Autoscaler, ABC):
-
-    desiredParallelisms: {str, int}
+    desired_parallelisms: {str, int}
     configurations: DhalionConfigurations
-    applicationManager: DhalionApplicationManager
-    scaleManager: ScaleManager
+    application_manager: DhalionApplicationManager
+    scale_manager: ScaleManager
     operators: [str]
     topology: [(str, str)]
 
-
     def __init__(self):
         self.configurations = DhalionConfigurations()
-        self.applicationManager = DhalionApplicationManager(self.configurations)
-        self.scaleManager: ScaleManager = ScaleManager(self.configurations, self.applicationManager)
+        self.application_manager = DhalionApplicationManager(self.configurations)
+        self.scale_manager: ScaleManager = ScaleManager(self.configurations, self.application_manager)
 
     def initialize(self):
         """
         Initialize Dhalion initializing the remaining application connections and fetching non-changing experiment
         settings.
         """
-        self.applicationManager.initialize()
-        self.operators = self.applicationManager.jobmanagerManager.getOperators()
-        self.topology = self.applicationManager.gatherTopology(False)
+        self.application_manager.initialize()
+        self.operators = self.application_manager.jobmanagerManager.getOperators()
+        self.topology = self.application_manager.gather_topology(False)
         print(f"Found operators: '{self.operators}' with topology: '{self.topology}'")
-        currentParallelism = self.applicationManager.fetchCurrentOperatorParallelismInformation(
-            knownOperators=self.operators
-        )
-        print(f"Found initial parallelisms: '{currentParallelism}'")
-        self.desiredParallelisms = currentParallelism
+        current_parallelisms = self.application_manager.fetch_current_operator_parallelism_information(known_operators=self.operators)
+        print(f"Found initial parallelisms: '{current_parallelisms}'")
+        self.desired_parallelisms = current_parallelisms
 
-
-    def setDesiredParallelism(self, operator: str, desiredParallelism: int):
+    def set_desired_parallelism(self, operator: str, desired_parallelism: int) -> None:
         """
         Set the desired parallelism of operator {operator}
         """
-        self.desiredParallelisms[operator] = desiredParallelism
+        self.desired_parallelisms[operator] = desired_parallelism
 
-    def getDesiredParallelisms(self) -> {str, int}:
+    def get_desired_parallelisms(self) -> dict[str, int]:
         """
         Get the current desired parallelism.
         """
-        return self.desiredParallelisms
+        return self.desired_parallelisms
 
-    def queueSizeIsCloseToZero(self, operator: str, inputQueueMetrics: {str, float}):
-        """
-        Check whether the queuesize of operator {operator} is close to zero.
-        This is done by taking the inputQueue size of the operator and check whether it is smaller than
-        inputQueueThreshold
-        :param operator: Operator to check the queueSize for
-        :param inputQueueMetrics: Directory of inputQueueMetrics with OperatorName as key and its inputQueueSize as
-        value
-        :return: Whether the operator's input Queuesize is close to zero
-        """
-        if operator in inputQueueMetrics.keys():
-            return inputQueueMetrics[operator] <= self.configurations.DHALION_BUFFER_USAGE_CLOSE_TO_ZERO_THRESHOLD
-        else:
-            print(f"Warning: operator '{operator}' not found in inputQueueMetrics {inputQueueMetrics}")
-            return False
-
-    def pendingRecordsIsCloseToZero(self, sourceOperator, pendingRecordsMetrics: {str, int}):
-        f"""
-        Check whether the pending records of sourceOperator {sourceOperator} is close to zero.
-        This is done by taking the total amount of pendingRecords and check whether it is smaller than
-        DHALION_KAFKA_LAG_CLOSE_TO_ZERO_THRESHOLD.
-        :param sourceOperator: operator to check whether its pendingRecords is close to zero
-        :param pendingRecordsMetrics: Directory of sourceOperators and the amount of pending records for this operator
-        :return: Whether the kafka lag corresponding to the sourceOperator is close to zero.
-        """
-        if sourceOperator in pendingRecordsMetrics:
-            return pendingRecordsMetrics[sourceOperator] <= self.configurations.DHALION_KAFKA_LAG_CLOSE_TO_ZERO_THRESHOLD
-        else:
-            print(f"Warning: sourceOperator '{sourceOperator}' not found in pendingRecordsMetrics "
-                  f"{pendingRecordsMetrics}")
-            return False
-
-    @staticmethod
-    def calculateOperatorScaleUpFactor(operator: str, backpressureTimeMetrics: {str, float}, topology: (str, str))\
+    def calculate_operator_scale_up_factor(self, operator: str, backpressure_time_metrics: {str, float}, topology: (str, str)) \
             -> float:
         """
         Calculate the scaleUpFactor for operator {operator}.
         The calculations are based on the backpressureTimeMetrics and the current topology.
         ScaleUp factor is calculated in the following way:
-        - Get backpressuretimes of all upstream operators of {operator}
-        - Pick maximum backpressuretime as backpressureTime
+        - Get backpressure_times of all upstream operators of {operator}
+        - Pick maximum backpressure_time as backpressureTime
         - scaleUpFactor = 1 + (backpressureTime / (1 - backpressureTime)
+        :param backpressure_time_metrics: A directory of backpressure_times with operator names as keys.
         :param operator: Operator to calculate scale-up factor for
-        :param backpressureTimeMetrics: A directory of backpressuretimes with operator names as keys.
         :param topology: Topology of the current query. Should contain a list of directed edges.
         :return: ScaleUpFactor
         """
         print(f"Calculating scale factor of regular operator: {operator}")
-        backpressureValues = []
+        backpressure_values = []
         for op1, op2 in topology:
             if op2 == operator:
-                if op1 in backpressureTimeMetrics.keys():
-                    backpressureValues.append(backpressureTimeMetrics[op1])
-                else:
-                    print(
-                        f"Error: {operator} from ({op1}, {op2}) not found in backpressure metrics: "
-                        f"{backpressureTimeMetrics}")
+                # if op1 is in backpressure time metrics
+                if self.application_manager.operator_in_dictionary(op1, backpressure_time_metrics, "backpressure time metrics"):
+                    # add backpressure time metric of op1 to backpressure_values
+                    backpressure_values.append(backpressure_time_metrics[op1])
 
-        if backpressureValues:
-            backpressureTime = max(backpressureValues)
+        if backpressure_values:
+            # backpressure_time of operator is the maximum backpressure value
+            backpressure_time = max(backpressure_values)
         else:
             print(f"Warning: no backpressure values found for victims of slow operator '{operator}'")
-            backpressureTime = 0
+            backpressure_time = 0
 
         # scaleUpFactor is not allowed to be larger than 10 and cannot be smaller than 1
-        backpressureTime = min(0.9, backpressureTime)
-        normalTime = 1 - backpressureTime
-        scaleUpFactor = 1 + backpressureTime / normalTime
-        return scaleUpFactor
+        backpressure_time = min(0.9, backpressure_time)
+        normal_time = 1 - backpressure_time
+        scale_up_factor = 1 + backpressure_time / normal_time
+        return scale_up_factor
 
-    @staticmethod
-    def calculateSourceOperatorScaleUpFactor(operator, sourceOperatorPendingRecordsRateMetrics,
-                                             sourceOperatorConsumedRecordsRateMetrics) -> float:
+    def calculate_source_operator_scale_up_factor(self, operator, source_operator_pending_records_rate_metrics,
+                                                  source_operator_consumed_records_rate_metrics) -> float:
         """
         Calculate the scale-up factor of a source operator.
         This is done with the following formula:
         Scaleup factor = pending_records_rate / source_input_rate
         The scaleup factor cannot be larger than 10 and cannot be smaller than 1
+        :param operator: operator to determine scale_up_factor for
+        :param source_operator_pending_records_rate_metrics: Pending record rates of every source operator (records / second)
+        :param source_operator_consumed_records_rate_metrics: Consuemd record rates of every source operator (records / second)
+        :return: scale_up_factor of operator.
         """
         print(f"Calculating scale factor of source operator: {operator}")
-        if operator in sourceOperatorPendingRecordsRateMetrics and operator in sourceOperatorConsumedRecordsRateMetrics:
-            pendingRecordsRate = sourceOperatorPendingRecordsRateMetrics[operator]
-            consumedRecordsRate = sourceOperatorConsumedRecordsRateMetrics[operator]
-            if consumedRecordsRate != 0:
-                scaleUpFactor = 1 + pendingRecordsRate / consumedRecordsRate
-            else:
-                scaleUpFactor = 10
-            # scaleUpFactor is not allowed to be larger than 10 and cannot be smaller than 1
-            scaleUpFactor = max(1, min(10, scaleUpFactor))
-            return scaleUpFactor
-        else:
-            print(f"Warning: pending records rate and/or consumed records rate cause found for source operator"
-                  f" {operator}")
+        if self.application_manager.operator_in_dictionary(operator, source_operator_pending_records_rate_metrics, "pending rec/s") and \
+                self.application_manager.operator_in_dictionary(operator, source_operator_consumed_records_rate_metrics, "consumed rec/s"):
+            pending_records_rate = source_operator_pending_records_rate_metrics[operator]
+            consumed_records_rate = source_operator_consumed_records_rate_metrics[operator]
 
-    @staticmethod
-    def calculateDesiredParallelism(operator: str, currentParallelisms: {str, int}, scaling_factor: float):
+            # Prevent division by 0 errors
+            if consumed_records_rate == 0:
+                consumed_records_rate = 1
+
+            # Calculate scale-up factor
+            scale_up_factor = 1 + pending_records_rate / consumed_records_rate
+
+            # scale_up_factor is not allowed to be larger than 10 and cannot be smaller than 1
+            scale_up_factor = max(1, scale_up_factor)
+            return scale_up_factor
+
+    def calculate_desired_parallelism(self, operator: str, current_parallelisms: {str, int}, scale_factor: float) -> int:
         """
-        Get the desired parallelsim of an operator based on its current parallelism, a scaling facotr and whether it is
+        Get the desired parallelisms of an operator based on its current parallelism, a scaling facotr and whether it is
         scaling up or down.
         :param operator: Operator to determine the desired parallelism for.
-        :param currentParallelisms: The current parallelism of the operator
-        :param scaling_factor: The scaling factor to scale by (multiplier).
+        :param current_parallelisms: The current parallelism of the operator
+        :param scale_factor: The scaling factor to scale by (multiplier).
         :return: The desired parallelisms of the operator
         """
-        if operator in currentParallelisms.keys():
-            parallelism = currentParallelisms[operator]
-            if scaling_factor >= 1:
-                desiredParallelism = math.ceil(parallelism * scaling_factor)
+        if self.application_manager.operator_in_dictionary(operator, current_parallelisms, "current parallelisms"):
+            # get current parallelism
+            current_parallelism = current_parallelisms[operator]
+            # If scale-factor >= 1, round up
+            if scale_factor >= 1:
+                desired_parallelism = math.ceil(current_parallelism * scale_factor)
+            # if scale-factor < 1, round down
             else:
-                desiredParallelism = math.floor(parallelism * scaling_factor)
-            desiredParallelism = max(desiredParallelism, 1)
-            return desiredParallelism
+                desired_parallelism = math.floor(current_parallelism * scale_factor)
+            # desired_parallelism is 1 or higher
+            desired_parallelism = max(desired_parallelism, 1)
+            return desired_parallelism
         else:
-            print(f"Error: {operator} not found in parallelism: {currentParallelisms}")
+            # Signal an error in determining the desired parallelism
             return -1
 
-
-    def runAutoscalerIteration(self):
+    def run_autoscaler_iteration(self):
         """
         Single Dhalion Autoscaler Iterator. It follows the following pseudo code:
         Wait for monitoring period
@@ -187,106 +155,96 @@ class Dhalion(Autoscaler, ABC):
         print("\nStarting new Dhalion iteration.")
         time.sleep(self.configurations.ITERATION_PERIOD_SECONDS)
 
-        # Get Backpressure information of every operator
+        # Get all operators causing backpressure. No operators are provided if there is no backpressure
+        bottleneck_operators: [str] = self.application_manager.gather_bottleneck_operators(
+            self.topology, kafka_source_is_backpressured_threshold=self.configurations.DHALION_KAFKA_LAG_RATE_TO_BE_BACKPRESSURED_THRESHOLD)
 
-        operatorBackpressureStatusMetrics = self.applicationManager.gatherOperatorBackpressureStatusMetrics()
-        sourceOperatorBackpressureStatusMetrics = self.applicationManager.gatherSourceOperatorBackpressureStatusMetrics(
-            self.configurations.DHALION_KAFKA_LAG_RATE_TO_BE_BACKPRESSURED_THRESHOLD)
+        # Get current parallelisms
+        current_parallelisms: {str, int} = self.application_manager.fetch_current_operator_parallelism_information(
+            known_operators=self.operators)
 
-        currentParallelisms: {str, int} = self.applicationManager.fetchCurrentOperatorParallelismInformation(
-            knownOperators=self.operators
-        )
+        # Print metrics
+        self.application_manager.print_metrics({"current parallelisms": current_parallelisms, "bottleneck_operators": bottleneck_operators})
 
         # If backpressure exist, assume unhealthy state and investigate scale up possibilities
-        if self.applicationManager.isSystemBackpressured(
-                operatorBackpressureStatusMetrics=operatorBackpressureStatusMetrics,
-                sourceOperatorBackpressureStatusMetrics=sourceOperatorBackpressureStatusMetrics):
-            print("Backpressure detected. System is in a unhealthy state. Investigating scale-up possibilities.")
-
-            # Get operators causing backpressure
-            bottleneckOperators: [str] = self.applicationManager.gatherBottleneckOperators(
-                operatorBackpressureStatusMetrics=operatorBackpressureStatusMetrics,
-                sourceOperatorBackpressureStatusMetrics=sourceOperatorBackpressureStatusMetrics,
-                topology=self.topology
-            )
-            print(f"The following operators are found to cause a possible bottleneck: {bottleneckOperators}")
+        if bottleneck_operators:
+            print(f"Backpressure is detected: system is in a unhealthy state. Investigating scale-up possibilities.")
 
             # Fetching metrics: operator_backpressure_times, source_pending_record_rates, source_consumed_record_rates
-            operatorBackpressureTimeMetrics: {str, float} = self.applicationManager.gatherBackpressureTimeMetrics(
-                monitoringPeriodSeconds=self.configurations.ITERATION_PERIOD_SECONDS)
-            sourceOperatorPendingRecordsRateMetrics = self.applicationManager.gatherOperatorPendingRecordsRateMetrics()
-            sourceOperatorConsumedRecordsRateMetrics = self.applicationManager.gatherOperatorConsumedRecordsRateMetrics()
-            print(f"The following metrics are found:")
-            print(f"\tBackpressure-times[{operatorBackpressureTimeMetrics}]")
-            print(f"\tSource-pending-records-rate[{sourceOperatorPendingRecordsRateMetrics}]")
-            print(f"\tSource-consumed-records-rate[{sourceOperatorConsumedRecordsRateMetrics}]")
+            operator_backpressure_time_metrics: {str, float} = self.application_manager.gather_backpressure_time_metrics(
+                monitoring_period_seconds=self.configurations.ITERATION_PERIOD_SECONDS)
+            source_operator_pending_records_rate_metrics = self.application_manager.gather_source_operator_pending_record_metrics()
+            source_operator_consumed_records_rate_metrics = self.application_manager.gather_source_operator_consumed_records_rate_metrics()
+
+            # Print metrics
+            self.application_manager.print_metrics({
+                "Backpressure-times": operator_backpressure_time_metrics,
+                "Source-pending-records-rate": source_operator_pending_records_rate_metrics,
+                "Source-consumed-records-rate": source_operator_consumed_records_rate_metrics,
+            })
 
             # For every operator causing backpressure
-            for operator in bottleneckOperators:
-
+            for operator in bottleneck_operators:
                 # If operator is a source
-                if self.configurations.experimentData.operatorIsASource(operator):
+                if self.configurations.experimentData.operator_is_a_source(operator):
                     # Calculate operatorScaleUpFactor for a source
-                    operatorScaleUpFactor = self.calculateSourceOperatorScaleUpFactor(
-                        operator, sourceOperatorPendingRecordsRateMetrics, sourceOperatorConsumedRecordsRateMetrics)
+                    operator_scale_up_factor = self.calculate_source_operator_scale_up_factor(
+                        operator, source_operator_pending_records_rate_metrics, source_operator_consumed_records_rate_metrics)
                 else:
                     # Calculate operatorScaleUpFactor for a regular operator
-                    operatorScaleUpFactor = self.calculateOperatorScaleUpFactor(
-                        operator, operatorBackpressureTimeMetrics, self.topology)
+                    operator_scale_up_factor = self.calculate_operator_scale_up_factor(
+                        operator, operator_backpressure_time_metrics, self.topology)
 
                 # Get desired parallelism
-                operatorDesiredParallelism = self.calculateDesiredParallelism(
-                    operator,
-                    currentParallelisms,
-                    operatorScaleUpFactor
-                )
-                print(f"Determined a scale-up factor of {operatorScaleUpFactor} for operator {operator}, which resulted"
-                      f" in desired parallelism {operatorDesiredParallelism}")
+                operator_desired_parallelism = self.calculate_desired_parallelism(operator, current_parallelisms, operator_scale_up_factor)
+                print(f"Determined a scale-up factor of {operator_scale_up_factor} for operator {operator}, which resulted"
+                      f" in desired parallelism {operator_desired_parallelism}")
 
                 # Save desired parallelism
-                self.setDesiredParallelism(operator, operatorDesiredParallelism)
+                self.set_desired_parallelism(operator, operator_desired_parallelism)
 
         # If no backpressure exists, assume a healthy state
         else:
             print(
                 "No backpressure detected, system is in an healthy state. Investigating scale-down possibilities.")
             # Get information about input buffers of operators
-            inputQueueMetrics = self.applicationManager.gatherBuffersInUsageMetrics()
-            pendingRecordsMetrics = self.applicationManager.gatherSourceOperatorPendingRecordMetrics()
-            print(f"Found the following metrics are found:")
-            print(f"\tBuffer-in-usage[{inputQueueMetrics}]")
-            print(f"\tPending-records[{pendingRecordsMetrics}]")
-            print(f"\tcurrentParallelisms[{currentParallelisms}]")
+            input_queue_metrics = self.application_manager.gather_buffers_in_usage_metrics()
+            pending_records_metrics = self.application_manager.gather_source_operator_pending_record_metrics()
+
+            self.application_manager.print_metrics({"input queue metrics": input_queue_metrics,
+                                                   "pending records metrics": pending_records_metrics})
 
             # For every operator
             for operator in self.operators:
                 # Check if input queue buffer is almost empty
-                if self.configurations.experimentData.operatorIsASource(operator):
-                    operatorHasNoLag = self.pendingRecordsIsCloseToZero(operator, pendingRecordsMetrics)
-                    if operatorHasNoLag:
+                if self.configurations.experimentData.operator_is_a_source(operator):
+                    operator_has_no_lag = self.application_manager.pending_records_is_close_to_zero(
+                        operator, pending_records_metrics, self.configurations.DHALION_KAFKA_LAG_CLOSE_TO_ZERO_THRESHOLD)
+                    if operator_has_no_lag:
                         print(f"Source-operator {operator} is not experiencing any lag. Scaling down operator")
                     else:
                         print(f"Source-operator {operator} is experiencing lag. Source-operator is not scaled down.")
                 else:
-                    operatorHasNoLag = self.queueSizeIsCloseToZero(operator, inputQueueMetrics)
-                    if operatorHasNoLag:
+                    operator_has_no_lag = self.application_manager.queue_size_is_close_to_zero(
+                        operator, input_queue_metrics, self.configurations.DHALION_BUFFER_USAGE_CLOSE_TO_ZERO_THRESHOLD)
+                    if operator_has_no_lag:
                         print(f"Operator {operator} is not experiencing any lag. Scaling down operator")
                     else:
                         print(f"Operator {operator} is experiencing lag. Operator is not scaled down.")
 
-                if operatorHasNoLag:
+                if operator_has_no_lag:
                     # Scale down with SCALE_DOWN_FACTOR
                     # Get desired parallelism
-                    operatorDesiredParallelism = self.calculateDesiredParallelism(
-                        operator,
-                        currentParallelisms,
-                        self.configurations.DHALION_SCALE_DOWN_FACTOR
-                    )
+                    operator_desired_parallelism = self.calculate_desired_parallelism(operator, current_parallelisms,
+                                                                                      self.configurations.DHALION_SCALE_DOWN_FACTOR)
 
-                    self.setDesiredParallelism(operator, operatorDesiredParallelism)
+                    self.set_desired_parallelism(operator, operator_desired_parallelism)
 
         # Manage scaling actions
-        desiredParallelisms = self.getDesiredParallelisms()
-        print(f"Desired parallelisms: {desiredParallelisms}")
-        print(f"Current parallelisms: {currentParallelisms}")
-        self.scaleManager.performScaleOperations(currentParallelisms, desiredParallelisms)
+        desired_parallelisms = self.get_desired_parallelisms()
+
+        # Print parallelisms
+        self.application_manager.print_metrics({"Current parallelisms": current_parallelisms, "Desired parallelisms": desired_parallelisms})
+
+        # Perform scaling actions
+        self.scale_manager.perform_scale_operations(current_parallelisms, desired_parallelisms)

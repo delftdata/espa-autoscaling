@@ -1,7 +1,10 @@
-11;reactive;10;100;dhalion;1200000;1000000;jkanis-space;test;none;
-11;non-reactive;10;100;ds2;1200000;1000000;jkanis-space;workshop-experiments;c5m;
-11;non-reactive;10;100;dhalion;1200000;1000000;jkanis-space;workshop-experiments;c5m;
-1;non-reactive;5;100;ds2;1200000;1000000;jkanis-space;workshop-experiments;c5m;
-1;non-reactive;5;100;dhalion;1200000;1000000;jkanis-space;workshop-experiments;c5m;
-2;non-reactive;5;100;ds2;1200000;1000000;jkanis-space;workshop-experiments;c5m;
-2;non-reactive;5;100;dhalion;1200000;1000000;jkanis-space;workshop-experiments;c5m;
+1;non-reactive;5;80;hpa-cpu;0.7;increase;0;2500000;jkanis-space;load-pattern-testing;;
+1;non-reactive;5;80;hpa-cpu;0.7;decrease;2500000;-;jkanis-space;load-pattern-testing;;
+2;non-reactive;5;80;hpa-cpu;0.7;increase;0;2500000;jkanis-space;load-pattern-testing;;
+2;non-reactive;5;80;hpa-cpu;0.7;decrease;2500000;-;jkanis-space;load-pattern-testing;;
+11;non-reactive;10;80;hpa-cpu;0.7;increase;0;2500000;jkanis-space;load-pattern-testing;;
+11;non-reactive;10;80;hpa-cpu;0.7;decrease;2500000;-;jkanis-space;load-pattern-testing;;
+11;non-reactive;10;80;ds2;1.2;increase;0;2500000;jkanis-space;load-pattern-testing;;
+11;non-reactive;10;80;ds2;1.2;decrease;2500000;-;jkanis-space;load-pattern-testing;;
+11;non-reactive;10;80;hpa-varga;0.7;increase;0;2500000;jkanis-space;load-pattern-testing;;
+11;non-reactive;10;80;hpa-varga;0.7;decrease;2500000;-;jkanis-space;load-pattern-testing;;

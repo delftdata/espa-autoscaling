@@ -1,0 +1,79 @@
+# Requires: AVAILABLE_TASKMANAGERS, QUERY, NAMESPACE, CONFIGURATION
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: hpa-varga
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hpa-varga
+  template:
+    metadata:
+      annotations:
+        prometheus.io/port: '8000'
+        ververica.com/scrape_every_2s: 'true'
+      labels:
+        app: hpa-varga
+    spec:
+      containers:
+      - name: python-container
+        image: gsiachamis/autoscalers:1.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+        args: ["python", "./", "hpa-varga"]
+        env:
+        # Python configurations
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        - name: PYTHONIOENCODING
+          value: "UTF-8"
+
+        # Common variables
+        - name: USE_FLINK_REACTIVE  # {true, false} - false is default
+          value: "false"
+        - name: PROMETHEUS_SERVER   # prometheus-server is default
+          value: "prometheus-server"
+        - name: FLINK_JOBMANAGER_SERVER   # flink-jobmanager-rest:8081 is default
+          value: "flink-jobmanager-rest:8081"
+        - name: AVAILABLE_TASKMANAGERS # 16 is default
+          value: "${AVAILABLE_TASKMANAGERS}"
+        - name: MAXIMUM_PARALLELISM_INCREASE # 50 is default
+          value: "15"
+        - name: OVERPROVISIONING_FACTOR # 1.0 is default
+          value: "1.0"
+        - name: METRIC_AGGREGATION_PERIOD_SECONDS # 60 is default
+          value: "15"
+        - name: COOLDOWN_PERIOD_SECONDS # 120 is default
+          value: "300"
+        - name: ITERATION_PERIOD_SECONDS # 15 is default
+          value: "15"
+        - name: KUBERNETES_NAMESPACE # default is default
+          value: "${NAMESPACE}"
+
+        # Non-reactive functionality
+        - name: NONREACTIVE_TIME_AFTER_SAVEPOINT_SECONDS # 4 is default
+          value: "4"
+        - name: NONREACTIVE_JOB
+          value: "ch.ethz.systems.strymon.ds2.flink.nexmark.queries.updated.Query${QUERY}KafkaSource"
+        - name: NONREACTIVE_CONTAINER
+          value: "gsiachamis/flink-nexmark-queries:1.0"
+        - name: NONREACTIVE_SAVEPOINT_TIMEOUT_SECONDS # 60 is default
+          value: "60"
+        - name: NONREACTIVE_ADJUST_ON_INSUFFICIENT_RESOURCES # true is default
+          value: "true"
+
+          # HPA configurations
+        - name: HPA_SCALE_DOWN_WINDOW_SECONDS # 300 is default
+          value: "300"
+
+          # Varga configurations
+        - name: HPA_VARGA_UTILIZATION_TARGET_VALUE # 0.7 is default
+          value: "${CONFIGURATION}"
+        - name: HPA_VARGA_RELATIVE_LAG_CHANGE_TARGET_VALUE # 1.0 is default
+          value: "1.0"
+        - name: HPA_VARGA_MINIMUM_KAFKA_LAG_RATE_WHEN_BACKPRESSURED_THRESHOLD # 1000 is default
+          value: "10000"
+        - name: HPA_VARGA_DERIVATIVE_PERIOD_SECONDS # 60 is default
+          value: "60"

@@ -1,5 +1,4 @@
 package ch.ethz.systems.strymon.ds2.flink.nexmark.sources.LoadPattern;
-
 import ch.ethz.systems.strymon.ds2.flink.nexmark.sources.LoadPattern.plotting.LoadPatternChart_AWT;
 import org.apache.flink.api.java.tuple.Tuple2;
 
@@ -124,18 +123,23 @@ public abstract class LoadPattern {
         loadPatternChart.setVisible(true);
     }
 
-    public static void main( String[ ] args ) throws Exception {
-        int[] queries = new int[]{1, 3, 11};
 
-//       {
-        for (int query: queries) {
-            for (int i = 0; i < 10; i++) {
-                CosineLoadPattern pattern = new CosineLoadPattern(query, 140);
-                pattern.setSeed(i);
-                pattern.setSpikeUpChance(0.025);
-                pattern.setSpikeDownChance(0.025);
-                pattern.plotLoadPattern();
-            }
+
+    public static void main( String[ ] args ) throws Exception {
+//        RandomLoadPattern random_pattern = new RandomLoadPattern(11, 140, 1250000, -500000, 500000, 2500000);
+//        RandomLoadPattern random_pattern = new RandomLoadPattern(11, 140, 1250000, -30000, 50000, 2500000);
+//        IncreaseLoadPattern increase_pattern = new IncreaseLoadPattern(11, 140);
+//        DecreaseLoadPattern decrease_pattern = new DecreaseLoadPattern(11, 140);
+//
+//        random_pattern.plotLoadPattern();
+//        increase_pattern.plotLoadPattern();
+//        decrease_pattern.plotLoadPattern();
+        int start_seed = 1066;
+        for (int i = 0; i < 10; i++) {
+            int seed = start_seed + i;
+            RandomLoadPattern pattern = new RandomLoadPattern(11, 140, 1250000, -500000, 500000, 2500000);
+            pattern.setSeed(seed);
+            pattern.plotLoadPattern();
         }
     }
 

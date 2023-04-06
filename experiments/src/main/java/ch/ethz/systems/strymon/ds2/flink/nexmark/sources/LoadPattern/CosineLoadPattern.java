@@ -255,7 +255,6 @@ public class CosineLoadPattern extends LoadPattern {
                 if (triggerUpSpike) {
                     // If spike-up is triggered, increase remaining spike periods
                     remainingSpikePeriods = 1 + (int) (random.nextDouble() * this.spikeUpMaximumPeriod);
-                    System.out.println("3. " + remainingSpikePeriods);
                 } else if (triggerDownSpike) {
                     // If spike-down is triggered, decrease remaining spike periods
                     remainingSpikePeriods = -1 + -1 * (int) (random.nextDouble() * this.spikeDownMaximumPeriod);
@@ -266,7 +265,6 @@ public class CosineLoadPattern extends LoadPattern {
                 int additionalSpikeInputRate = (int) (this.spikeUpMinimumInputRate +
                         random.nextDouble() * (this.spikeUpMaximumInputRate - this.spikeUpMinimumInputRate)
                 );
-                System.out.println(this.spikeUpMinimumInputRate + ", " + this.spikeUpMinimumInputRate);
 
                 value += additionalSpikeInputRate;
             } else {
@@ -279,7 +277,7 @@ public class CosineLoadPattern extends LoadPattern {
             }
 
 
-            value = Math.abs(value);
+            value = Math.max(0, value);
             values.add((int) value);
             indices.add(i);
         }

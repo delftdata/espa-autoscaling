@@ -1,9 +1,10 @@
 package ch.ethz.systems.strymon.ds2.flink.nexmark.sources;
 
-import org.apache.kafka.clients.producer.Producer;
-
-import java.util.List;
-
+/**
+ * BidPersonAuctionSourceParallelFunction is the parallel instantiation of BidPersonAuctionSourceFunction.
+ * It creates the records that are expected of the instantiation of this.parallelismIndex.
+ * All BidPersonAuctionSourceParallelFunction instantiations are managed by the BidPersonAuctionSourceParallelManager.
+ */
 public class BidPersonAuctionSourceParallelFunction extends BidPersonAuctionSourceFunction implements Runnable {
     // Parallelism status
     int parallelism;
@@ -18,6 +19,16 @@ public class BidPersonAuctionSourceParallelFunction extends BidPersonAuctionSour
     private int amountOfEpochs;
     private int totalEventsPerEpoch;
 
+    /**
+     * Constructor of BidPersonAuctionSourceParallelFunction
+     * @param kafkaServer String providing the location (url) of the kafka server.
+     * @param epochDurationMs Amount of ms an epoch takes.
+     * @param enablePersonTopic Whether to generate person records.
+     * @param enableAuctionTopic Whether to generate auction records.
+     * @param enableBidTopic Whether to generate bid records.
+     * @param parallelism The total amount of BidPersonAuctionSource functions.
+     * @param parallelismIndex The ID / index of the instantiation of the function. Should be between [0, parallelism-1]
+     */
     public BidPersonAuctionSourceParallelFunction(String kafkaServer, long epochDurationMs, boolean enablePersonTopic, boolean enableAuctionTopic, boolean enableBidTopic, int parallelism, int parallelismIndex) {
         super(kafkaServer, epochDurationMs, enablePersonTopic, enableAuctionTopic, enableBidTopic);
         this.parallelism = parallelism;

@@ -29,7 +29,7 @@ import java.util.Random;
  */
 public class DecreaseLoadPattern extends LoadPattern {
     int query;
-    int startValue;
+    int initialInputRate;
 
     /**
      * Constructor for DecreaseLoadPattern setting values of class based on provided query.
@@ -40,6 +40,11 @@ public class DecreaseLoadPattern extends LoadPattern {
         this.setDefaultValues();
     }
 
+    public DecreaseLoadPattern(int query, int loadPatternPeriod, int initialInputRate) {
+        super(query, loadPatternPeriod);
+        this.initialInputRate = initialInputRate;
+    }
+
     /**
      * Set the default values based on this.query.
      */
@@ -47,13 +52,13 @@ public class DecreaseLoadPattern extends LoadPattern {
     public void setDefaultValues() {
         switch (this.getQuery()) {
             case 1:
-                this.startValue = 240000;
+                this.initialInputRate = 240000;
                 break;
             case 3:
-                this.startValue = 80000;
+                this.initialInputRate = 80000;
                 break;
             case 11:
-                this.startValue = 150000;
+                this.initialInputRate = 150000;
                 break;
             default:
                 System.out.println("Error: query " + this.query + " not recognized.");
@@ -64,7 +69,7 @@ public class DecreaseLoadPattern extends LoadPattern {
     public String getLoadPatternTitle() {
         return "Decrease pattern ("+ this.getSeed() + ")\n" +
                 "Query " + this.getQuery() +
-                " - Start Value " + this.startValue;
+                " - Start Value " + this.initialInputRate;
     }
 
     /**
@@ -78,12 +83,12 @@ public class DecreaseLoadPattern extends LoadPattern {
         List<Integer> values = new ArrayList<>();
         List<Integer> indices = new ArrayList<>();
 
-        int value = this.startValue + 2000;
+        int value = this.initialInputRate + 2000;
         for (int i = 0; i < this.getLoadPatternPeriod(); i++) {
-            int minRange = -1 * this.startValue / 21;
-            int maxRange = this.startValue / 28;
+            int minRange = -1 * this.initialInputRate / 21;
+            int maxRange = this.initialInputRate / 28;
             value += random.nextDouble() * (maxRange - minRange) + minRange;
-            value = Math.abs(value);
+            value = Math.max(0, value);
             values.add(value);
             indices.add(i);
         }

@@ -29,6 +29,7 @@ public class RandomLoadPattern extends LoadPattern {
     int startValue;
     int minDivergence;
     int maxDivergence;
+    int maxInputRate;
 
     /**
      * Constructor using default values based on query input
@@ -50,13 +51,15 @@ public class RandomLoadPattern extends LoadPattern {
             int loadPatternPeriod,
             int startValue,
             int minDivergence,
-            int maxDivergence
+            int maxDivergence,
+            int maxInputRate
     )
     {
         super(query, loadPatternPeriod);
         this.startValue = startValue;
         this.minDivergence = minDivergence;
         this.maxDivergence = maxDivergence;
+        this.maxInputRate = maxInputRate;
     }
 
     /**
@@ -64,6 +67,7 @@ public class RandomLoadPattern extends LoadPattern {
      */
     @Override
     public void setDefaultValues() {
+        this.maxInputRate = Integer.MAX_VALUE;
         this.minDivergence = -10000;
         this.maxDivergence = 10000;
         switch (this.getQuery()) {
@@ -86,7 +90,8 @@ public class RandomLoadPattern extends LoadPattern {
         return "Random pattern ("+ this.getSeed() + ")\n" +
                 "Query " + this.getQuery() +
                 " - Start Value " + this.startValue +
-                " - Step Range ( " + this.minDivergence + ", " + this.maxDivergence + ")";
+                " - Step Range ( " + this.minDivergence + ", " + this.maxDivergence + ")\n" +
+                "Maximum Input-rate " + this.maxInputRate;
     }
 
     /**
@@ -106,7 +111,8 @@ public class RandomLoadPattern extends LoadPattern {
             if (i > 0) {
                 value += random.nextDouble() * (this.maxDivergence - this.minDivergence) + minDivergence;
             }
-            value = Math.abs(value);
+            value = Math.min(this.maxInputRate, value);
+            value = Math.max(0, value);
             values.add(value);
             indices.add(i);
         }

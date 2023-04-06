@@ -1,53 +1,35 @@
 class Autoscalers:
     """
-    Helperclass containing all possible autoscalers with their corresponding variables used by the experiments.
+    Helper-class containing all possible autoscalers.
     """
-    DHALION = "dhalion"
-    DHALION_VARIABLES = [""]
-
-    DS2 = "ds2"
-    DS2_VARIABLES = [""]
-
-    HPA_CPU = "hpa-cpu"
-    HPA_CPU_VARIABLES = [""]
-
-    HPA_VARGA = "hpa-varga"
-    HPA_VARGA_VARIABLES = [""]
-
+    # autoscaler_name: (title, line_color)
+    autoscaler_data = {
+        "dhalion": ("Dhalion", "#DB7093"),
+        "ds2": ("DS2", "#6495ED"),
+        "hpa-cpu": ("HPA-CPU", "#D2691E"),
+        "hpa-varga": ("HPA-Varga", "#D2691E"),
+    }
 
     @staticmethod
-    def getVariablesOfAutoscaler(autoscaler) -> [str]:
-        if autoscaler == Autoscalers.DHALION:
-            return Autoscalers.DHALION_VARIABLES
-        elif autoscaler == Autoscalers.DS2:
-            return Autoscalers.DS2_VARIABLES
-        elif autoscaler == Autoscalers.HPA_CPU:
-            return Autoscalers.HPA_CPU_VARIABLES
-        elif autoscaler == Autoscalers.HPA_VARGA:
-            return Autoscalers.HPA_VARGA_VARIABLES
+    def get_all_autoscalers() -> [str]:
+        return list(Autoscalers.autoscaler_data.keys())
+
+    @staticmethod
+    def is_autoscaler(autoscaler) -> bool:
+        return Autoscalers.get_all_autoscalers().__contains__(autoscaler.lower())
+
+    @staticmethod
+    def get_title_of_autoscaler(autoscaler: str):
+        if Autoscalers.is_autoscaler(autoscaler):
+            return Autoscalers.autoscaler_data[autoscaler][0]
         else:
-            print(f"Error: did not find variables belonging to {autoscaler}.")
-            return []
+            print(f"Error: did not recognize autoscaler {autoscaler}. Returning \"{autoscaler}\" as title instead.")
+            return autoscaler
 
     @staticmethod
-    def getAllAutoscalers() -> [str]:
-        return [
-            Autoscalers.DHALION,
-            Autoscalers.DS2,
-            Autoscalers.HPA_CPU,
-            Autoscalers.HPA_VARGA,
-        ]
-
-    @staticmethod
-    def getAllAutoscalerVariables() -> [str]:
-        return list(map(lambda autoscaler: Autoscalers.getVariablesOfAutoscaler(autoscaler),
-                        Autoscalers.getAllAutoscalers()))
-
-    @staticmethod
-    def getAutoscalerAndVariables() -> [(str, [str])]:
-        return list(zip(Autoscalers.getAllAutoscalers(), Autoscalers.getAllAutoscalerVariables()))
-
-    @staticmethod
-    def isAutoscaler(autoscaler) -> bool:
-        return Autoscalers.getAllAutoscalers().__contains__(autoscaler)
-
+    def get_rbg_color_of_autoscaler(autoscaler: str):
+        if Autoscalers.is_autoscaler(autoscaler):
+            return Autoscalers.autoscaler_data[autoscaler][1]
+        else:
+            print(f"Error: did not recognize autoscaler {autoscaler}. Returning \"{autoscaler}\" as title instead.")
+            return autoscaler

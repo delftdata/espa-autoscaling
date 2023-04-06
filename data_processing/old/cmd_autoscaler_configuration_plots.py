@@ -6,13 +6,7 @@ from Plotting import overlapAndPlotMultipleDataFiles
 
 
 def plotAutoscalerConfigurations(parameters: SingleFolderPlotParameters):
-    def getSaveName(queryName: str, autoscalerName: str):
-        prefixName = parameters.getResultLabel()
-        postFixName = "thresholds" if parameters.getPlotThresholds() else ""
 
-        prefix = StaticPlotFunctions.getNamingPrefix(prefixName)
-        postfix = StaticPlotFunctions.getNamingPostfix(postFixName)
-        return f"{prefix}q{queryName}_{autoscalerName}{postfix}"
 
     for query in parameters.getQueries():
         for autoscaler in parameters.getAutoscalers():

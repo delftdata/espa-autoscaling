@@ -39,6 +39,8 @@ spec:
           value: "flink-jobmanager-rest:8081"
         - name: AVAILABLE_TASKMANAGERS # 16 is default
           value: "${AVAILABLE_TASKMANAGERS}"
+        - name: MAXIMUM_PARALLELISM_INCREASE # 50 is default
+          value: "50"
         - name: OVERPROVISIONING_FACTOR # 1.0 is default
           value: "1.0"
         - name: METRIC_AGGREGATION_PERIOD_SECONDS # 60 is default

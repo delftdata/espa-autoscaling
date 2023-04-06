@@ -1,4 +1,4 @@
-# Requires: INPUT_RATE_MEAN, INPUT_RATE_MAX_DIVERGENCE
+# Requires: INPUT_RATE_MEAN, INPUT_RATE_MAX_DIVERGENCE, INPUT_RATE_MAX_NOISE
 kind: Deployment
 apiVersion: apps/v1
 metadata:

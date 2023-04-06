@@ -1,59 +1,35 @@
 import argparse
 
-from DataClasses import Autoscalers, Metrics
-from Plotting import plotDataFile, scatterPlotDataFrame
-from ParameterProcessing import SingleFolderPlotParameters, StaticPlotFunctions
+from DataClasses import FileManager
+from ParameterProcessing import SingleFolderPlotParameters
+from Plotting import Plotter
 
 
 def plotIndividualExperiments(parameters: SingleFolderPlotParameters):
-    def getSaveName():
-        prefixName = parameters.getResultLabel()
-        postFixName = "thresholds" if parameters.getPlotThresholds() else ""
-
-        prefix = StaticPlotFunctions.getNamingPrefix(prefixName)
-        postfix = StaticPlotFunctions.getNamingPostfix(postFixName)
-        experimentName = experimentFile.getExperimentName()
-        return f"{prefix}{experimentName}{postfix}"
-
-    experimentFiles = parameters.getExperimentFiles()
+    experimentFiles = parameters.fetch_experiment_files_from_combined_data_folder()
     for experimentFile in experimentFiles:
-
-        if parameters.getMetrics() == Metrics.getDefaultMetricClasses():
-            parameters.setMetrics(Metrics.getAllMetricClassesForAutoscaler(experimentFile.getAutoscaler()))
-
-        if parameters.getCreateScatterPlot():
-            # Create a scatter plot of the data
-            scatterPlotDataFrame(
-                file=experimentFile,
-                saveDirectory=parameters.getResultFolder(),
-                saveName=getSaveName(),
-                metrics=parameters.getMetrics(),
-                metric_ranges=parameters.getMetricRanges(),
-                plotThresholds=parameters.getPlotThresholds(),
-            )
-        else:
-            # Create a normal plot of the data
-            plotDataFile(
-                file=experimentFile,
-                saveDirectory=parameters.getResultFolder(),
-                saveName=getSaveName(),
-                metrics=parameters.getMetrics(),
-                metric_ranges=parameters.getMetricRanges(),
-                plotThresholds=parameters.getPlotThresholds(),
-            )
+        experiment_save_name = FileManager.get_plot_filename(
+            experimentFile.get_experiment_name(), parameters.get_plot_postfix_label())
+        Plotter.plot_experiment_file(
+            experiment_file=experimentFile,
+            metric_names=parameters.get_metrics(),
+            metric_ranges=parameters.getMetricRanges(),
+            result_filetype=parameters.get_result_filetype(),
+            save_directory=parameters.get_plot_save_folder(),
+            experiment_name=experiment_save_name,
+        )
 
 
 def parseArguments():
-    parameters: SingleFolderPlotParameters = SingleFolderPlotParameters("individual-plots",
-                                                                        option_create_scatter_plot=True)
+    parameters: SingleFolderPlotParameters = SingleFolderPlotParameters("individual-plots")
 
     # Parse arguments
     parser = argparse.ArgumentParser(description='Plot individual experiments')
-    parameters.includeArgumentsInParser(parser)
+    parameters.include_arguments_in_parser(parser)
 
     # Fetch results from arguments
     namespace = parser.parse_args()
-    parameters.fetchArgumentsFromNamespace(namespace)
+    parameters.fetch_arguments_from_namespace(namespace)
 
     # Call plot function
     plotIndividualExperiments(parameters)
