@@ -1,2 +1,0 @@
-prometheus_api_client
-adjustText

@@ -37,10 +37,6 @@
 8;non-reactive;10;80;dhalion;0.8;_;_;cosinus;140;12000;10000;250;_;jkanis-space;thesis-runs-cos;;
 8;non-reactive;10;80;hpa-varga;0.7;_;_;cosinus;140;12000;10000;250;_;jkanis-space;thesis-runs-cos;;
 8;non-reactive;10;80;hpa-cpu;0.7;_;_;cosinus;140;12000;10000;250;_;jkanis-space;thesis-runs-cos;;
-
-
-
-Run 2
 11;non-reactive;10;80;dhalion;0.8;_;_;decrease;140;2500000;_;_;_;jkanis-space;thesis-runs-dec;r2;
 11;non-reactive;10;80;hpa-varga;0.7;_;_;decrease;140;2500000;_;_;_;jkanis-space;thesis-runs-dec;r2;
 11;non-reactive;10;80;hpa-varga;0.7;_;_;increase;140;0;2500000;_;_;jkanis-space;thesis-runs-inc;r2;

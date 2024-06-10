@@ -1,3 +1,0 @@
-# operator_id1,operator_name1,total_number_of_operator_instances1,operator_id2,operator_name2,total_number_of_operator_instances2
-Source:_Kafka_Source,Source:_Kafka_Source,1,Expensive_Computation,Expensive_Computation,2
-Expensive_Computation,Expensive_Computation,2,Sink:_Sink,Sink:_Sink,1

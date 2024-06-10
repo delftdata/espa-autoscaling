@@ -1,3 +1,0 @@
-requests
-kubernetes
-prometheus_client
