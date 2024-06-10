@@ -1,6 +1,12 @@
 # Evaluating Stream Processing Autoscalers
-This repository contains the code and the data generators for the paper "Evaluating Stream Processing Autoscalers" by
-George Siachamis et al., in DEBS 2024.
+This repository contains the code and the data generators for the paper
+
+"Evaluating Stream Processing Autoscalers" by
+George Siachamis et al. (DEBS 2024), 
+
+and the 4-pager preliminary workshop paper 
+
+"Towards Evaluating Stream Processing Autoscalers" by George Siachamis et al. (SMDB 2023).
 
 # Experimental setup
 
